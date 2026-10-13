@@ -1,0 +1,6 @@
+CREATE TABLE community_video_views (
+ video_id UUID NOT NULL REFERENCES community_videos(id) ON DELETE CASCADE,
+ user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ viewed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ PRIMARY KEY(video_id,user_id)
+);

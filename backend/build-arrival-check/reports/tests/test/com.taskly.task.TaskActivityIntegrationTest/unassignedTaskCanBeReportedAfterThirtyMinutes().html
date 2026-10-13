@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - unassignedTaskCanBeReportedAfterThirtyMinutes()</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<div class="breadcrumbs">
+<a class="breadcrumb" href="../index.html">all</a> &gt; 
+<a class="breadcrumb" href="index.html">com.taskly.task.TaskActivityIntegrationTest</a> &gt; 
+<span class="breadcrumb">unassignedTaskCanBeReportedAfterThirtyMinutes()</span>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a class="successGroup" href="#">Gradle Test Run :test</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Gradle Test Run :test</h2>
+<h1>unassignedTaskCanBeReportedAfterThirtyMinutes()</h1>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a class="" href="#">summary</a>
+</li>
+<li>
+<a class="" href="#">standard output</a>
+</li>
+<li>
+<a class="" href="#">error output</a>
+</li>
+</ul>
+<div class="tab">
+<h2>summary</h2>
+<div>
+<div class="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox">
+<div class="counter">1</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox">
+<div class="counter">0</div>
+<p>skipped</p>
+</div>
+</td>
+<td>
+<div class="infoBox duration">
+<div class="counter">1.175s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="tab">
+<h2>standard output</h2>
+<span class="code">
+<pre id="root-0-test-stdout-unassignedTaskCanBeReportedAfterThirtyMinutes()">2026-10-13T12:08:15.202+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-10-13T12:08:15.203+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [UPDATE tasks SET status='POSTED' WHERE id=?]
+2026-10-13T12:08:15.353+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.353+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM tasks WHERE id=? AND customer_id=?]
+2026-10-13T12:08:15.355+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.357+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM task_arrival_reports WHERE task_id=? AND report_type=?]
+2026-10-13T12:08:15.358+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.358+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT occurred_at FROM task_status_history WHERE task_id=? AND to_status='TASKER_ON_THE_WAY' ORDER BY occurred_at DESC]
+2026-10-13T12:08:15.359+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.360+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT scheduled_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.361+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.361+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT created_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.507+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.508+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM tasks WHERE id=? AND customer_id=? FOR UPDATE]
+2026-10-13T12:08:15.509+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.509+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM task_arrival_reports WHERE task_id=? AND report_type=?]
+2026-10-13T12:08:15.510+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.510+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT occurred_at FROM task_status_history WHERE task_id=? AND to_status='TASKER_ON_THE_WAY' ORDER BY occurred_at DESC]
+2026-10-13T12:08:15.510+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.510+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT scheduled_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.510+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.510+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT created_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.534+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-10-13T12:08:15.536+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [UPDATE tasks SET created_at=? WHERE id=?]
+2026-10-13T12:08:15.540+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.540+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM tasks WHERE id=? AND customer_id=?]
+2026-10-13T12:08:15.541+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.541+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM task_arrival_reports WHERE task_id=? AND report_type=?]
+2026-10-13T12:08:15.541+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.541+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT occurred_at FROM task_status_history WHERE task_id=? AND to_status='TASKER_ON_THE_WAY' ORDER BY occurred_at DESC]
+2026-10-13T12:08:15.541+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.542+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT scheduled_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.542+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.542+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT created_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.549+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.549+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM tasks WHERE id=? AND customer_id=? FOR UPDATE]
+2026-10-13T12:08:15.550+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.550+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM task_arrival_reports WHERE task_id=? AND report_type=?]
+2026-10-13T12:08:15.550+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.550+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT occurred_at FROM task_status_history WHERE task_id=? AND to_status='TASKER_ON_THE_WAY' ORDER BY occurred_at DESC]
+2026-10-13T12:08:15.550+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.550+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT scheduled_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.550+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.550+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT created_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.550+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.550+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT full_name FROM user_profiles WHERE user_id=?]
+2026-10-13T12:08:15.552+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-10-13T12:08:15.553+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [INSERT INTO customer_support_messages(id,user_id,sender,content,task_id) VALUES(?,?,'USER',?,?)]
+2026-10-13T12:08:15.553+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-10-13T12:08:15.553+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [INSERT INTO task_arrival_reports(task_id,customer_id,tasker_id,message_id,report_type) VALUES(?,?,?,?,?)]
+2026-10-13T12:08:15.553+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.553+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM task_arrival_reports WHERE task_id=? AND report_type=?]
+2026-10-13T12:08:15.553+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.553+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT occurred_at FROM task_status_history WHERE task_id=? AND to_status='TASKER_ON_THE_WAY' ORDER BY occurred_at DESC]
+2026-10-13T12:08:15.553+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.553+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT scheduled_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.555+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.555+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT created_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.556+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing SQL update [UPDATE live_sync_revision SET revision=revision+1 WHERE id=1]
+2026-10-13T12:08:15.562+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.563+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM tasks WHERE id=? AND customer_id=? FOR UPDATE]
+2026-10-13T12:08:15.563+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.563+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM task_arrival_reports WHERE task_id=? AND report_type=?]
+2026-10-13T12:08:15.564+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.564+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT occurred_at FROM task_status_history WHERE task_id=? AND to_status='TASKER_ON_THE_WAY' ORDER BY occurred_at DESC]
+2026-10-13T12:08:15.564+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.564+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT scheduled_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.564+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.564+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT created_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.565+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing SQL update [UPDATE live_sync_revision SET revision=revision+1 WHERE id=1]
+2026-10-13T12:08:15.566+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.566+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM task_arrival_reports WHERE task_id=? AND report_type='NO_TASKER']
+2026-10-13T12:08:15.572+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.572+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM customer_support_messages WHERE task_id=?]
+2026-10-13T12:08:15.573+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-10-13T12:08:15.573+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [UPDATE tasks SET status='CANCELLED' WHERE id=?]
+2026-10-13T12:08:15.577+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.577+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM tasks WHERE id=? AND customer_id=?]
+2026-10-13T12:08:15.577+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.577+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM task_arrival_reports WHERE task_id=? AND report_type=?]
+2026-10-13T12:08:15.578+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.578+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT occurred_at FROM task_status_history WHERE task_id=? AND to_status='TASKER_ON_THE_WAY' ORDER BY occurred_at DESC]
+2026-10-13T12:08:15.578+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.578+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT scheduled_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.579+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.579+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT created_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.584+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.584+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM tasks WHERE id=? AND customer_id=? FOR UPDATE]
+2026-10-13T12:08:15.586+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.586+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM task_arrival_reports WHERE task_id=? AND report_type=?]
+2026-10-13T12:08:15.586+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.586+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT occurred_at FROM task_status_history WHERE task_id=? AND to_status='TASKER_ON_THE_WAY' ORDER BY occurred_at DESC]
+2026-10-13T12:08:15.586+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.587+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT scheduled_at FROM tasks WHERE id=?]
+2026-10-13T12:08:15.587+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T12:08:15.587+07:00 DEBUG 42648 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT created_at FROM tasks WHERE id=?]
+</pre>
+<button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stdout-unassignedTaskCanBeReportedAfterThirtyMinutes()">Copy</button>
+</span>
+</div>
+<div class="tab">
+<h2>error output</h2>
+<span class="code">
+<pre id="root-0-test-stderr-unassignedTaskCanBeReportedAfterThirtyMinutes()">Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (C:\Users\Lenovo\.gradle\caches\modules-2\files-2.1\net.bytebuddy\byte-buddy-agent\1.18.11\82212e5b3633e7a65fca8bec525762cfb6c9bae4\byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+</pre>
+<button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stderr-unassignedTaskCanBeReportedAfterThirtyMinutes()">Copy</button>
+</span>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 9.7.1</a> at Oct 13, 2026, 12:08:16 PM</p>
+</div>
+</div>
+</body>
+</html>

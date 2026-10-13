@@ -1,0 +1,5 @@
+CREATE TABLE partner_benefits (
+ id UUID PRIMARY KEY,name VARCHAR(160) NOT NULL,description VARCHAR(2000) NOT NULL,
+ content_url VARCHAR(1000) NOT NULL DEFAULT '',requires_active BOOLEAN NOT NULL,
+ active BOOLEAN NOT NULL,version BIGINT NOT NULL DEFAULT 0
+);

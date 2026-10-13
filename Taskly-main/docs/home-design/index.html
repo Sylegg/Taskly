@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaskLy · Customer Home Design</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f7fbf9;color:#0f172a;font-family:Inter,Segoe UI,sans-serif}main{max-width:1180px;margin:auto;padding:56px 28px}header{max-width:750px}.brand{color:#087a60;font-size:12px;letter-spacing:3px;font-weight:700}h1{font-size:clamp(32px,5vw,54px);letter-spacing:-2px;line-height:1.12;margin:18px 0}p{color:#667085;line-height:1.7}button,select{font:inherit;border:1px solid #dde7e4;border-radius:12px;background:white;padding:11px 15px;color:#087a60;cursor:pointer}button[aria-pressed=true]{background:#087a60;color:white;border-color:#087a60}.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:30px 0}.screens{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px;max-width:850px;margin:40px auto}.phone{padding:9px;background:#fff;border:1px solid #dde7e4;border-radius:36px;box-shadow:0 18px 60px #087a6010;overflow:hidden}.phone img{width:100%;display:block;border-radius:28px}.caption{font-size:13px;margin:14px 8px;color:#667085}.caption strong{color:#0f172a}h2{margin-top:64px;font-size:26px;letter-spacing:-.6px}.components{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}.component{border:1px solid #dde7e4;border-radius:20px;overflow:hidden;background:white;color:#0f172a;text-decoration:none}.component img{width:100%;height:260px;object-fit:contain;background:#f7fbf9}.component span{display:block;padding:16px;font-size:13px;font-weight:600}.note{padding:22px;border-radius:18px;background:#ddf5ee;color:#087a60;font-size:13px;margin:24px 0}a{color:#087a60}.download{font-size:12px}.footer{margin-top:36px;font-size:12px}@media(max-width:600px){main{padding:28px 16px}.screens{gap:22px;grid-template-columns:1fr;max-width:390px}.components{grid-template-columns:1fr 1fr}.component img{height:200px}.brand{letter-spacing:1px}}
+</style>
+<main>
+<header><div class="brand">TASKLY / CUSTOMER HOME</div><h1>Việc nhà nhẹ hơn.<br>Cuộc sống thảnh thơi hơn.</h1><p>Emerald, Mint và robot trợ lý riêng của TaskLy. Bộ thiết kế được render trực tiếp từ các component Flutter, với nội dung ưu tiên dịch vụ và công việc.</p></header>
+<div class="controls" id="states">
+<button data-state="returning" aria-pressed="true">Đang có công việc</button><button data-state="new" aria-pressed="false">Khách hàng mới</button><button data-state="no-active" aria-pressed="false">Không có việc đang chạy</button><button data-state="loading" aria-pressed="false">Loading</button><button data-state="offline" aria-pressed="false">Offline</button><button data-state="error" aria-pressed="false">Lỗi tải</button>
+<select id="size" aria-label="Kích thước màn hình"><option>360x800</option><option selected>390x844</option><option>430x932</option></select></div>
+<div class="screens"><div><div class="phone"><img id="home" src="returning-390x844.png" alt="TaskLy Customer Home"></div><div class="caption"><strong>Trang đầu</strong> · <a id="download" class="download" href="returning-390x844.png">Mở PNG 3×</a></div></div><div id="secondary"><div class="phone"><img id="detail" src="returning-scroll-450.png" alt="Nội dung tiếp theo khi cuộn Home"></div><div class="caption"><strong>Nội dung khi cuộn</strong> · Mẫu 390px</div></div></div>
+<div class="note">Các màn hình dùng dữ liệu mẫu để review thiết kế. Điểm thưởng và favorites chỉ xuất hiện khi có dữ liệu; bộ Home trong app không tự tạo các số liệu này.</div>
+<h2>Component library</h2><p>Những thành phần dùng lại được, cùng một hệ màu và khoảng cách.</p><div class="components" id="components"></div>
+<p class="footer"><a href="README.md">Thông số, luồng tương tác, giới hạn dữ liệu và lệnh chạy Flutter</a></p>
+</main>
+<script>
+let state='returning';const size=document.getElementById('size');
+function update(){const file=state+'-'+size.value+'.png';document.getElementById('home').src=file;document.getElementById('download').href=file;document.getElementById('secondary').hidden=state==='loading';document.getElementById('detail').src=state+'-scroll-450.png';document.querySelectorAll('[data-state]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.state===state)));}
+document.getElementById('states').addEventListener('click',e=>{if(e.target.dataset.state){state=e.target.dataset.state;update();}});size.addEventListener('change',update);
+const items=[['header','Home Header'],['service-grid','Service Grid'],['service-category','Service Category'],['active-task','Active Task'],['upcoming-task','Upcoming Task'],['assistant','TaskLy Assistant'],['recommended-service','Recommended Service'],['book-again','Book Again'],['favorite-partner','Favorite Partner'],['rewards','Rewards Progress'],['home-tip','Home Tip'],['bottom-navigation','Bottom Navigation']];
+items.forEach(([key,label])=>{const a=document.createElement('a');a.className='component';a.href='component-'+key+'.png';const img=document.createElement('img');img.src=a.href;img.alt=label;img.loading='lazy';const span=document.createElement('span');span.textContent=label;a.append(img,span);document.getElementById('components').append(a);});
+</script>
+</html>

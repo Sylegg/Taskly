@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - customerAndPartnerSupportStaySeparateForTheSameAccount()</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<div class="breadcrumbs">
+<a class="breadcrumb" href="../index.html">all</a> &gt; 
+<a class="breadcrumb" href="index.html">com.taskly.booking.BookingDraftControllerTest</a> &gt; 
+<span class="breadcrumb">customerAndPartnerSupportStaySeparateForTheSameAccount()</span>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a class="successGroup" href="#">Gradle Test Run :test</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Gradle Test Run :test</h2>
+<h1>customerAndPartnerSupportStaySeparateForTheSameAccount()</h1>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a class="" href="#">summary</a>
+</li>
+<li>
+<a class="" href="#">standard output</a>
+</li>
+<li>
+<a class="" href="#">error output</a>
+</li>
+</ul>
+<div class="tab">
+<h2>summary</h2>
+<div>
+<div class="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox">
+<div class="counter">1</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox">
+<div class="counter">0</div>
+<p>skipped</p>
+</div>
+</td>
+<td>
+<div class="infoBox duration">
+<div class="counter">1.022s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="tab">
+<h2>standard output</h2>
+<span class="code">
+<pre id="root-0-test-stdout-customerAndPartnerSupportStaySeparateForTheSameAccount()">2026-10-13T13:59:16.206+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-10-13T13:59:16.207+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [INSERT INTO recruitment_areas(id,city,name,recruiting,capacity,version,updated_at) VALUES(?,?,?,true,100,0,CURRENT_TIMESTAMP)]
+2026-10-13T13:59:16.608+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.609+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT id FROM users WHERE id=? FOR UPDATE]
+2026-10-13T13:59:16.610+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.610+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM customer_support_messages WHERE id=? AND user_id=?]
+2026-10-13T13:59:16.610+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-10-13T13:59:16.610+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [INSERT INTO customer_support_messages(id,user_id,sender,content,image_data,task_id) VALUES(?,?,'USER',?,?,?)]
+2026-10-13T13:59:16.672+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing SQL update [UPDATE live_sync_revision SET revision=revision+1 WHERE id=1]
+2026-10-13T13:59:16.687+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.687+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT id FROM users WHERE id=? FOR UPDATE]
+2026-10-13T13:59:16.687+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.687+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM customer_support_messages WHERE id=? AND user_id=?]
+2026-10-13T13:59:16.689+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing SQL update [UPDATE live_sync_revision SET revision=revision+1 WHERE id=1]
+2026-10-13T13:59:16.693+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.693+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT id,sender,content,image_data,created_at,task_id FROM support_messages WHERE user_id=? ORDER BY created_at,id]
+2026-10-13T13:59:16.753+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.754+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT id FROM users WHERE id=? FOR UPDATE]
+2026-10-13T13:59:16.754+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.754+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM support_messages WHERE id=? AND user_id=?]
+2026-10-13T13:59:16.755+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-10-13T13:59:16.755+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [INSERT INTO support_messages(id,user_id,sender,content,image_data,task_id) VALUES(?,?,'USER',?,?,?)]
+2026-10-13T13:59:16.756+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing SQL update [UPDATE live_sync_revision SET revision=revision+1 WHERE id=1]
+2026-10-13T13:59:16.760+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.760+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT id,sender,content,image_data,created_at,task_id FROM customer_support_messages WHERE user_id=? ORDER BY created_at,id]
+2026-10-13T13:59:16.774+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.774+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT id,sender,content,image_data,created_at,task_id FROM customer_support_messages WHERE user_id=? ORDER BY created_at,id]
+2026-10-13T13:59:16.783+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.783+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT id FROM users WHERE id=? FOR UPDATE]
+2026-10-13T13:59:16.783+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-10-13T13:59:16.783+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [INSERT INTO customer_support_message_reads(message_id,admin_id) SELECT id,? FROM customer_support_messages WHERE id=? AND user_id=? AND sender='USER' AND NOT EXISTS(SELECT 1 FROM customer_support_message_reads WHERE message_id=? AND admin_id=?)]
+2026-10-13T13:59:16.784+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing SQL update [UPDATE live_sync_revision SET revision=revision+1 WHERE id=1]
+2026-10-13T13:59:16.788+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.788+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT m.user_id,p.full_name,m.updated_at,(SELECT MAX(sm.created_at) FROM customer_support_messages sm WHERE sm.user_id=m.user_id AND sm.sender='USER') AS last_incoming_at,NULL AS avatar,(SELECT COUNT(*) FROM customer_support_messages sm WHERE sm.user_id=m.user_id AND sm.sender='USER' AND NOT EXISTS(SELECT 1 FROM customer_support_message_reads r WHERE r.message_id=sm.id AND r.admin_id=?)) AS unread_count FROM (SELECT user_id,MAX(created_at) AS updated_at FROM customer_support_messages GROUP BY user_id) m LEFT JOIN user_profiles p ON p.user_id=m.user_id ORDER BY m.updated_at DESC]
+2026-10-13T13:59:16.804+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.804+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT m.user_id,p.full_name,m.updated_at,(SELECT MAX(sm.created_at) FROM support_messages sm WHERE sm.user_id=m.user_id AND sm.sender='USER') AS last_incoming_at,f.portrait AS avatar,(SELECT COUNT(*) FROM support_messages sm WHERE sm.user_id=m.user_id AND sm.sender='USER' AND NOT EXISTS(SELECT 1 FROM support_message_reads r WHERE r.message_id=sm.id AND r.admin_id=?)) AS unread_count FROM (SELECT user_id,MAX(created_at) AS updated_at FROM support_messages GROUP BY user_id) m LEFT JOIN user_profiles p ON p.user_id=m.user_id LEFT JOIN partner_applications a ON a.user_id=m.user_id LEFT JOIN partner_final_documents f ON f.application_id=a.id ORDER BY m.updated_at DESC]
+2026-10-13T13:59:16.812+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.812+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT id FROM users WHERE id=? FOR UPDATE]
+2026-10-13T13:59:16.812+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.812+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM customer_support_messages WHERE id=? AND user_id=? AND sender='STAFF']
+2026-10-13T13:59:16.813+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-10-13T13:59:16.813+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [INSERT INTO customer_support_messages(id,user_id,sender,content) VALUES(?,?,'STAFF',?)]
+2026-10-13T13:59:16.814+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2026-10-13T13:59:16.814+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [INSERT INTO customer_booking_notifications(id,customer_id,task_id,title,created_at) VALUES(?,?,NULL,?,CURRENT_TIMESTAMP)]
+2026-10-13T13:59:16.814+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing SQL update [UPDATE live_sync_revision SET revision=revision+1 WHERE id=1]
+2026-10-13T13:59:16.817+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.818+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT id,sender,content,image_data,created_at,task_id FROM customer_support_messages WHERE user_id=? ORDER BY created_at,id]
+2026-10-13T13:59:16.820+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2026-10-13T13:59:16.820+07:00 DEBUG 38680 --- [taskly-backend] [    Test worker] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT id,sender,content,image_data,created_at,task_id FROM support_messages WHERE user_id=? ORDER BY created_at,id]
+</pre>
+<button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stdout-customerAndPartnerSupportStaySeparateForTheSameAccount()">Copy</button>
+</span>
+</div>
+<div class="tab">
+<h2>error output</h2>
+<span class="code">
+<pre id="root-0-test-stderr-customerAndPartnerSupportStaySeparateForTheSameAccount()">Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (C:\Users\Lenovo\.gradle\caches\modules-2\files-2.1\net.bytebuddy\byte-buddy-agent\1.18.11\82212e5b3633e7a65fca8bec525762cfb6c9bae4\byte-buddy-agent-1.18.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+</pre>
+<button class="clipboard-copy-btn" aria-label="Copy to clipboard" data-copy-element-id="root-0-test-stderr-customerAndPartnerSupportStaySeparateForTheSameAccount()">Copy</button>
+</span>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 9.7.1</a> at Oct 13, 2026, 1:59:17 PM</p>
+</div>
+</div>
+</body>
+</html>

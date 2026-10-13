@@ -1,0 +1,30 @@
+00:00 +0: loading C:/Users/Lenovo/Downloads/workspace-01a0ec6a-b57f-7296-95e5-b304596acf5a/Taskly-main/test/recruitment_shell_test.dart
+00:00 +0: new authenticated applicant at 320.0 has four tabs and no accept action
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: FlutterError:<A RenderFlex overflowed by 83 pixels on the right.>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///C:/Users/Lenovo/Downloads/workspace-01a0ec6a-b57f-7296-95e5-b304596acf5a/Taskly-main/test/recruitment_shell_test.dart:63:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/Users/Lenovo/Downloads/workspace-01a0ec6a-b57f-7296-95e5-b304596acf5a/Taskly-main/test/recruitment_shell_test.dart line 63
+The test description was:
+  new authenticated applicant at 320.0 has four tabs and no accept action
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -1: new authenticated applicant at 320.0 has four tabs and no accept action [E]
+  Test failed. See exception logs above.
+  The test description was: new authenticated applicant at 320.0 has four tabs and no accept action
+  
+00:00 +0 -1: Some tests failed.
+
+Failing tests:
+  C:/Users/Lenovo/Downloads/workspace-01a0ec6a-b57f-7296-95e5-b304596acf5a/Taskly-main/test/recruitment_shell_test.dart: new authenticated applicant at 320.0 has four tabs and no accept action

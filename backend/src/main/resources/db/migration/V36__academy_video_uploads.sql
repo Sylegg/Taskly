@@ -1,0 +1,6 @@
+CREATE TABLE partner_training_videos (
+ id UUID PRIMARY KEY,
+ uploaded_by UUID NOT NULL REFERENCES users(id),
+ video_data BYTEA NOT NULL,
+ created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
