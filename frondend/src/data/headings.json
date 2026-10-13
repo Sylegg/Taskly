@@ -1,0 +1,122 @@
+{
+  "dashboard": [
+    "Điều hành toàn hệ thống",
+    "Một không gian tổng quan mọi chuyển động của TaskLy."
+  ],
+  "operations": [
+    "Live Operations Center",
+    "Theo dõi công việc theo từng trạng thái và xử lý ngoại lệ."
+  ],
+  "analytics": [
+    "Analytics & Insights",
+    "Khám phá hiệu suất booking, chất lượng dịch vụ và doanh thu."
+  ],
+  "customers": [
+    "Quản lý khách hàng",
+    "Hồ sơ, trạng thái hoạt động, lịch sử và an toàn tài khoản."
+  ],
+  "partners": [
+    "Quản lý đối tác",
+    "Kỹ năng, khu vực, khả dụng, đánh giá và hiệu suất Partner."
+  ],
+  "daily-milestones": [
+    "Thưởng mốc đơn mỗi ngày",
+    "Cấu hình mốc đơn, tiền thưởng cộng ví và phúc lợi cho đối tác Tasker."
+  ],
+  "services": [
+    "Dịch vụ",
+    "Quản lý nội dung, biểu tượng, thiết lập giá và trạng thái dịch vụ trên ứng dụng."
+  ],
+  "categories": [
+    "Danh mục dịch vụ",
+    "Tạo và quản lý nhóm dịch vụ đồng bộ với TaskLy Customer."
+  ],
+  "tasks": [
+    "Task Management",
+    "Quản lý xuyên suốt vòng đời công việc Customer ↔ Partner."
+  ],
+  "payments": [
+    "Quản lý Nạp & Rút tiền",
+    "Theo dõi dòng tiền nạp ví, giữ tiền cọc, phê duyệt lệnh rút tiền đối tác & hoàn tiền khách hàng."
+  ],
+  "refunds": [
+    "Refund Requests",
+    "Phê duyệt hoàn tiền theo quy tắc demo và lưu vết quyết định."
+  ],
+  "disputes": [
+    "Dispute Resolution",
+    "Xem bằng chứng, ra quyết định và áp dụng hoàn tiền/giải ngân."
+  ],
+  "tickets": [
+    "Chăm sóc khách hàng",
+    "Tiếp nhận tin nhắn và phản hồi cho người dùng."
+  ],
+  "reviews": [
+    "Review Moderation",
+    "Kiểm soát đánh giá và nội dung bị báo cáo."
+  ],
+  "banners": [
+    "Banner trang chủ",
+    "Đăng ảnh và bật/tắt banner trên app Customer. Ảnh thêm trước hiển thị trước."
+  ],
+  "vouchers": [
+    "Voucher Manager",
+    "Mã giảm giá, hiệu lực, hạn mức và điều kiện áp dụng."
+  ],
+  "rewards": [
+    "TaskPoints Rewards",
+    "Cấu hình đổi điểm và theo dõi tài khoản thưởng."
+  ],
+  "campaigns": [
+    "Notifications & Campaigns",
+    "Soạn thông báo và quản lý chiến dịch gửi bản demo."
+  ],
+  "staff": [
+    "Admin Team",
+    "Tài khoản quản trị và các vai trò vận hành."
+  ],
+  "permissions": [
+    "Access Control Matrix",
+    "Ma trận quyền giữa Super Admin và nhóm nhân viên."
+  ],
+  "audit": [
+    "System Audit Logs",
+    "Ai đã làm gì, lúc nào và thay đổi nào được tạo."
+  ],
+  "settings": [
+    "Cài đặt hệ thống",
+    "Thông tin cấu hình và quản lý tham số nghiệp vụ."
+  ],
+  "integrations": [
+    "Infrastructure & Providers",
+    "Trạng thái adapter API, email, thanh toán, bản đồ và realtime."
+  ],
+  "datalab": [
+    "Data Lab & QA Tools",
+    "Nhập/xuất JSON, CSV, tạo dữ liệu thử và reset môi trường."
+  ],
+  "recruitment": [
+    "Tuyển dụng Tasker",
+    "Hồ sơ ứng viên và khu vực tuyển dụng từ backend chung."
+  ],
+  "community": [
+    "Cộng đồng",
+    "Đăng ảnh và bài viết cho khách hàng TaskLy."
+  ],
+  "recruitment-areas": [
+    "Khu vực tuyển dụng",
+    "Quản lý khu vực, dịch vụ tuyển và chỉ tiêu Partner."
+  ],
+  "recruitment-applications": [
+    "Hồ sơ ứng tuyển",
+    "Theo dõi tiến trình và xét duyệt hồ sơ Partner."
+  ],
+  "recruitment-exam": [
+    "Bài thi câu hỏi",
+    "Quản lý bài thi đầu vào và ngân hàng câu hỏi Partner."
+  ],
+  "recruitment-uniforms": [
+    "Đồng phục",
+    "Quản lý gói đồng phục, giá và tồn kho theo size."
+  ]
+}

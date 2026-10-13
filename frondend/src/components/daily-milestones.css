@@ -1,0 +1,719 @@
+/* ==========================================================================
+   DAILY MILESTONES ADMIN STYLING (Thưởng mốc đơn mỗi ngày)
+   TaskLy Partner Incentive & Quota Bonus Management
+   ========================================================================== */
+
+.milestones-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeInMilestones 0.2s ease-out;
+}
+
+@keyframes fadeInMilestones {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 1. Header Banner */
+.milestones-header-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fbf9 100%);
+  border: 1px solid #e1ece6;
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 4px 16px rgba(11, 152, 121, 0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.milestones-header-main {
+  max-width: 680px;
+}
+
+.milestones-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.milestones-header-title-row h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 850;
+  color: #0f241d;
+  letter-spacing: -0.02em;
+}
+
+.milestones-wallet-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.milestones-header-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #4b6359;
+}
+
+.milestones-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 2. KPI Metrics Grid */
+.milestones-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.milestone-kpi-card {
+  background: #ffffff;
+  border: 1px solid #e3ede8;
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(15, 36, 29, 0.03);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.milestone-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(15, 36, 29, 0.06);
+}
+
+.milestone-kpi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.milestone-kpi-icon.emerald {
+  background: #e6f7f1;
+  color: #0b9879;
+}
+
+.milestone-kpi-icon.blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.milestone-kpi-icon.amber {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.milestone-kpi-icon.purple {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.milestone-kpi-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.milestone-kpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.milestone-kpi-value {
+  font-size: 19px;
+  font-weight: 900;
+  color: #0f241d;
+  line-height: 1.25;
+  margin: 2px 0;
+}
+
+.milestone-kpi-sub {
+  font-size: 11px;
+  color: #8da399;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 3. Main Workspace Layout */
+.milestones-workspace {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.milestones-workspace.with-preview {
+  grid-template-columns: 1fr 380px;
+}
+
+@media (max-width: 1024px) {
+  .milestones-workspace.with-preview {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 4. Controls Toolbar */
+.milestones-toolbar {
+  background: #ffffff;
+  border: 1px solid #e3ede8;
+  border-radius: 16px;
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 8px rgba(15, 36, 29, 0.02);
+}
+
+.milestones-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.milestones-filter-chip {
+  border: 1px solid #e2ece7;
+  background: #ffffff;
+  color: #52675d;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.milestones-filter-chip:hover {
+  background: #f3f8f5;
+  color: #0b9879;
+}
+
+.milestones-filter-chip.active {
+  background: #0b9879;
+  color: #ffffff;
+  border-color: #0b9879;
+}
+
+.milestones-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 5. Cards List */
+.milestones-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.milestone-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.milestone-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  border-color: #cbd5e1;
+}
+
+.milestone-card.inactive {
+  opacity: 0.65;
+  background: #fafafa;
+}
+
+.milestone-card-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.milestone-icon-box {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease;
+}
+
+.milestone-card:hover .milestone-icon-box {
+  transform: scale(1.05);
+}
+
+.milestone-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.milestone-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.milestone-orders-title {
+  font-size: 15px;
+  font-weight: 850;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.milestone-badge-pill {
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.01em;
+}
+
+.milestone-status-chip {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 5px;
+}
+
+.milestone-status-chip.active {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.milestone-status-chip.inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.milestone-perk-desc {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.45;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Right Side of Card */
+.milestone-card-aside {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.milestone-bonus-chip {
+  padding: 8px 14px;
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  border-radius: 12px;
+  color: #059669;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.milestone-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.milestone-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.milestone-icon-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.milestone-icon-btn.delete:hover {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.milestone-icon-btn.active-toggle {
+  color: #059669;
+}
+
+.milestone-icon-btn.active-toggle.off {
+  color: #94a3b8;
+}
+
+/* 6. Mobile Preview Container (Giao diện chuẩn App Đối tác Tasker) */
+.milestones-mobile-container {
+  background: #ffffff;
+  border: 1px solid #e2ece7;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 6px 24px rgba(11, 152, 121, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: sticky;
+  top: 80px;
+}
+
+.mobile-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-preview-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f241d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mobile-phone-frame {
+  background: #f8fafc;
+  border: 8px solid #1e293b;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+}
+
+.mobile-phone-notch {
+  width: 100px;
+  height: 16px;
+  background: #1e293b;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  margin: 0 auto;
+}
+
+.mobile-phone-screen {
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f8fafc;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 480px;
+}
+
+.mobile-app-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.mobile-app-section-title {
+  font-size: 14px;
+  font-weight: 850;
+  color: #0f172a;
+}
+
+.mobile-app-badge {
+  padding: 2.5px 7px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #059669;
+}
+
+/* Thẻ mốc trong màn hình điện thoại (Giống ảnh 100%) */
+.mobile-milestone-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 15px;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+}
+
+.mobile-milestone-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+.mobile-milestone-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-milestone-top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 2px;
+}
+
+.mobile-milestone-orders {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.mobile-milestone-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1.5px 5px;
+  border-radius: 4px;
+}
+
+.mobile-milestone-perk {
+  font-size: 10px;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.mobile-milestone-bonus {
+  padding: 5px 8px;
+  background: #ecfdf5;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #059669;
+  flex-shrink: 0;
+}
+
+/* 7. Modal / Popup Form */
+.milestone-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.milestone-field-full {
+  grid-column: 1 / -1;
+}
+
+.milestone-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.milestone-field-group label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.milestone-field-group input,
+.milestone-field-group textarea,
+.milestone-field-group select {
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  background: #ffffff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.milestone-field-group input:focus,
+.milestone-field-group textarea:focus,
+.milestone-field-group select:focus {
+  border-color: #0b9879;
+  box-shadow: 0 0 0 3px rgba(11, 152, 121, 0.12);
+}
+
+.milestone-field-hint {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Preset Badge Chips */
+.milestone-badge-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.milestone-preset-chip {
+  padding: 3px 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.milestone-preset-chip:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Emoji Picker Bar */
+.milestone-emoji-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.milestone-emoji-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all 0.12s ease;
+}
+
+.milestone-emoji-btn:hover {
+  transform: scale(1.15);
+  border-color: #0b9879;
+}
+
+.milestone-emoji-btn.selected {
+  background: #ecfdf5;
+  border-color: #059669;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+}
+
+/* Color Theme Picker */
+.milestone-theme-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.milestone-theme-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.milestone-theme-btn.selected {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-color: #0f172a;
+}
+
+/* Toggle Switch */
+.milestone-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.milestone-switch-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: #0b9879;
+}
+
+/* Empty State */
+.milestones-empty {
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 18px;
+  padding: 40px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #64748b;
+}
+
+.milestones-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #f1f5f9;
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+}

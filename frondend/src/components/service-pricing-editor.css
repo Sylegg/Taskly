@@ -1,0 +1,16 @@
+.service-pricing { margin-top: 24px; padding: 18px; border: 1px solid #deebe4; border-radius: 15px; background: #f9fcfa; }
+.service-pricing-heading { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.service-pricing h3 { margin: 0 0 6px; font-size: 13px; }
+.service-pricing-heading p, .service-pricing-help { margin: 0; color: #789086; font-size: 12px; line-height: 1.6; }
+.service-pricing fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.service-pricing label { display: block; margin-top: 14px; font-size: 12px; font-weight: 600; }
+.service-pricing label input, .service-pricing label select { margin-top: 6px; font-size: 12px; font-weight: 400; }
+.service-pricing-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+.service-pricing-formula { margin: 16px 0 0; padding: 12px; border-radius: 10px; background: #e9f7ee; color: #347d67; font-size: 12px; line-height: 1.7; }
+.service-pricing .service-pricing-enabled { display: flex; align-items: center; gap: 9px; font-weight: 500; }
+.catalogue-admin .service-pricing-enabled input { flex: none; width: 16px; height: 16px; margin: 0; padding: 0; accent-color: #0b9879; }
+.service-pricing-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
+.quantity-field-row { display: grid; grid-template-columns: minmax(0, 1fr) 40px; align-items: end; gap: 12px; margin-bottom: 12px; }
+.quantity-delete-button { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; margin-bottom: 2px; border: 1px solid #f1d8d8; border-radius: 10px; background: #fff; color: #c74343; }
+.quantity-delete-button:hover { background: #fff1f1; }
+@media (max-width: 600px) { .service-pricing { padding: 14px; } .service-pricing-grid { grid-template-columns: minmax(0, 1fr); } }
