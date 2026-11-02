@@ -1,0 +1,1567 @@
+{
+  "version": 1,
+  "actor": "SUPER_ADMIN",
+  "customers": [
+    {
+      "id": "C1001",
+      "name": "Nguyễn Minh Anh",
+      "email": "customer1@example.test",
+      "phone": "09•• ••• 1200",
+      "status": "ACTIVE",
+      "tier": "New",
+      "bookings": 4,
+      "joined": "2026-01-12",
+      "points": 120
+    },
+    {
+      "id": "C1002",
+      "name": "Trần Thanh Tùng",
+      "email": "customer2@example.test",
+      "phone": "09•• ••• 1201",
+      "status": "ACTIVE",
+      "tier": "Silver",
+      "bookings": 12,
+      "joined": "2026-02-12",
+      "points": 151
+    },
+    {
+      "id": "C1003",
+      "name": "Lê Hoài Phương",
+      "email": "customer3@example.test",
+      "phone": "09•• ••• 1202",
+      "status": "ACTIVE",
+      "tier": "Gold",
+      "bookings": 7,
+      "joined": "2026-03-12",
+      "points": 182
+    },
+    {
+      "id": "C1004",
+      "name": "Phạm Quốc Khánh",
+      "email": "customer4@example.test",
+      "phone": "09•• ••• 1203",
+      "status": "ACTIVE",
+      "tier": "Silver",
+      "bookings": 3,
+      "joined": "2026-04-12",
+      "points": 213
+    },
+    {
+      "id": "C1005",
+      "name": "Đỗ Ngọc Linh",
+      "email": "customer5@example.test",
+      "phone": "09•• ••• 1204",
+      "status": "ACTIVE",
+      "tier": "New",
+      "bookings": 9,
+      "joined": "2026-05-12",
+      "points": 244
+    },
+    {
+      "id": "C1006",
+      "name": "Võ Tuấn Kiệt",
+      "email": "customer6@example.test",
+      "phone": "09•• ••• 1205",
+      "status": "ACTIVE",
+      "tier": "Silver",
+      "bookings": 2,
+      "joined": "2026-06-12",
+      "points": 275
+    },
+    {
+      "id": "C1007",
+      "name": "Nguyễn Thị Bích",
+      "email": "customer7@example.test",
+      "phone": "09•• ••• 1206",
+      "status": "ACTIVE",
+      "tier": "Gold",
+      "bookings": 6,
+      "joined": "2026-07-12",
+      "points": 306
+    },
+    {
+      "id": "C1008",
+      "name": "Mai Quang Huy",
+      "email": "customer8@example.test",
+      "phone": "09•• ••• 1207",
+      "status": "RESTRICTED",
+      "tier": "Silver",
+      "bookings": 11,
+      "joined": "2026-08-12",
+      "points": 337
+    },
+    {
+      "id": "C1009",
+      "name": "Trịnh Ngọc Mai",
+      "email": "customer9@example.test",
+      "phone": "09•• ••• 1208",
+      "status": "ACTIVE",
+      "tier": "New",
+      "bookings": 1,
+      "joined": "2026-09-12",
+      "points": 368
+    },
+    {
+      "id": "C1010",
+      "name": "Phan Nhật Long",
+      "email": "customer10@example.test",
+      "phone": "09•• ••• 1209",
+      "status": "ACTIVE",
+      "tier": "Silver",
+      "bookings": 5,
+      "joined": "2026-01-12",
+      "points": 399
+    }
+  ],
+  "partners": [
+    {
+      "id": "P2001",
+      "name": "Nguyễn Thị Hoa",
+      "email": "partner1@example.test",
+      "phone": "09•• ••• 2200",
+      "kyc": "APPROVED",
+      "status": "ACTIVE",
+      "online": true,
+      "skills": [
+        "deep",
+        "clean"
+      ],
+      "area": "Thủ Đức",
+      "rating": "4.6",
+      "completed": 26,
+      "availability": "08:00–18:00",
+      "bank": "•••• 4400"
+    },
+    {
+      "id": "P2002",
+      "name": "Trần Việt Long",
+      "email": "partner2@example.test",
+      "phone": "09•• ••• 2201",
+      "kyc": "APPROVED",
+      "status": "ACTIVE",
+      "online": false,
+      "skills": [
+        "repair",
+        "it"
+      ],
+      "area": "Bình Thạnh",
+      "rating": "4.7",
+      "completed": 37,
+      "availability": "08:00–18:00",
+      "bank": "•••• 4401"
+    },
+    {
+      "id": "P2003",
+      "name": "Lê Thu Trang",
+      "email": "partner3@example.test",
+      "phone": "09•• ••• 2202",
+      "kyc": "APPROVED",
+      "status": "ACTIVE",
+      "online": true,
+      "skills": [
+        "ac",
+        "repair"
+      ],
+      "area": "Quận 7",
+      "rating": "4.8",
+      "completed": 48,
+      "availability": "08:00–18:00",
+      "bank": "•••• 4402"
+    },
+    {
+      "id": "P2004",
+      "name": "Phạm Đức An",
+      "email": "partner4@example.test",
+      "phone": "09•• ••• 2203",
+      "kyc": "APPROVED",
+      "status": "ACTIVE",
+      "online": false,
+      "skills": [
+        "move",
+        "clean"
+      ],
+      "area": "Gò Vấp",
+      "rating": "4.9",
+      "completed": 59,
+      "availability": "08:00–18:00",
+      "bank": "•••• 4403"
+    },
+    {
+      "id": "P2005",
+      "name": "Trương Tuấn Nam",
+      "email": "partner5@example.test",
+      "phone": "09•• ••• 2204",
+      "kyc": "APPROVED",
+      "status": "SUSPENDED",
+      "online": true,
+      "skills": [
+        "shop",
+        "pets"
+      ],
+      "area": "Thủ Đức",
+      "rating": "4.6",
+      "completed": 70,
+      "availability": "08:00–18:00",
+      "bank": "•••• 4404"
+    },
+    {
+      "id": "P2006",
+      "name": "Vũ Minh Hạnh",
+      "email": "partner6@example.test",
+      "phone": "09•• ••• 2205",
+      "kyc": "PENDING",
+      "status": "ACTIVE",
+      "online": false,
+      "skills": [
+        "clean",
+        "deep"
+      ],
+      "area": "Bình Thạnh",
+      "rating": "4.7",
+      "completed": 81,
+      "availability": "08:00–18:00",
+      "bank": "•••• 4405"
+    },
+    {
+      "id": "P2007",
+      "name": "Bùi Trung Kiên",
+      "email": "partner7@example.test",
+      "phone": "09•• ••• 2206",
+      "kyc": "REJECTED",
+      "status": "ACTIVE",
+      "online": true,
+      "skills": [
+        "it",
+        "repair"
+      ],
+      "area": "Quận 7",
+      "rating": "4.8",
+      "completed": 92,
+      "availability": "08:00–18:00",
+      "bank": "•••• 4406"
+    },
+    {
+      "id": "P2008",
+      "name": "Ngô Thanh Thảo",
+      "email": "partner8@example.test",
+      "phone": "09•• ••• 2207",
+      "kyc": "APPROVED",
+      "status": "ACTIVE",
+      "online": false,
+      "skills": [
+        "pets",
+        "shop"
+      ],
+      "area": "Gò Vấp",
+      "rating": "4.9",
+      "completed": 103,
+      "availability": "08:00–18:00",
+      "bank": "•••• 4407"
+    }
+  ],
+  "services": [
+    {
+      "id": "clean",
+      "name": "Dọn nhà",
+      "icon": "🧹",
+      "category": "Việc nhà",
+      "price": 120000,
+      "form": "ca, giờ, diện tích",
+      "active": true,
+      "description": "Dịch vụ Dọn nhà được triển khai bởi TaskLy.",
+      "duration": 2
+    },
+    {
+      "id": "deep",
+      "name": "Tổng vệ sinh",
+      "icon": "✨",
+      "category": "Việc nhà",
+      "price": 299000,
+      "form": "diện tích, số phòng",
+      "active": true,
+      "description": "Dịch vụ Tổng vệ sinh được triển khai bởi TaskLy.",
+      "duration": 2
+    },
+    {
+      "id": "repair",
+      "name": "Sửa chữa",
+      "icon": "🛠️",
+      "category": "Kỹ thuật",
+      "price": 180000,
+      "form": "thiết bị, lỗi, hình ảnh",
+      "active": true,
+      "description": "Dịch vụ Sửa chữa được triển khai bởi TaskLy.",
+      "duration": 2
+    },
+    {
+      "id": "move",
+      "name": "Chuyển nhà",
+      "icon": "🚚",
+      "category": "Vận chuyển",
+      "price": 350000,
+      "form": "địa chỉ đi/đến, tầng, thùng",
+      "active": true,
+      "description": "Dịch vụ Chuyển nhà được triển khai bởi TaskLy.",
+      "duration": 2
+    },
+    {
+      "id": "ac",
+      "name": "Vệ sinh máy lạnh",
+      "icon": "❄️",
+      "category": "Kỹ thuật",
+      "price": 180000,
+      "form": "số máy, loại máy",
+      "active": true,
+      "description": "Dịch vụ Vệ sinh máy lạnh được triển khai bởi TaskLy.",
+      "duration": 2
+    },
+    {
+      "id": "shop",
+      "name": "Đi chợ hộ",
+      "icon": "🛒",
+      "category": "Tiện ích",
+      "price": 80000,
+      "form": "danh sách mua, ngân sách",
+      "active": true,
+      "description": "Dịch vụ Đi chợ hộ được triển khai bởi TaskLy.",
+      "duration": 2
+    },
+    {
+      "id": "pets",
+      "name": "Chăm thú cưng",
+      "icon": "🐾",
+      "category": "Chăm sóc",
+      "price": 120000,
+      "form": "loại thú cưng, thời lượng",
+      "active": true,
+      "description": "Dịch vụ Chăm thú cưng được triển khai bởi TaskLy.",
+      "duration": 2
+    },
+    {
+      "id": "it",
+      "name": "IT Support",
+      "icon": "💻",
+      "category": "Kỹ thuật",
+      "price": 200000,
+      "form": "thiết bị, lỗi mô tả",
+      "active": true,
+      "description": "Dịch vụ IT Support được triển khai bởi TaskLy.",
+      "duration": 2
+    }
+  ],
+  "categories": [
+    {
+      "id": "CAT1",
+      "name": "Việc nhà",
+      "active": true,
+      "description": "Dọn dẹp, vệ sinh"
+    },
+    {
+      "id": "CAT2",
+      "name": "Kỹ thuật",
+      "active": true,
+      "description": "Sửa chữa, IT, máy lạnh"
+    },
+    {
+      "id": "CAT3",
+      "name": "Vận chuyển",
+      "active": true,
+      "description": "Đóng gói, chuyển nhà"
+    },
+    {
+      "id": "CAT4",
+      "name": "Chăm sóc",
+      "active": true,
+      "description": "Chăm thú cưng"
+    },
+    {
+      "id": "CAT5",
+      "name": "Tiện ích",
+      "active": true,
+      "description": "Đi chợ hộ"
+    }
+  ],
+  "prices": [
+    {
+      "id": "PR1",
+      "serviceId": "clean",
+      "base": 120000,
+      "feePercent": 10,
+      "urgentPercent": 20,
+      "active": true
+    },
+    {
+      "id": "PR2",
+      "serviceId": "deep",
+      "base": 299000,
+      "feePercent": 10,
+      "urgentPercent": 20,
+      "active": true
+    },
+    {
+      "id": "PR3",
+      "serviceId": "repair",
+      "base": 180000,
+      "feePercent": 10,
+      "urgentPercent": 20,
+      "active": true
+    },
+    {
+      "id": "PR4",
+      "serviceId": "move",
+      "base": 350000,
+      "feePercent": 10,
+      "urgentPercent": 20,
+      "active": true
+    },
+    {
+      "id": "PR5",
+      "serviceId": "ac",
+      "base": 180000,
+      "feePercent": 10,
+      "urgentPercent": 20,
+      "active": true
+    },
+    {
+      "id": "PR6",
+      "serviceId": "shop",
+      "base": 80000,
+      "feePercent": 10,
+      "urgentPercent": 20,
+      "active": true
+    },
+    {
+      "id": "PR7",
+      "serviceId": "pets",
+      "base": 120000,
+      "feePercent": 10,
+      "urgentPercent": 20,
+      "active": true
+    },
+    {
+      "id": "PR8",
+      "serviceId": "it",
+      "base": 200000,
+      "feePercent": 10,
+      "urgentPercent": 20,
+      "active": true
+    }
+  ],
+  "kycs": [
+    {
+      "id": "K4001",
+      "partnerId": "P2001",
+      "status": "APPROVED",
+      "submitted": "2026-10-01",
+      "type": "CCCD + Selfie",
+      "note": ""
+    },
+    {
+      "id": "K4002",
+      "partnerId": "P2002",
+      "status": "APPROVED",
+      "submitted": "2026-10-02",
+      "type": "CCCD + Selfie",
+      "note": ""
+    },
+    {
+      "id": "K4003",
+      "partnerId": "P2003",
+      "status": "APPROVED",
+      "submitted": "2026-10-03",
+      "type": "CCCD + Selfie",
+      "note": ""
+    },
+    {
+      "id": "K4004",
+      "partnerId": "P2004",
+      "status": "APPROVED",
+      "submitted": "2026-10-04",
+      "type": "CCCD + Selfie",
+      "note": ""
+    },
+    {
+      "id": "K4005",
+      "partnerId": "P2005",
+      "status": "APPROVED",
+      "submitted": "2026-10-05",
+      "type": "CCCD + Selfie",
+      "note": ""
+    },
+    {
+      "id": "K4006",
+      "partnerId": "P2006",
+      "status": "PENDING",
+      "submitted": "2026-10-06",
+      "type": "CCCD + Selfie",
+      "note": ""
+    },
+    {
+      "id": "K4007",
+      "partnerId": "P2007",
+      "status": "REJECTED",
+      "submitted": "2026-10-07",
+      "type": "CCCD + Selfie",
+      "note": "Ảnh giấy tờ cần chụp lại"
+    },
+    {
+      "id": "K4008",
+      "partnerId": "P2008",
+      "status": "APPROVED",
+      "submitted": "2026-10-08",
+      "type": "CCCD + Selfie",
+      "note": ""
+    }
+  ],
+  "tasks": [
+    {
+      "id": "TL-1101",
+      "customerId": "C1001",
+      "partnerId": "P2001",
+      "serviceId": "clean",
+      "date": "2026-10-10",
+      "time": "08:00",
+      "location": "Thủ Đức",
+      "total": 294000,
+      "status": "IN_PROGRESS",
+      "payment": "HELD",
+      "description": "Công việc dịch vụ tại Thủ Đức",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "IN_PROGRESS",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1102",
+      "customerId": "C1002",
+      "partnerId": "",
+      "serviceId": "deep",
+      "date": "2026-10-11",
+      "time": "10:00",
+      "location": "Bình Thạnh",
+      "total": 189000,
+      "status": "MATCHING",
+      "payment": "HELD",
+      "description": "Công việc dịch vụ tại Bình Thạnh",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "MATCHING",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1103",
+      "customerId": "C1003",
+      "partnerId": "P2003",
+      "serviceId": "repair",
+      "date": "2026-10-12",
+      "time": "14:00",
+      "location": "Quận 7",
+      "total": 265000,
+      "status": "ACCEPTED",
+      "payment": "HELD",
+      "description": "Công việc dịch vụ tại Quận 7",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "ACCEPTED",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1104",
+      "customerId": "C1004",
+      "partnerId": "P2004",
+      "serviceId": "move",
+      "date": "2026-10-13",
+      "time": "16:00",
+      "location": "Gò Vấp",
+      "total": 530000,
+      "status": "COMPLETED",
+      "payment": "HELD",
+      "description": "Công việc dịch vụ tại Gò Vấp",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "COMPLETED",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1105",
+      "customerId": "C1005",
+      "partnerId": "P2005",
+      "serviceId": "ac",
+      "date": "2026-10-14",
+      "time": "08:00",
+      "location": "Thủ Đức",
+      "total": 360000,
+      "status": "PAID",
+      "payment": "RELEASED",
+      "description": "Công việc dịch vụ tại Thủ Đức",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "PAID",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1106",
+      "customerId": "C1006",
+      "partnerId": "",
+      "serviceId": "shop",
+      "date": "2026-10-15",
+      "time": "10:00",
+      "location": "Bình Thạnh",
+      "total": 159000,
+      "status": "CANCELLED",
+      "payment": "REFUNDED",
+      "description": "Công việc dịch vụ tại Bình Thạnh",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "CANCELLED",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1107",
+      "customerId": "C1007",
+      "partnerId": "",
+      "serviceId": "pets",
+      "date": "2026-10-16",
+      "time": "14:00",
+      "location": "Quận 7",
+      "total": 180000,
+      "status": "POSTED",
+      "payment": "PENDING",
+      "description": "Công việc dịch vụ tại Quận 7",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "POSTED",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1108",
+      "customerId": "C1008",
+      "partnerId": "P2008",
+      "serviceId": "it",
+      "date": "2026-10-17",
+      "time": "16:00",
+      "location": "Gò Vấp",
+      "total": 220000,
+      "status": "TASKER_ON_THE_WAY",
+      "payment": "HELD",
+      "description": "Công việc dịch vụ tại Gò Vấp",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "TASKER_ON_THE_WAY",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1109",
+      "customerId": "C1009",
+      "partnerId": "P2001",
+      "serviceId": "clean",
+      "date": "2026-10-18",
+      "time": "08:00",
+      "location": "Thủ Đức",
+      "total": 294000,
+      "status": "ARRIVED",
+      "payment": "HELD",
+      "description": "Công việc dịch vụ tại Thủ Đức",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "ARRIVED",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1110",
+      "customerId": "C1010",
+      "partnerId": "P2002",
+      "serviceId": "deep",
+      "date": "2026-10-19",
+      "time": "10:00",
+      "location": "Bình Thạnh",
+      "total": 189000,
+      "status": "PAID",
+      "payment": "RELEASED",
+      "description": "Công việc dịch vụ tại Bình Thạnh",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "PAID",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1111",
+      "customerId": "C1001",
+      "partnerId": "P2003",
+      "serviceId": "repair",
+      "date": "2026-10-20",
+      "time": "14:00",
+      "location": "Quận 7",
+      "total": 265000,
+      "status": "DISPUTED",
+      "payment": "HELD",
+      "description": "Công việc dịch vụ tại Quận 7",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "DISPUTED",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1112",
+      "customerId": "C1002",
+      "partnerId": "",
+      "serviceId": "move",
+      "date": "2026-10-21",
+      "time": "16:00",
+      "location": "Gò Vấp",
+      "total": 530000,
+      "status": "MATCHING",
+      "payment": "HELD",
+      "description": "Công việc dịch vụ tại Gò Vấp",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "MATCHING",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1113",
+      "customerId": "C1003",
+      "partnerId": "P2005",
+      "serviceId": "ac",
+      "date": "2026-10-22",
+      "time": "08:00",
+      "location": "Thủ Đức",
+      "total": 360000,
+      "status": "COMPLETED",
+      "payment": "HELD",
+      "description": "Công việc dịch vụ tại Thủ Đức",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "COMPLETED",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1114",
+      "customerId": "C1004",
+      "partnerId": "P2006",
+      "serviceId": "shop",
+      "date": "2026-10-23",
+      "time": "10:00",
+      "location": "Bình Thạnh",
+      "total": 159000,
+      "status": "PAID",
+      "payment": "RELEASED",
+      "description": "Công việc dịch vụ tại Bình Thạnh",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "PAID",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1115",
+      "customerId": "C1005",
+      "partnerId": "P2007",
+      "serviceId": "pets",
+      "date": "2026-10-24",
+      "time": "14:00",
+      "location": "Quận 7",
+      "total": 180000,
+      "status": "IN_PROGRESS",
+      "payment": "HELD",
+      "description": "Công việc dịch vụ tại Quận 7",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "IN_PROGRESS",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    },
+    {
+      "id": "TL-1116",
+      "customerId": "C1006",
+      "partnerId": "P2008",
+      "serviceId": "it",
+      "date": "2026-10-10",
+      "time": "16:00",
+      "location": "Gò Vấp",
+      "total": 220000,
+      "status": "REFUNDED",
+      "payment": "REFUNDED",
+      "description": "Công việc dịch vụ tại Gò Vấp",
+      "history": [
+        {
+          "status": "POSTED",
+          "actor": "Customer",
+          "at": "2026-10-09 08:20"
+        },
+        {
+          "status": "REFUNDED",
+          "actor": "System",
+          "at": "2026-10-09 08:42"
+        }
+      ]
+    }
+  ],
+  "payments": [
+    {
+      "id": "PM-3001",
+      "taskId": "TL-1101",
+      "customerId": "C1001",
+      "amount": 294000,
+      "status": "HELD",
+      "method": "VNPay (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6001"
+    },
+    {
+      "id": "PM-3002",
+      "taskId": "TL-1102",
+      "customerId": "C1002",
+      "amount": 189000,
+      "status": "HELD",
+      "method": "Chuyển khoản (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6002"
+    },
+    {
+      "id": "PM-3003",
+      "taskId": "TL-1103",
+      "customerId": "C1003",
+      "amount": 265000,
+      "status": "HELD",
+      "method": "Ví (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6003"
+    },
+    {
+      "id": "PM-3004",
+      "taskId": "TL-1104",
+      "customerId": "C1004",
+      "amount": 530000,
+      "status": "HELD",
+      "method": "VNPay (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6004"
+    },
+    {
+      "id": "PM-3005",
+      "taskId": "TL-1105",
+      "customerId": "C1005",
+      "amount": 360000,
+      "status": "RELEASED",
+      "method": "Chuyển khoản (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6005"
+    },
+    {
+      "id": "PM-3006",
+      "taskId": "TL-1106",
+      "customerId": "C1006",
+      "amount": 159000,
+      "status": "REFUNDED",
+      "method": "Ví (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6006"
+    },
+    {
+      "id": "PM-3007",
+      "taskId": "TL-1108",
+      "customerId": "C1008",
+      "amount": 220000,
+      "status": "HELD",
+      "method": "VNPay (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6007"
+    },
+    {
+      "id": "PM-3008",
+      "taskId": "TL-1109",
+      "customerId": "C1009",
+      "amount": 294000,
+      "status": "HELD",
+      "method": "Chuyển khoản (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6008"
+    },
+    {
+      "id": "PM-3009",
+      "taskId": "TL-1110",
+      "customerId": "C1010",
+      "amount": 189000,
+      "status": "RELEASED",
+      "method": "Ví (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6009"
+    },
+    {
+      "id": "PM-3010",
+      "taskId": "TL-1111",
+      "customerId": "C1001",
+      "amount": 265000,
+      "status": "HELD",
+      "method": "VNPay (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6010"
+    },
+    {
+      "id": "PM-3011",
+      "taskId": "TL-1112",
+      "customerId": "C1002",
+      "amount": 530000,
+      "status": "HELD",
+      "method": "Chuyển khoản (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6011"
+    },
+    {
+      "id": "PM-3012",
+      "taskId": "TL-1113",
+      "customerId": "C1003",
+      "amount": 360000,
+      "status": "HELD",
+      "method": "Ví (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6012"
+    },
+    {
+      "id": "PM-3013",
+      "taskId": "TL-1114",
+      "customerId": "C1004",
+      "amount": 159000,
+      "status": "RELEASED",
+      "method": "VNPay (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6013"
+    },
+    {
+      "id": "PM-3014",
+      "taskId": "TL-1115",
+      "customerId": "C1005",
+      "amount": 180000,
+      "status": "HELD",
+      "method": "Chuyển khoản (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6014"
+    },
+    {
+      "id": "PM-3015",
+      "taskId": "TL-1116",
+      "customerId": "C1006",
+      "amount": 220000,
+      "status": "REFUNDED",
+      "method": "Ví (demo)",
+      "created": "2026-10-09",
+      "providerRef": "SIM-6015"
+    }
+  ],
+  "disputes": [
+    {
+      "id": "D501",
+      "taskId": "TL-1111",
+      "from": "Customer",
+      "reason": "Chất lượng dịch vụ",
+      "status": "OPEN",
+      "amount": 265000,
+      "evidence": "3 ảnh (demo)",
+      "created": "2026-10-09"
+    },
+    {
+      "id": "D502",
+      "taskId": "TL-1109",
+      "from": "Partner",
+      "reason": "Khách thay đổi phạm vi",
+      "status": "REVIEW",
+      "amount": 220000,
+      "evidence": "1 ảnh (demo)",
+      "created": "2026-10-08"
+    },
+    {
+      "id": "D503",
+      "taskId": "TL-1104",
+      "from": "Customer",
+      "reason": "Không đúng lịch hẹn",
+      "status": "RESOLVED",
+      "amount": 530000,
+      "evidence": "Chat log (demo)",
+      "created": "2026-10-06"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "S601",
+      "user": "Customer C1002",
+      "category": "Thanh toán",
+      "subject": "Khoản tiền chờ xử lý",
+      "status": "OPEN",
+      "priority": "HIGH",
+      "agent": "Chưa phân công",
+      "reply": ""
+    },
+    {
+      "id": "S602",
+      "user": "Partner P2001",
+      "category": "Công việc",
+      "subject": "Cần thay lịch",
+      "status": "IN_PROGRESS",
+      "priority": "MEDIUM",
+      "agent": "Support A",
+      "reply": ""
+    },
+    {
+      "id": "S603",
+      "user": "Customer C1005",
+      "category": "Bảo mật",
+      "subject": "Đổi số điện thoại",
+      "status": "OPEN",
+      "priority": "MEDIUM",
+      "agent": "Chưa phân công",
+      "reply": ""
+    },
+    {
+      "id": "S604",
+      "user": "Partner P2003",
+      "category": "KYC",
+      "subject": "Tài liệu đã gửi",
+      "status": "RESOLVED",
+      "priority": "LOW",
+      "agent": "Support B",
+      "reply": "Đã hỗ trợ."
+    }
+  ],
+  "reviews": [
+    {
+      "id": "RV701",
+      "taskId": "TL-1105",
+      "author": "Customer C1005",
+      "target": "Partner P2005",
+      "stars": 5,
+      "text": "Làm việc rất tốt và đúng giờ.",
+      "visible": true,
+      "reported": false
+    },
+    {
+      "id": "RV702",
+      "taskId": "TL-1110",
+      "author": "Customer C1010",
+      "target": "Partner P2002",
+      "stars": 2,
+      "text": "Đến trễ so với giờ hẹn.",
+      "visible": true,
+      "reported": true
+    },
+    {
+      "id": "RV703",
+      "taskId": "TL-1114",
+      "author": "Partner P2006",
+      "target": "Customer C1004",
+      "stars": 4,
+      "text": "Hợp tác tốt.",
+      "visible": true,
+      "reported": false
+    }
+  ],
+  "payouts": [
+    {
+      "id": "PO801",
+      "partnerId": "P2001",
+      "amount": 740000,
+      "status": "PENDING",
+      "bank": "•••• 4400",
+      "created": "2026-10-09"
+    },
+    {
+      "id": "PO802",
+      "partnerId": "P2003",
+      "amount": 520000,
+      "status": "APPROVED",
+      "bank": "•••• 4402",
+      "created": "2026-10-08"
+    },
+    {
+      "id": "PO803",
+      "partnerId": "P2002",
+      "amount": 1200000,
+      "status": "COMPLETED",
+      "bank": "•••• 4401",
+      "created": "2026-10-05"
+    }
+  ],
+  "refunds": [
+    {
+      "id": "RF901",
+      "paymentId": "PM-3001",
+      "taskId": "TL-1101",
+      "amount": 150000,
+      "reason": "Một phần dịch vụ chưa thực hiện",
+      "status": "PENDING",
+      "created": "2026-10-09"
+    },
+    {
+      "id": "RF902",
+      "paymentId": "PM-3005",
+      "taskId": "TL-1105",
+      "amount": 30000,
+      "reason": "Điều chỉnh dịch vụ",
+      "status": "APPROVED",
+      "created": "2026-10-08"
+    }
+  ],
+  "vouchers": [
+    {
+      "id": "V101",
+      "code": "WELCOME20",
+      "discount": 20000,
+      "min": 150000,
+      "uses": 18,
+      "limit": 100,
+      "active": true,
+      "expiry": "2026-12-31"
+    },
+    {
+      "id": "V102",
+      "code": "TASKLY30",
+      "discount": 30000,
+      "min": 250000,
+      "uses": 8,
+      "limit": 70,
+      "active": true,
+      "expiry": "2026-11-30"
+    },
+    {
+      "id": "V103",
+      "code": "CLEAN50",
+      "discount": 50000,
+      "min": 500000,
+      "uses": 4,
+      "limit": 50,
+      "active": false,
+      "expiry": "2026-10-30"
+    }
+  ],
+  "banners": [
+    {
+      "id": "B101",
+      "title": "Nhà sạch, tâm trạng tốt",
+      "subtitle": "Ưu đãi dọn nhà mùa thu",
+      "icon": "🏡",
+      "active": true,
+      "placement": "Customer Home",
+      "color": "#bdeee1",
+      "order": 1
+    },
+    {
+      "id": "B102",
+      "title": "Bạn cần hỗ trợ sửa chữa?",
+      "subtitle": "Đặt thợ đáng tin cậy",
+      "icon": "🛠️",
+      "active": true,
+      "placement": "Customer Home",
+      "color": "#daeafe",
+      "order": 2
+    },
+    {
+      "id": "B103",
+      "title": "Giới thiệu TaskLy",
+      "subtitle": "Đặt dịch vụ trong vài phút",
+      "icon": "🤖",
+      "active": false,
+      "placement": "Onboarding",
+      "color": "#e8ddff",
+      "order": 3
+    }
+  ],
+  "campaigns": [
+    {
+      "id": "N101",
+      "title": "Cập nhật dịch vụ mới",
+      "channel": "Push (demo)",
+      "audience": "Customers",
+      "status": "SENT",
+      "sent": 460,
+      "created": "2026-10-08"
+    },
+    {
+      "id": "N102",
+      "title": "Nhắc hoàn thành KYC",
+      "channel": "Email (demo)",
+      "audience": "Partners",
+      "status": "DRAFT",
+      "sent": 0,
+      "created": "2026-10-09"
+    }
+  ],
+  "staff": [
+    {
+      "id": "A101",
+      "name": "Super Admin",
+      "email": "admin@taskly.test",
+      "role": "SUPER_ADMIN",
+      "status": "ACTIVE",
+      "last": "Hôm nay"
+    },
+    {
+      "id": "A102",
+      "name": "Phòng vận hành",
+      "email": "ops@taskly.test",
+      "role": "OPS",
+      "status": "ACTIVE",
+      "last": "Hôm nay"
+    },
+    {
+      "id": "A103",
+      "name": "Duyệt hồ sơ",
+      "email": "kyc@taskly.test",
+      "role": "KYC",
+      "status": "ACTIVE",
+      "last": "Hôm qua"
+    },
+    {
+      "id": "A104",
+      "name": "Hỗ trợ",
+      "email": "support@taskly.test",
+      "role": "SUPPORT",
+      "status": "ACTIVE",
+      "last": "Hôm qua"
+    },
+    {
+      "id": "A105",
+      "name": "Finance",
+      "email": "finance@taskly.test",
+      "role": "FINANCE",
+      "status": "ACTIVE",
+      "last": "Hôm nay"
+    }
+  ],
+  "recurring": [
+    {
+      "id": "RC301",
+      "customerId": "C1004",
+      "serviceId": "clean",
+      "cadence": "Hằng tuần",
+      "next": "2026-10-13",
+      "status": "ACTIVE",
+      "count": 5
+    },
+    {
+      "id": "RC302",
+      "customerId": "C1008",
+      "serviceId": "ac",
+      "cadence": "Hằng tháng",
+      "next": "2026-11-01",
+      "status": "PAUSED",
+      "count": 2
+    }
+  ],
+  "ledger": [
+    {
+      "id": "LG-6V0YI",
+      "kind": "HOLD",
+      "taskId": "TL-1101",
+      "amount": 294000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "HELD"
+    },
+    {
+      "id": "LG-UJA98",
+      "kind": "HOLD",
+      "taskId": "TL-1102",
+      "amount": 189000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "HELD"
+    },
+    {
+      "id": "LG-HMM6Y",
+      "kind": "HOLD",
+      "taskId": "TL-1103",
+      "amount": 265000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "HELD"
+    },
+    {
+      "id": "LG-B8W2T",
+      "kind": "HOLD",
+      "taskId": "TL-1104",
+      "amount": 530000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "HELD"
+    },
+    {
+      "id": "LG-4RQY9",
+      "kind": "RELEASE",
+      "taskId": "TL-1105",
+      "amount": 360000,
+      "from": "Customer",
+      "to": "Partner",
+      "at": "2026-10-09 09:00",
+      "status": "RELEASED"
+    },
+    {
+      "id": "LG-QBNDR",
+      "kind": "HOLD",
+      "taskId": "TL-1106",
+      "amount": 159000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "REFUNDED"
+    },
+    {
+      "id": "LG-9T3F3",
+      "kind": "HOLD",
+      "taskId": "TL-1108",
+      "amount": 220000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "HELD"
+    },
+    {
+      "id": "LG-BUH2B",
+      "kind": "HOLD",
+      "taskId": "TL-1109",
+      "amount": 294000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "HELD"
+    },
+    {
+      "id": "LG-37841",
+      "kind": "RELEASE",
+      "taskId": "TL-1110",
+      "amount": 189000,
+      "from": "Customer",
+      "to": "Partner",
+      "at": "2026-10-09 09:00",
+      "status": "RELEASED"
+    },
+    {
+      "id": "LG-8I252",
+      "kind": "HOLD",
+      "taskId": "TL-1111",
+      "amount": 265000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "HELD"
+    },
+    {
+      "id": "LG-YTUJR",
+      "kind": "HOLD",
+      "taskId": "TL-1112",
+      "amount": 530000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "HELD"
+    },
+    {
+      "id": "LG-XOUA9",
+      "kind": "HOLD",
+      "taskId": "TL-1113",
+      "amount": 360000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "HELD"
+    },
+    {
+      "id": "LG-7E0X3",
+      "kind": "RELEASE",
+      "taskId": "TL-1114",
+      "amount": 159000,
+      "from": "Customer",
+      "to": "Partner",
+      "at": "2026-10-09 09:00",
+      "status": "RELEASED"
+    },
+    {
+      "id": "LG-F5HEO",
+      "kind": "HOLD",
+      "taskId": "TL-1115",
+      "amount": 180000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "HELD"
+    },
+    {
+      "id": "LG-JLOGH",
+      "kind": "HOLD",
+      "taskId": "TL-1116",
+      "amount": 220000,
+      "from": "Customer",
+      "to": "Escrow (demo)",
+      "at": "2026-10-09 09:00",
+      "status": "REFUNDED"
+    }
+  ],
+  "reports": [
+    {
+      "id": "REP1",
+      "from": "Customer C1007",
+      "target": "Partner P2005",
+      "reason": "Liên hệ ngoài nền tảng",
+      "status": "OPEN"
+    },
+    {
+      "id": "REP2",
+      "from": "Partner P2001",
+      "target": "Customer C1003",
+      "reason": "Ngôn ngữ không phù hợp",
+      "status": "IN_REVIEW"
+    }
+  ],
+  "audit": [
+    {
+      "id": "AU0001",
+      "actor": "SYSTEM",
+      "action": "SEED",
+      "entity": "Demo",
+      "target": "DATA",
+      "detail": "Tạo dữ liệu ban đầu",
+      "at": "20:49:02 8/10/2026"
+    }
+  ],
+  "settings": {
+    "platformFee": 10,
+    "otpTTL": 5,
+    "refundThreshold": 500000,
+    "matchRadius": 10,
+    "travelBuffer": 45,
+    "autoReleaseHours": 48,
+    "minimumAppVersion": "1.0.0",
+    "supportEmail": "support@taskly.vn",
+    "supportPhone": "",
+    "notifications": true,
+    "autoMatching": true,
+    "rewards": true,
+    "recurring": true,
+    "chat": true,
+    "payouts": true,
+    "aiDraft": false,
+    "community": false,
+    "maintenance": false
+  }
+}

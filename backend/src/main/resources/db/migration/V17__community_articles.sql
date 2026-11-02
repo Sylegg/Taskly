@@ -1,0 +1,8 @@
+CREATE TABLE community_articles (
+ id UUID PRIMARY KEY, title VARCHAR(160) NOT NULL, summary VARCHAR(500) NOT NULL,
+ content TEXT NOT NULL, image_data BYTEA NOT NULL, image_hash VARCHAR(64) NOT NULL,
+ active BOOLEAN NOT NULL DEFAULT FALSE,
+ created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_community_articles_published ON community_articles(active, created_at);

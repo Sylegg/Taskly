@@ -1,0 +1,27 @@
+CREATE TABLE partner_review_decisions (
+ id UUID PRIMARY KEY, application_id UUID NOT NULL REFERENCES partner_applications(id),
+ level VARCHAR(20) NOT NULL, action VARCHAR(40) NOT NULL, reviewer_id UUID NOT NULL REFERENCES users(id),
+ reason VARCHAR(1000) NOT NULL, required_changes VARCHAR(2000) NOT NULL,
+ reviewed_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+CREATE TABLE partner_notification_outbox (
+ id UUID PRIMARY KEY, application_id UUID NOT NULL REFERENCES partner_applications(id),
+ channel VARCHAR(20) NOT NULL, status VARCHAR(20) NOT NULL, title VARCHAR(200) NOT NULL,
+ message VARCHAR(2000) NOT NULL, attempts INTEGER NOT NULL DEFAULT 0,
+ created_at TIMESTAMP WITH TIME ZONE NOT NULL, delivered_at TIMESTAMP WITH TIME ZONE
+);
+INSERT INTO roles(id,role_key,description,created_at) VALUES
+ ('10000000-0000-0000-0000-000000000020','RECRUITMENT_STAFF','Recruitment metadata and coordination',CURRENT_TIMESTAMP),
+ ('10000000-0000-0000-0000-000000000021','TRAINING_MANAGER','Exam and Academy manager',CURRENT_TIMESTAMP),
+ ('10000000-0000-0000-0000-000000000022','KYC_STAFF','Private identity review',CURRENT_TIMESTAMP),
+ ('10000000-0000-0000-0000-000000000023','RECEPTION_STAFF','Office reception',CURRENT_TIMESTAMP),
+ ('10000000-0000-0000-0000-000000000024','FINANCE_STAFF','Uniform finance',CURRENT_TIMESTAMP),
+ ('10000000-0000-0000-0000-000000000025','OPERATIONS_MANAGER','Final recruitment review',CURRENT_TIMESTAMP);
+INSERT INTO role_permissions(role_id,permission_id)
+ SELECT r.id,p.id FROM roles r CROSS JOIN permissions p WHERE
+ (r.role_key IN ('RECRUITMENT_STAFF','TRAINING_MANAGER','KYC_STAFF','RECEPTION_STAFF','FINANCE_STAFF','OPERATIONS_MANAGER') AND p.permission_key='RECRUITMENT_VIEW') OR
+ (r.role_key='TRAINING_MANAGER' AND p.permission_key='RECRUITMENT_TRAINING') OR
+ (r.role_key='KYC_STAFF' AND p.permission_key IN ('KYC_REVIEW','RECRUITMENT_PRELIMINARY')) OR
+ (r.role_key='RECEPTION_STAFF' AND p.permission_key='RECRUITMENT_RECEPTION') OR
+ (r.role_key='FINANCE_STAFF' AND p.permission_key='RECRUITMENT_FINANCE') OR
+ (r.role_key='OPERATIONS_MANAGER' AND p.permission_key='RECRUITMENT_FINAL');

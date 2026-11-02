@@ -1,0 +1,5 @@
+CREATE TABLE partner_bank_accounts (
+ user_id UUID PRIMARY KEY REFERENCES users(id), bank_name VARCHAR(100) NOT NULL,
+ account_name VARCHAR(150) NOT NULL, account_number VARCHAR(34) NOT NULL,
+ updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

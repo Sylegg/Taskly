@@ -1,0 +1,13 @@
+export const FLOW:string[]; export const STATUS:Record<string,string>;export const CAPS:Record<string,string[]>;
+export function can(role:string,section:string):boolean;
+export function stamp():string; export function id(prefix:string):string; export function clone<T>(x:T):T;
+export function money(n:any):string;
+export function taskService(db:any,t:any):string;export function taskCustomer(db:any,t:any):string;export function taskPartner(db:any,t:any):string;
+export function eligiblePartners(db:any,task:any):any[];
+export function record(db:any,actor:string,action:string,entity:string,target:string,detail?:string):any;
+export function assign(db:any,taskId:string,partnerId:string,actor:string):any;
+export function advance(db:any,taskId:string,actor:string):any;
+export function changeKyc(db:any,kycId:string,status:string,actor:string,note?:string):any;
+export function refund(db:any,refundId:string,actor:string):any;
+export function cancelTask(db:any,taskId:string,actor:string):any;
+export function importMobile(db:any,snapshot:any,actor:string):{next:any;added:number};

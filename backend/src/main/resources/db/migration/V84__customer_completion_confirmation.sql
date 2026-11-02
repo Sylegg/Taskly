@@ -1,0 +1,1 @@
+ALTER TABLE tasks ADD COLUMN customer_confirmed_at TIMESTAMP WITH TIME ZONE;

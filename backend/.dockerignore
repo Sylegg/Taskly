@@ -1,0 +1,6 @@
+.gradle
+*.log
+.runtime
+build
+.idea
+*.iml

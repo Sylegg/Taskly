@@ -1,0 +1,2230 @@
+﻿{
+    "DeletedCount":  438,
+    "FreedMiB":  36.86,
+    "Skipped":  [
+                    {
+                        "RelativePath":  "customer-emulator-session.err.log",
+                        "Reason":  "File locked or removal failed"
+                    },
+                    {
+                        "RelativePath":  "customer-emulator-session.out.log",
+                        "Reason":  "File locked or removal failed"
+                    },
+                    {
+                        "RelativePath":  "frontend-full-restart.err.log",
+                        "Reason":  "File locked or removal failed"
+                    },
+                    {
+                        "RelativePath":  "frontend-full-restart.out.log",
+                        "Reason":  "File locked or removal failed"
+                    },
+                    {
+                        "RelativePath":  "partner-emulator-session.err.log",
+                        "Reason":  "File locked or removal failed"
+                    },
+                    {
+                        "RelativePath":  "partner-emulator-session.out.log",
+                        "Reason":  "File locked or removal failed"
+                    },
+                    {
+                        "RelativePath":  "backend/recruitment-runtime.err.log",
+                        "Reason":  "File locked or removal failed"
+                    },
+                    {
+                        "RelativePath":  "backend/recruitment-runtime.out.log",
+                        "Reason":  "File locked or removal failed"
+                    }
+                ],
+    "Deleted":  [
+                    {
+                        "RelativePath":  "backend-address.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-address.out.log",
+                        "Bytes":  15477,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-admin-cancel.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-admin-cancel.out.log",
+                        "Bytes":  375804,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-admin-chat.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-admin-chat.out.log",
+                        "Bytes":  15512,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-admin-pending.err.log",
+                        "Bytes":  561,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-admin-pending.out.log",
+                        "Bytes":  15274,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-area-final.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-area-final.out.log",
+                        "Bytes":  15287,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-area-status.err.log",
+                        "Bytes":  539,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-area-status.out.log",
+                        "Bytes":  15358,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-cancel-final.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-cancel-final.out.log",
+                        "Bytes":  702752,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-cancel-policy.err.log",
+                        "Bytes":  382,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-cancel-policy.out.log",
+                        "Bytes":  15820,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-cancel-view.err.log",
+                        "Bytes":  382,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-cancel-view.out.log",
+                        "Bytes":  72142,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-chat-avatar.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-chat-avatar.out.log",
+                        "Bytes":  15287,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-chat-hide.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-chat-hide.out.log",
+                        "Bytes":  15288,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-chat-role.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-chat-role.out.log",
+                        "Bytes":  15516,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-chat-unread.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-chat-unread.out.log",
+                        "Bytes":  15522,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-checkout.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-checkout.out.log",
+                        "Bytes":  15885,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-city-areas.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-city-areas.out.log",
+                        "Bytes":  15503,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-connection.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-connection.out.log",
+                        "Bytes":  15287,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-dispatch-idle.err.log",
+                        "Bytes":  915,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-dispatch-idle.out.log",
+                        "Bytes":  91349,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-dispatch-schedule.err.log",
+                        "Bytes":  732,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-dispatch-schedule.out.log",
+                        "Bytes":  206719,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-dispatch.err.log",
+                        "Bytes":  914,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-dispatch.out.log",
+                        "Bytes":  110328,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-full-restart.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-full-restart.out.log",
+                        "Bytes":  110286,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-jobs-run.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-jobs-run.out.log",
+                        "Bytes":  15240,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-manual-restart.err.log",
+                        "Bytes":  8823,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-manual-restart.out.log",
+                        "Bytes":  266,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-manual-retry.err.log",
+                        "Bytes":  802,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-manual-retry.out.log",
+                        "Bytes":  91351,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-name-lock.err.log",
+                        "Bytes":  3548,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-name-lock.out.log",
+                        "Bytes":  15188,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-order-limit.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-order-limit.out.log",
+                        "Bytes":  15490,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-partner-limits.err.log",
+                        "Bytes":  539,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-partner-limits.out.log",
+                        "Bytes":  15322,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-partner-work-areas.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-partner-work-areas.out.log",
+                        "Bytes":  15228,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-pending-bookings.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-pending-bookings.out.log",
+                        "Bytes":  15835,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-percentage-fee.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-percentage-fee.out.log",
+                        "Bytes":  16439,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-portrait.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-portrait.out.log",
+                        "Bytes":  15255,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-price-sync.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-price-sync.out.log",
+                        "Bytes":  15276,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-quotes-all-services.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-quotes-all-services.out.log",
+                        "Bytes":  15513,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-relaunch.err.log",
+                        "Bytes":  564,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-relaunch.out.log",
+                        "Bytes":  15560,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-run.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-run.out.log",
+                        "Bytes":  54564,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-session-retry.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-session-retry.out.log",
+                        "Bytes":  35140,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-session.err.log",
+                        "Bytes":  539,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-session.out.log",
+                        "Bytes":  31710,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-start.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-start.out.log",
+                        "Bytes":  54768,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-support-images.err.log",
+                        "Bytes":  562,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-support-images.out.log",
+                        "Bytes":  15514,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-support.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-support.out.log",
+                        "Bytes":  15469,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-task-details.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-task-details.out.log",
+                        "Bytes":  15274,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-uniform-two.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-uniform-two.out.log",
+                        "Bytes":  15275,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-view-fix.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-view-fix.out.log",
+                        "Bytes":  357258,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-wait-scheduled.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-wait-scheduled.out.log",
+                        "Bytes":  262003,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-work-cities.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend-work-cities.out.log",
+                        "Bytes":  55219,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "category-booking-admin.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "category-booking-admin.out.log",
+                        "Bytes":  17035,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "category-fields.err.log",
+                        "Bytes":  564,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "category-fields.out.log",
+                        "Bytes":  15514,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-full.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-full.out.log",
+                        "Bytes":  16864,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-inline-error.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-inline-error.out.log",
+                        "Bytes":  3643,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-required.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-required.out.log",
+                        "Bytes":  8946,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-savefix.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-savefix.out.log",
+                        "Bytes":  18179,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-selected-only.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-selected-only.out.log",
+                        "Bytes":  13405,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-sheet.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address-sheet.out.log",
+                        "Bytes":  15221,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-address.out.log",
+                        "Bytes":  9617,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-black-screen.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-black-screen.out.log",
+                        "Bytes":  3821,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-booking-edit-address.err.log",
+                        "Bytes":  864,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-booking-edit-address.out.log",
+                        "Bytes":  203,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-booking-edit-address2.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-booking-edit-address2.out.log",
+                        "Bytes":  14444,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-debug.png",
+                        "Bytes":  1477891,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "customer-emulator.err.log",
+                        "Bytes":  41,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-emulator.out.log",
+                        "Bytes":  11553,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-hide-past.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-hide-past.out.log",
+                        "Bytes":  23530,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-latest.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-latest.out.log",
+                        "Bytes":  23690,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-launch-latest.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-launch-latest.out.log",
+                        "Bytes":  28448,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-name-lock.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-name-lock.out.log",
+                        "Bytes":  4560,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-new-booking.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-new-booking.out.log",
+                        "Bytes":  53036,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-no-draft.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-no-draft.out.log",
+                        "Bytes":  4002,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-no-save.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-no-save.out.log",
+                        "Bytes":  7474,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-numeric-fields.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-numeric-fields.out.log",
+                        "Bytes":  32636,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-pending-bookings.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-pending-bookings.out.log",
+                        "Bytes":  11911,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-price-sync.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-price-sync.out.log",
+                        "Bytes":  17117,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-quote-draft.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-quote-draft.out.log",
+                        "Bytes":  3940,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-remove-address-button.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-remove-address-button.out.log",
+                        "Bytes":  3954,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-remove-draft.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-remove-draft.out.log",
+                        "Bytes":  9619,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-rerun.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-rerun.out.log",
+                        "Bytes":  17970,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-restart-both.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-restart-both.out.log",
+                        "Bytes":  16484,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-review-full.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-review-full.out.log",
+                        "Bytes":  11937,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-run.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-run.out.log",
+                        "Bytes":  17842,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-schema-sync.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-schema-sync.out.log",
+                        "Bytes":  8068,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-service-details.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-service-details.out.log",
+                        "Bytes":  5857,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-session.err.log",
+                        "Bytes":  197,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-session.out.log",
+                        "Bytes":  287,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-start.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-start.out.log",
+                        "Bytes":  4881,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-two-apps.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "customer-two-apps.out.log",
+                        "Bytes":  4036,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frontend-run.err.log",
+                        "Bytes":  13747,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frontend-run.out.log",
+                        "Bytes":  274627,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frontend-session.err.log",
+                        "Bytes":  3282,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frontend-session.out.log",
+                        "Bytes":  70237,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-account-section.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-account-section.out.log",
+                        "Bytes":  4634,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-empty-run.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-empty-run.out.log",
+                        "Bytes":  4642,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-emulator-run.err.log",
+                        "Bytes":  214,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-emulator-run.out.log",
+                        "Bytes":  18705,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-emulator.err.log",
+                        "Bytes":  41,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-emulator.out.log",
+                        "Bytes":  11593,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-inbox.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-inbox.out.log",
+                        "Bytes":  12531,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-latest.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-latest.out.log",
+                        "Bytes":  7750,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-name-lock.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-name-lock.out.log",
+                        "Bytes":  4430,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-no-language.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-no-language.out.log",
+                        "Bytes":  5378,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-portrait.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-portrait.out.log",
+                        "Bytes":  5942,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-profile-edit.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-profile-edit.out.log",
+                        "Bytes":  7128,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-relaunch.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-relaunch.out.log",
+                        "Bytes":  1135,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-remove-academy.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-remove-academy.out.log",
+                        "Bytes":  7494,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-rerun.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-rerun.out.log",
+                        "Bytes":  12484,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-restart-both.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-restart-both.out.log",
+                        "Bytes":  5212,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-run.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-run.out.log",
+                        "Bytes":  3549,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-session.err.log",
+                        "Bytes":  211,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-session.out.log",
+                        "Bytes":  285,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-stage4-button.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-stage4-button.out.log",
+                        "Bytes":  7625,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-stage4-details.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-stage4-details.out.log",
+                        "Bytes":  5649,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-stage4.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-stage4.out.log",
+                        "Bytes":  4370,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-start.err.log",
+                        "Bytes":  148,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-start.out.log",
+                        "Bytes":  4695,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-support-images.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-support-images.out.log",
+                        "Bytes":  4875,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-two-apps.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-two-apps.out.log",
+                        "Bytes":  4822,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-update-button.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "partner-update-button.out.log",
+                        "Bytes":  7840,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "reopen-office.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "reopen-office.out.log",
+                        "Bytes":  15275,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "screen.png",
+                        "Bytes":  1911473,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "service-number-fields.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "service-number-fields.out.log",
+                        "Bytes":  55603,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "test_err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/active-jobs-fixed.err.log",
+                        "Bytes":  562,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/active-jobs-fixed.out.log",
+                        "Bytes":  15288,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/active-jobs.err.log",
+                        "Bytes":  651,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/active-jobs.out.log",
+                        "Bytes":  20017,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/admin-activation.err.log",
+                        "Bytes":  676,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/admin-activation.out.log",
+                        "Bytes":  15439,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/agreements-runtime.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/agreements-runtime.out.log",
+                        "Bytes":  385349,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/area-edit-runtime.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/area-edit-runtime.out.log",
+                        "Bytes":  445801,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/checkbox.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/checkbox.out.log",
+                        "Bytes":  15277,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/direct-checkin.err.log",
+                        "Bytes":  677,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/direct-checkin.out.log",
+                        "Bytes":  15438,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/eligibility-runtime.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/eligibility-runtime.out.log",
+                        "Bytes":  15229,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/exam-detail.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/exam-detail.out.log",
+                        "Bytes":  15272,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/final-images.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/final-images.out.log",
+                        "Bytes":  15493,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/final-office-button.err.log",
+                        "Bytes":  681,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/final-office-button.out.log",
+                        "Bytes":  15439,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/identity-complete.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/identity-complete.out.log",
+                        "Bytes":  15274,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/identity-display.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/identity-display.out.log",
+                        "Bytes":  15273,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/identity-number-runtime.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/identity-number-runtime.out.log",
+                        "Bytes":  667358,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/knowledge-only-runtime.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/knowledge-only-runtime.out.log",
+                        "Bytes":  427875,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/kyc-notify.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/kyc-notify.out.log",
+                        "Bytes":  15275,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/launch.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/launch.out.log",
+                        "Bytes":  54613,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/milestone-backend.log",
+                        "Bytes":  4462,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/notification-read.err.log",
+                        "Bytes":  678,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/notification-read.out.log",
+                        "Bytes":  15662,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/office-actions.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/office-actions.out.log",
+                        "Bytes":  15253,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/office-visit.err.log",
+                        "Bytes":  676,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/office-visit.out.log",
+                        "Bytes":  15439,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/partner-feedback.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/partner-feedback.out.log",
+                        "Bytes":  15276,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/partner-office-notifications.err.log",
+                        "Bytes":  677,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/partner-office-notifications.out.log",
+                        "Bytes":  15439,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/personal-save-runtime.err.log",
+                        "Bytes":  564,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/personal-save-runtime.out.log",
+                        "Bytes":  305668,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/question-bank-runtime.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/question-bank-runtime.out.log",
+                        "Bytes":  1741001,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/real-exam-runtime.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/real-exam-runtime.out.log",
+                        "Bytes":  1449143,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/real-uniforms.err.log",
+                        "Bytes":  677,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/real-uniforms.out.log",
+                        "Bytes":  15657,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/registration-confirm-runtime.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/registration-confirm-runtime.out.log",
+                        "Bytes":  1662595,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/retake-runtime.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/retake-runtime.out.log",
+                        "Bytes":  1584020,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/review-actions.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/review-actions.out.log",
+                        "Bytes":  15275,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/review-minutes.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/review-minutes.out.log",
+                        "Bytes":  15274,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/review-unlocked.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/review-unlocked.out.log",
+                        "Bytes":  15274,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/stage-one-runtime.err.log",
+                        "Bytes":  564,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/stage-one-runtime.out.log",
+                        "Bytes":  327967,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/stage-order-runtime.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/stage-order-runtime.out.log",
+                        "Bytes":  3005351,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/status-review.err.log",
+                        "Bytes":  676,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/status-review.out.log",
+                        "Bytes":  15439,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/storage-runtime.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/storage-runtime.out.log",
+                        "Bytes":  436945,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/submission-state-runtime.err.log",
+                        "Bytes":  565,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/submission-state-runtime.out.log",
+                        "Bytes":  393930,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/third-screen-runtime.err.log",
+                        "Bytes":  564,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/third-screen-runtime.out.log",
+                        "Bytes":  294259,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/unified-review.err.log",
+                        "Bytes":  566,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/unified-review.out.log",
+                        "Bytes":  15274,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/uniform-cash.err.log",
+                        "Bytes":  677,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/uniform-cash.out.log",
+                        "Bytes":  15393,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/uniform-images.err.log",
+                        "Bytes":  677,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/uniform-images.out.log",
+                        "Bytes":  15651,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/uniform-order-complete.err.log",
+                        "Bytes":  677,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/uniform-order-complete.out.log",
+                        "Bytes":  15438,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/uniform-order-view.err.log",
+                        "Bytes":  677,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/uniform-order-view.out.log",
+                        "Bytes":  15440,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/uniform-sales-history.err.log",
+                        "Bytes":  677,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "backend/uniform-sales-history.out.log",
+                        "Bytes":  15439,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "docs/partner-regression-test.log",
+                        "Bytes":  186180,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frondend/cleanup-restart.err.log",
+                        "Bytes":  34203,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frondend/cleanup-restart.out.log",
+                        "Bytes":  69625,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frondend/dev-runtime.err.log",
+                        "Bytes":  6588,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frondend/dev-runtime.out.log",
+                        "Bytes":  118125,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frondend/frontend-recovery.err.log",
+                        "Bytes":  3768,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frondend/frontend-recovery.out.log",
+                        "Bytes":  719,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frondend/frontend-restart.err.log",
+                        "Bytes":  213,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frondend/frontend-restart.out.log",
+                        "Bytes":  131472,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frondend/launch.err.log",
+                        "Bytes":  7128,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "frondend/launch.out.log",
+                        "Bytes":  41851,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/active-jobs.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/active-jobs.out.log",
+                        "Bytes":  13418,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/admin-activation.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/admin-activation.out.log",
+                        "Bytes":  4264,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/agreements-review-state.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/agreements-review-state.out.log",
+                        "Bytes":  7127,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/app-runtime.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/app-runtime.out.log",
+                        "Bytes":  211034,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/bell.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/bell.out.log",
+                        "Bytes":  8226,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/checkbox.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/checkbox.out.log",
+                        "Bytes":  9043,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/community_feed_screen.png",
+                        "Bytes":  2032641,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/community_feed_screen2.png",
+                        "Bytes":  118922,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/community_feed_screen3.png",
+                        "Bytes":  98855,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/community_screen.png",
+                        "Bytes":  1468021,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/community_screen2.png",
+                        "Bytes":  1466583,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/community_screen3.png",
+                        "Bytes":  1461868,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/community_screen4.png",
+                        "Bytes":  183994,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/current-status-notice.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/current-status-notice.out.log",
+                        "Bytes":  4659,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/current_customer_screen.png",
+                        "Bytes":  1461831,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/current_screen_now.png",
+                        "Bytes":  47043,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/current_user_screen.png",
+                        "Bytes":  47122,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/customer-no-dot.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/customer-no-dot.out.log",
+                        "Bytes":  19136,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/customer-profile.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/customer-profile.out.log",
+                        "Bytes":  106997,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/customer-relaunch.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/customer-relaunch.out.log",
+                        "Bytes":  5862,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/emulator-runtime.err.log",
+                        "Bytes":  288,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/emulator-runtime.out.log",
+                        "Bytes":  19630,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/emulator_screen.png",
+                        "Bytes":  441301,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/final-images.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/final-images.out.log",
+                        "Bytes":  5708,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/keyboard-check.png",
+                        "Bytes":  185530,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/launch-customer.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/launch-customer.out.log",
+                        "Bytes":  77738,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/launch-partner.err.log",
+                        "Bytes":  81,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/launch-partner.out.log",
+                        "Bytes":  12223,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/notification-read.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/notification-read.out.log",
+                        "Bytes":  4602,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/office-visit-final.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/office-visit-final.out.log",
+                        "Bytes":  5153,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/office-visit.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/office-visit.out.log",
+                        "Bytes":  4692,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/overflow_dump.txt",
+                        "Bytes":  2223,
+                        "Category":  "DIAGNOSTIC_DUMP"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-current.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-current.out.log",
+                        "Bytes":  11119,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-feedback.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-feedback.out.log",
+                        "Bytes":  3875,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-launch-latest.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-launch-latest.out.log",
+                        "Bytes":  5045,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-no-dot.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-no-dot.out.log",
+                        "Bytes":  8485,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-relaunch.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-relaunch.out.log",
+                        "Bytes":  3984,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-rerun.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-rerun.out.log",
+                        "Bytes":  6733,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-restart-now.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-restart-now.out.log",
+                        "Bytes":  18693,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-runtime.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner-runtime.out.log",
+                        "Bytes":  3875,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner_after.png",
+                        "Bytes":  345806,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner_back_to_tab0.png",
+                        "Bytes":  345889,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner_current.png",
+                        "Bytes":  345727,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner_login_screen.png",
+                        "Bytes":  1578291,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner_now.png",
+                        "Bytes":  254273,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner_offline.png",
+                        "Bytes":  273831,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner_screen.png",
+                        "Bytes":  1597914,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner_tab1.png",
+                        "Bytes":  341339,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/partner_tab2.png",
+                        "Bytes":  342786,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/real-uniforms.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/real-uniforms.out.log",
+                        "Bytes":  6980,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/remove-online-review.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/remove-online-review.out.log",
+                        "Bytes":  7625,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/restart-customer.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/restart-customer.out.log",
+                        "Bytes":  13945,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/restart-partner.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/restart-partner.out.log",
+                        "Bytes":  11749,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/review-minutes.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/review-minutes.out.log",
+                        "Bytes":  4657,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/review-notice.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/review-notice.out.log",
+                        "Bytes":  4264,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/review-partner.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/review-partner.out.log",
+                        "Bytes":  4380,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/screen.png",
+                        "Bytes":  389368,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/screen_new.png",
+                        "Bytes":  399862,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/screen_now.png",
+                        "Bytes":  463490,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/screen_scroll.png",
+                        "Bytes":  288082,
+                        "Category":  "SCREENSHOT_REVIEW_BEFORE_DELETE"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/single-review-notice.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/single-review-notice.out.log",
+                        "Bytes":  5893,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/stage-four-lock-final.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/stage-four-lock-final.out.log",
+                        "Bytes":  5792,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/stage-four-lock.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/stage-four-lock.out.log",
+                        "Bytes":  5049,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/status-review.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/status-review.out.log",
+                        "Bytes":  4371,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/test_err.log",
+                        "Bytes":  2278,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/test_err.txt",
+                        "Bytes":  4788,
+                        "Category":  "DIAGNOSTIC_DUMP"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-active-orders.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-active-orders.out.log",
+                        "Bytes":  8277,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-cancel-rebuy.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-cancel-rebuy.out.log",
+                        "Bytes":  4303,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-cash.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-cash.out.log",
+                        "Bytes":  5893,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-gallery.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-gallery.out.log",
+                        "Bytes":  12962,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-images-final.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-images-final.out.log",
+                        "Bytes":  5149,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-images.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-images.out.log",
+                        "Bytes":  4906,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-order-complete.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-order-complete.out.log",
+                        "Bytes":  9056,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-order-view.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-order-view.out.log",
+                        "Bytes":  4796,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-orders-only.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-orders-only.out.log",
+                        "Bytes":  6153,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-remove-label.err.log",
+                        "Bytes":  0,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/uniform-remove-label.out.log",
+                        "Bytes":  9541,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/docs/customer-apk-build.log",
+                        "Bytes":  10590,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/docs/customer-backend-test.log",
+                        "Bytes":  11758,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/docs/customer-flutter-test.log",
+                        "Bytes":  24564,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/docs/customer-home-test.log",
+                        "Bytes":  107484,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    },
+                    {
+                        "RelativePath":  "Taskly-main/docs/customer-v3-widget-test.log",
+                        "Bytes":  18520,
+                        "Category":  "DIAGNOSTIC_LOG"
+                    }
+                ]
+}
