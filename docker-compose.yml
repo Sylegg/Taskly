@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: taskly-postgres-1
+    environment:
+      POSTGRES_DB: taskly
+      POSTGRES_USER: taskly
+      POSTGRES_PASSWORD: taskly_dev_only
+    ports:
+      - "55432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: taskly-redis-1
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
