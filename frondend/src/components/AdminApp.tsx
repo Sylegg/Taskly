@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Activity, AlertTriangle, ArrowDownToLine, ArrowLeft, ArrowRight, BarChart3, Bell, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, ClipboardCheck, Clock3, CreditCard, Download, FileText, Filter, Gift, Globe2, LayoutDashboard, LockKeyhole, MapPin, Menu, MessageSquare, MoreHorizontal, Plus, RefreshCw, Search, Settings2, ShieldCheck, SlidersHorizontal, Sparkles, TrendingUp, Upload, Users, Wallet, X, Zap, Video, Shirt, Award } from 'lucide-react';
 import rawSeed from '@/data/seed.json';
 import rawNav from '@/data/navigation.json';
@@ -12,6 +12,8 @@ import CommunityAdmin from './CommunityAdmin';
 import RecruitmentAdmin from './RecruitmentAdmin';
 import SupportAdmin from './SupportAdmin';
 import TaskAdmin from './TaskAdmin';
+import AdminReviews from './AdminReviews';
+import AdminWorkOverview, { isDemoOrder, type AdminOrder } from './AdminWorkOverview';
 import DailyMilestonesAdmin from './DailyMilestonesAdmin';
 import DepositWithdrawAdmin from './DepositWithdrawAdmin';
 import PartnerAdmin from './PartnerAdmin';
@@ -72,13 +74,17 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
   const users: Row[] = accounts.map(row => ({ ...row, apps: [row.customer_app && 'Customer', row.partner_app && 'Partner'].filter(Boolean).join(' + ') || 'Customer' }));
   const customers = users.filter(row => row.customer_app || !row.partner_app);
   const partners = users.filter(row => row.partner_app);
+  const hasDemo = users.some(row => /^exe201\.(?:customer|tasker)\d{2}@taskly\.invalid$/i.test(row.email ?? ''));
+  const [serverOrders, setServerOrders] = useState<AdminOrder[]>([]);
+  const [orderState, setOrderState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [reloadOrders, setReloadOrders] = useState(0);
   const [supportChatOpen, setSupportChatOpen] = useState(false);
   const [supportUnread, setSupportUnread] = useState(0);
   const [supportSender, setSupportSender] = useState('Người dùng');
   const [savingCustomer, setSavingCustomer] = useState(false);
 
   const [partnerEditMode,setPartnerEditMode]=useState(false);
-  const [db, setDb] = useState<DB>(seedClone); const [ready, setReady] = useState(false); const [route, setRoute] = useState('dashboard'); const [q, setQ] = useState(''); const [filter, setFilter] = useState('ALL'); const role = 'ADMIN'; const [menuOpen, setMenuOpen] = useState(false); const [selected, setSelected] = useState<Selection | null>(null); const [form, setForm] = useState<Form | null>(null); const [formValues, setFormValues] = useState<Row>({}); const [toast, setToast] = useState(''); const [viewClassic, setViewClassic] = useState(false); const [range, setRange] = useState('30 ngày'); const [confirm, setConfirm] = useState<{ title: string; message: string; go: () => void } | null>(null); const [notifs, setNotifs] = useState(false);
+  const [db, setDb] = useState<DB>(seedClone); const [ready, setReady] = useState(false); const [route, setRoute] = useState('dashboard'); const [q, setQ] = useState(''); const [filter, setFilter] = useState('ALL'); const role = 'ADMIN'; const [menuOpen, setMenuOpen] = useState(false); const [selected, setSelected] = useState<Selection | null>(null); const [form, setForm] = useState<Form | null>(null); const [formValues, setFormValues] = useState<Row>({}); const [toast, setToast] = useState(''); const [viewClassic, setViewClassic] = useState(false); const [confirm, setConfirm] = useState<{ title: string; message: string; go: () => void } | null>(null); const [notifs, setNotifs] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [portal, setPortal] = useState<AdminPortal>('customer');
   const [portalRoutes, setPortalRoutes] = useState<Record<AdminPortal, string>>({customer:'dashboard', partner:'recruitment'});
@@ -95,6 +101,33 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
   useEffect(() => { if (ready) { localStorage.setItem(STORE_KEY, JSON.stringify({ ...db, customers: [], partners: [], staff: [] })); localStorage.setItem(STORE_KEY + '_route', route) } }, [db, route, ready]);
   useEffect(() => { if (!toast) return; let t = setTimeout(() => setToast(''), 3500); return () => clearTimeout(t) }, [toast]);
   useEffect(() => { setDb(previous => ({ ...previous, customers, partners })); }, [accounts]);
+  useEffect(() => {
+    if (!mainRoutes.has(route) && route !== 'customers' && route !== 'disputes') return;
+    const controller = new AbortController();
+    setOrderState('loading');
+    fetch('/api/admin/tasks', { cache: 'no-store', signal: controller.signal })
+      .then(async response => {
+        const data = await response.json();
+        if (controller.signal.aborted) return;
+        if (!response.ok || !Array.isArray(data.tasks)) throw new Error('Không thể tải công việc');
+        setServerOrders(data.tasks);
+        setOrderState('ready');
+      })
+      .catch(() => { if (!controller.signal.aborted) setOrderState('error'); });
+    return () => controller.abort();
+  }, [route, reloadOrders]);
+  const customerOrders = serverOrders.map(order => ({
+    ...order,
+    customerId: order.customer_id,
+    service_name: order.service,
+    location: order.address,
+  }));
+  function openServerOrder(id: string) {
+    navigate('tasks');
+    const url = new URL(window.location.href);
+    url.searchParams.set('taskId', id);
+    window.history.replaceState(window.history.state, '', url.toString());
+  }
   function notify(t: string) { setToast(t) }
   function navigate(k: string) { if (k === 'campaigns') return; const nextRoute = (k === 'recruitment' || k === 'recruitment-config') ? 'recruitment-applications' : k === 'pricing' ? 'services' : k; if (!HEADINGS[nextRoute]) return; const url = new URL(window.location.href); url.searchParams.delete('taskId'); window.history.replaceState(window.history.state, '', url.toString()); setRoute(nextRoute); setQ(''); setFilter('ALL'); setSelected(null); setMenuOpen(false); setViewClassic(false); window.scrollTo(0, 0) }
   function change(next: DB, msg: string) { setDb({ ...next, customers, partners }); notify(msg) }
@@ -160,11 +193,10 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
       }, key, kind, row.id)
     })
   }
-  const summary = useMemo(() => { let pending = db.kycs.filter((k: Row) => k.status === 'PENDING').length; let active = db.tasks.filter((t: Row) => ['MATCHING', 'ACCEPTED', 'TASKER_ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED'].includes(t.status)).length; let released = db.payments.filter((p: Row) => p.status === 'RELEASED').reduce((a: number, x: Row) => a + Number(x.amount), 0); return { pending, active, released, matching: db.tasks.filter((t: Row) => t.status === 'MATCHING').length, issues: db.tasks.filter((t: Row) => ['DISPUTED', 'CANCELLED'].includes(t.status)).length, partnerOnline: db.partners.filter((p: Row) => p.status === 'ACTIVE' && p.kyc === 'APPROVED' && p.online).length } }, [db]);
   const selectedItem = selected ? db[selected.kind]?.find((x: Row) => x.id === selected.id) : null;
   const isCatalogue = route === 'tasks' || route === 'tickets' || route === 'categories' || route === 'services' || route === 'banners' || route === 'community' || route.startsWith('recruitment');
   const portalName = portal === 'customer' ? 'Customer' : 'Partner';
-  const demoModule = ['dashboard', 'operations', 'analytics', 'disputes', 'reviews', 'vouchers', 'rewards', 'campaigns', 'staff', 'audit', 'integrations', 'datalab', 'permissions'].includes(route);
+  const demoModule = [ 'vouchers', 'rewards', 'campaigns', 'staff', 'audit', 'integrations', 'datalab', 'permissions'].includes(route);
   const pageHeading = route === 'payments'
     ? [`Nạp & Rút tiền ${portalName}`, portal === 'customer' ? 'Quản lý tiền nạp và yêu cầu rút số dư Customer về ngân hàng.' : 'Quản lý nạp ví và yêu cầu rút tiền Partner.']
     : route === 'settings'
@@ -178,11 +210,11 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
       <div className="admin-portal-tabs" role="tablist" aria-label="Ứng dụng quản lý">{(['customer','partner'] as AdminPortal[]).map(item=><button key={item} role="tab" aria-selected={portal===item} className={portal===item?'selected '+item:''} onClick={()=>switchPortal(item)}>{item==='customer'?'Customer':'Partner'}</button>)}</div>
       <div className={'workspace-label portal-'+portal}><span className="workspace-logo">{portal==='customer'?'C':'P'}</span><div><b>TaskLy {portal==='customer'?'Customer':'Partner'}</b><small>{portal==='customer'?'Khách hàng & dịch vụ':'Tuyển dụng & đối tác'}</small></div></div>
       <div className="nav-scroller" key={portal}>{navigationForPortal(NAV,portal).map(([group, items]) => <div className="nav-group" key={group}><div className="nav-heading">{group}</div>{items.map(([key, , label]) => { const Icon = NAV_ICONS[key] || FileText; return <button key={key} className={'nav-link ' + (route === key ? 'active' : '')} onClick={() => navigate(key)}><Icon size={18} /><span>{label}</span>{route === key && <span className="active-dot" />}</button> })}</div>)}</div>
-      <div className="side-bottom"><div className="system-online"><span className="live-dot" /><div><b>TaskLy {portalName}</b><small>{demoModule ? 'Module dữ liệu mô phỏng' : 'Dữ liệu từ máy chủ'}</small></div><span className="mini-ring" /></div><div className="side-profile"><div className="initials">AD</div><div><b>{adminName || 'Admin'}</b><small>{role.replaceAll('_', ' ')}</small></div><MoreHorizontal size={18} /></div></div>
+      <div className="side-bottom"><div className="system-online"><span className="live-dot" /><div><b>TaskLy {portalName}</b><small>{demoModule ? 'Chưa có nguồn dữ liệu máy chủ' : 'Dữ liệu từ máy chủ'}</small></div><span className="mini-ring" /></div><div className="side-profile"><div className="initials">AD</div><div><b>{adminName || 'Admin'}</b><small>{role.replaceAll('_', ' ')}</small></div><MoreHorizontal size={18} /></div></div>
     </aside>
     <div className="main-area">
       <header className="topbar"><div className="top-left"><button className="icon-button mobile-trigger" aria-label="Mở menu" onClick={() => setMenuOpen(true)}><Menu size={21} /></button><div className="breadcrumbs"><span>TaskLy</span><ChevronRight size={15} /><b>{pageHeading?.[0]}</b></div></div><div className="top-right"><div className="top-search"><Search size={17} /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Tìm trong trang..." aria-label="Tìm kiếm" /><kbd>⌘ K</kbd></div><span className="badge green">ADMIN</span><button className="btn btn-outline" onClick={() => void onLogout().catch(e => notify(e.message))}>Đăng xuất</button><button className="icon-button notify-icon" onClick={() => setNotifs(!notifs)} aria-label="Thông báo"><Bell size={20} /><span /></button><div className="top-avatar">A</div></div></header>
-      {notifs && <div className="notif-pop"><b>Trung tâm thông báo demo</b><p>{summary.pending} hồ sơ KYC cần duyệt</p><p>{summary.matching} công việc đang chờ Matching</p><p>{db.tickets.filter((x: Row) => x.status === 'OPEN').length} ticket mới</p><button onClick={() => { setNotifs(false); navigate('operations') }}>Đến Operations →</button></div>}
+      {notifs && <div className="notif-pop"><b>Thông báo vận hành</b><p>{customerLoading || customerError ? 'Đang chờ dữ liệu hồ sơ.' : `${partners.filter(partner => partner.kyc === 'SUBMITTED').length} hồ sơ KYC chờ duyệt`}</p><p>{orderState === 'ready' ? `${serverOrders.filter(order => order.status === 'MATCHING').length} công việc đang tìm đối tác` : 'Mở Vận hành để xem công việc.'}</p><button onClick={() => { setNotifs(false); navigate('operations') }}>Đến Operations →</button></div>}
       <main className={'workspace' + (isCatalogue ? ' catalogue-workspace' : '')}>
         <div className={'page-header' + (isCatalogue ? ' catalogue-page-header' : '')}>
           <div>
@@ -194,7 +226,7 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
         </div>
         {!isCatalogue && customerError && <div role="alert" className="api-error">{customerError}</div>}
         {['customers', 'partners'].includes(route) && customerLoading && <div className="notice">Đang tải {portalName} từ máy chủ…</div>}
-        {demoModule && <div className="notice">Module này sử dụng dữ liệu mô phỏng trong trình duyệt. Các trang có kết nối máy chủ được quản lý riêng.</div>}
+        {(hasDemo || serverOrders.some(isDemoOrder)) && <div className="notice">Dashboard có dữ liệu Demo EXE201. Các đơn mang mã EXE201 và tài khoản có địa chỉ @taskly.invalid thuộc bộ trình diễn mô phỏng.</div>}
         {viewClassic ? <div className="original-panel"><div className="notice">Chế độ tham chiếu: mở bản HTML Admin nguyên bản để so sánh toàn bộ tính năng và bố cục. Chế độ này lưu dữ liệu riêng với React dashboard.</div><iframe title="TaskLy Admin HTML original" src="/reference/admin-original.html" /></div> : view}
       </main>
     </div>
@@ -215,15 +247,12 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
         <CustomerDetailModal
           key={selectedItem.id}
           customer={selectedItem}
-          tasks={db.tasks}
+          tasks={customerOrders}
           onClose={() => setSelected(null)}
           onUpdateCustomer={onUpdateCustomer}
           onAction={(item, action) => itemAction('customers', item, action)}
           onEditCustomer={(customer) => openForm('customers', customer)}
-          onSelectTask={(taskId) => {
-            const t = db.tasks.find((x: any) => x.id === taskId);
-            if (t) goDetail('tasks', t);
-          }}
+          onSelectTask={openServerOrder}
           saving={savingCustomer}
         />
       ) : (
@@ -249,6 +278,21 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
   function sectionTitle(title: string, desc?: string, action?: React.ReactNode) { return <div className="section-head"><div><h2>{title}</h2>{desc && <p>{desc}</p>}</div>{action}</div> }
   function renderModule(): React.ReactNode {
     if (route === 'tasks') return <TaskAdmin query={q} />;
+    if (route === 'reviews') return <AdminReviews openOrder={openServerOrder} />;
+    if (route === 'disputes') {
+      if (orderState === 'loading') return <div role="status" className="notice">Đang tải công việc…</div>;
+      if (orderState === 'error') return <div role="alert" className="notice">Không thể tải công việc. {btn('Thử lại', () => setReloadOrders(value => value + 1))}</div>;
+      const disputed = serverOrders.filter(order => order.status === 'DISPUTED');
+      return <section className="panel">
+        <h2>Công việc đang tranh chấp</h2>
+        {disputed.length ? <div className="list-stack">{disputed.map(order =>
+          <button key={order.id} className="queue-item" onClick={() => openServerOrder(order.id)}>
+            <span className="queue-main"><b>{order.title || order.service}</b><small>{order.customer}</small></span>
+            <Badge value={order.status} />
+          </button>
+        )}</div> : <p>Chưa có công việc đang tranh chấp.</p>}
+      </section>;
+    }
     if (route === 'tickets') return <SupportAdmin fullPage initialRole={portal} />;
     if (route === 'banners') return <BannerAdmin />;
     if (route === 'community') return <CommunityAdmin />;
@@ -287,7 +331,7 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
     />;
     if (route === 'customers') return <CustomerAdmin
       customers={db.customers}
-      tasks={db.tasks}
+      tasks={customerOrders}
       loading={customerLoading}
       onRefresh={onRefreshCustomers}
       onUpdateCustomer={onUpdateCustomer}
@@ -295,30 +339,22 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
       onNavigate={navigate}
       saving={savingCustomer}
       onEditCustomer={(customer) => openForm('customers', customer)}
-      onSelectTask={(taskId) => {
-        const t = db.tasks.find((x: any) => x.id === taskId);
-        if (t) goDetail('tasks', t);
-      }}
+      onSelectTask={openServerOrder}
     />;
-    if (route === 'dashboard') return dashboard(); if (route === 'operations') return operations(); if (route === 'analytics') return analytics(); if (route === 'rewards') return rewards(); if (route === 'permissions') return <div className="panel"><h2>Vai trò Admin</h2><p>Dashboard chỉ có một vai trò Admin. Quyền đăng nhập và truy cập Customers được kiểm tra tại máy chủ.</p></div>; if (route === 'settings') return settings(); if (route === 'integrations') return integrations(); if (route === 'datalab') return datalab();
-    const kind = ROUTE_KIND[route]; return kind ? listing(route, kind) : <div className="empty">Không tìm thấy module</div>
+    if (route === 'dashboard' || route === 'operations' || route === 'analytics') {
+      if (orderState === 'loading') return <div role="status" className="notice">Đang tải công việc từ máy chủ…</div>;
+      if (orderState === 'error') return <div role="alert" className="notice">
+        Không thể tải công việc từ máy chủ. {btn('Thử lại', () => setReloadOrders(value => value + 1))}
+      </div>;
+      return <AdminWorkOverview key={route} page={route} orders={serverOrders}
+        onOrder={openServerOrder} onOpenTasks={() => navigate('tasks')} />;
+    }
+    if (route === 'settings') return settings();
+    if (demoModule) return <div className="panel"><p>Trang này chưa có nguồn dữ liệu từ máy chủ.</p></div>;
+    const kind = ROUTE_KIND[route];
+    return kind ? listing(route, kind) : <div className="empty">Không tìm thấy module</div>;
   }
-  function dashboard() {
-    const bar = [32, 45, 37, 60, 56, 72, 68, 81, 63, 86, 74, 92]; return <>
-      <div className="welcome-banner"><div><div className="welcome-tag"><Sparkles size={15} /> TASKLY COMMAND CENTER</div><h2>Chào mừng trở lại, Admin <span>✳</span></h2><p>Hệ thống đang hoạt động tốt. Đây là tổng quan dữ liệu mẫu của hai ứng dụng Customer & Partner.</p><div className="welcome-actions"><button onClick={() => navigate('operations')}>Mở Operations <ArrowRight size={17} /></button><button onClick={() => navigate('analytics')}>Xem báo cáo</button></div></div><div className="welcome-visual"><div className="float-card fc-one"><CheckCircle2 size={18} /> <span>Đơn hàng ổn định</span></div><div className="circle-main"><Activity size={62} strokeWidth={1.7} /></div><div className="float-card fc-two"><TrendingUp size={17} /> <span>Real-time demo</span></div></div></div>
-      <div className="kpi-grid">{kpi('Tổng khách hàng', db.customers.length, <Users size={23} />, 'Tài khoản thật từ API')}{kpi('Partner khả dụng', db.partners.filter((x: Row) => x.kyc === 'APPROVED' && x.status === 'ACTIVE').length, <ShieldCheck size={23} />, `${summary.partnerOnline} người đang online`, 'blue')}{kpi('Công việc cần xử lý', summary.active, <ClipboardCheck size={23} />, `${summary.matching} đang chờ Matching`, 'amber')}{kpi('Giải ngân mô phỏng', money(summary.released), <Wallet size={23} />, 'Số liệu mẫu, không phải tiền thật', 'purple')}</div>
-      <div className="dashboard-grid"><div className="panel chart-panel">{sectionTitle('Xu hướng đặt dịch vụ', '12 kỳ minh họa • không phải dữ liệu lịch sử thật', <button className="btn btn-outline" onClick={() => navigate('analytics')}>Chi tiết <ChevronRight size={15} /></button>)}<div className="bar-chart">{bar.map((v, i) => <div key={i} className="bar-column"><div className="bar-track"><div style={{ height: v + '%' }} className={'bar-fill ' + (i === 11 ? 'selected' : '')} /></div><span>T{i + 1}</span></div>)}</div></div><div className="panel"><h2>Phân bố trạng thái</h2><p className="subtle">Tổng số: {db.tasks.length} công việc</p><div className="donut-wrap"><div className="donut" style={{ background: `conic-gradient(#0da981 0 ${Math.round(db.tasks.filter((x: Row) => x.status === 'PAID').length / db.tasks.length * 100)}%,#4b8de8 0 48%,#f2b156 48% 80%,#dfeae7 80% 100%)` }}><div><b>{db.tasks.length}</b><small>Công việc</small></div></div><div className="donut-legend"><span><i style={{ background: '#0da981' }} /> Hoàn tất</span><span><i style={{ background: '#4b8de8' }} /> Đang làm</span><span><i style={{ background: '#f2b156' }} /> Cần xử lý</span><span><i style={{ background: '#dfeae7' }} /> Khác</span></div></div></div></div>
-      <div className="dashboard-grid"><div className="panel">{sectionTitle('Công việc cần chú ý', 'Các tác vụ có thể cần can thiệp', <button className="text-link" onClick={() => navigate('tasks')}>Xem tất cả <ChevronRight size={15} /></button>)}<div className="list-stack">{db.tasks.filter((t: Row) => ['MATCHING', 'POSTED', 'COMPLETED', 'DISPUTED'].includes(t.status)).slice(0, 6).map((t: Row) => <button key={t.id} className="queue-item" onClick={() => goDetail('tasks', t)}><div className="task-avatar"><ClipboardCheck size={19} /></div><div className="queue-main"><b>{t.id} · {taskService(db, t)}</b><small>{taskCustomer(db, t)} • {t.location}</small></div><Badge value={t.status} /><ChevronRight size={17} /></button>)}</div></div><div className="panel">{sectionTitle('Hàng đợi ưu tiên', 'Các hạng mục cần xử lý hôm nay')}<div className="priority-list">{[['Ticket mới', db.tickets.filter((x: Row) => x.status === 'OPEN').length, 'tickets', MessageSquare], ['Tranh chấp', db.disputes.filter((x: Row) => x.status !== 'RESOLVED').length, 'disputes', AlertTriangle]].map(([title, num, to, Icon]: any) => <button key={to} onClick={() => navigate(to)}><span className="priority-icon"><Icon size={19} /></span><b>{title}</b><strong>{num}</strong><ChevronRight size={17} /></button>)}</div></div></div>
-    </>
-  }
-  function operations() {
-    const cols = [['MATCHING', 'Đang tìm Partner', '#f5ac45'], ['ACCEPTED', 'Đã nhận việc', '#4c86da'], ['IN_PROGRESS', 'Đang thực hiện', '#18a986'], ['COMPLETED', 'Chờ xác nhận', '#9284d9']]; return <>{<div className="kpi-grid">{kpi('Matching', summary.matching, <Search size={22} />, 'Cần điều phối')}{kpi('Đang làm', db.tasks.filter((x: Row) => x.status === 'IN_PROGRESS').length, <Zap size={22} />, 'Trong quá trình xử lý', 'blue')}{kpi('Chờ xác nhận', db.tasks.filter((x: Row) => x.status === 'COMPLETED').length, <ClipboardCheck size={22} />, 'Chờ Customer', 'amber')}{kpi('Tranh chấp', db.tasks.filter((x: Row) => x.status === 'DISPUTED').length, <AlertTriangle size={22} />, 'Cần hỗ trợ', 'purple')}</div>}
-      {sectionTitle('Live Operations Board', 'Quản lý các công việc theo luồng vận hành', <button className="btn btn-primary" onClick={() => openForm('tasks')}><Plus size={16} /> Tạo đơn demo</button>)}
-      <div className="kanban">{cols.map(([status, title, color]) => <div className="kanban-col" key={status}><div className="kanban-head"><span className="kdot" style={{ background: color }} />{title}<b>{db.tasks.filter((x: Row) => x.status === status).length}</b></div>{db.tasks.filter((x: Row) => x.status === status).map((t: Row) => <button className="kanban-card" key={t.id} onClick={() => goDetail('tasks', t)}><div className="row between"><small className="mono">{t.id}</small><MoreHorizontal size={17} /></div><h4>{taskService(db, t)}</h4><p>{taskCustomer(db, t)}</p><div className="kanban-meta"><MapPin size={14} /> {t.location}</div><div className="kanban-bottom"><strong>{money(t.total)}</strong><span>{t.time}</span></div></button>)}{!db.tasks.some((x: Row) => x.status === status) && <div className="kanban-empty">Chưa có công việc</div>}</div>)}</div>
-      <div className="panel mt-22"><div className="row between"><div><h2>Điều phối nhanh</h2><p className="subtle">Xem hàng đợi Partner hoặc toàn bộ task</p></div><div className="row">{btn('Toàn bộ công việc', () => navigate('tasks'), 'primary')}</div></div></div>
-    </>
-  }
-  function analytics() { const counts = db.services.map((s: Row) => ({ ...s, count: db.tasks.filter((t: Row) => t.serviceId === s.id).length })); const max = Math.max(...counts.map((x: Row) => x.count), 1); return <>{sectionTitle('Phân tích dữ liệu mẫu', 'Số liệu được tổng hợp từ MockStore • xu hướng theo thời gian là minh họa', <div className="row">{['7 ngày', '30 ngày', '90 ngày'].map(x => <button key={x} className={'btn ' + (range === x ? 'btn-primary' : 'btn-outline')} onClick={() => setRange(x)}>{x}</button>)}{btn('Xuất CSV', () => downloadFile('taskly-tasks.csv', csv(db.tasks), 'text/csv'))}</div>)}<div className="kpi-grid">{kpi('Tổng số booking', db.tasks.length, <ClipboardCheck size={20} />, 'Tất cả dữ liệu mock')}{kpi('Tỷ lệ hoàn tất', Math.round(db.tasks.filter((x: Row) => x.status === 'PAID').length / Math.max(db.tasks.length, 1) * 100) + '%', <TrendingUp size={20} />, 'Đã giải ngân trên tổng số', 'blue')}{kpi('Tổng giá trị đơn', money(db.tasks.reduce((a: number, t: Row) => a + Number(t.total), 0)), <CreditCard size={20} />, 'Không phải doanh thu thực', 'amber')}{kpi('Khách hàng', db.customers.length, <Users size={20} />, 'Trong mô hình thử nghiệm', 'purple')}</div><div className="panel mt-22"><h2>Dịch vụ được đặt nhiều</h2><p className="subtle">Thống kê từ mảng công việc hiện tại</p><div className="analysis-bars">{counts.map((s: Row) => <div className="analysis-row" key={s.id}><span>{s.icon} {s.name}</span><div className="progress"><i style={{ width: (s.count / max * 100) + '%' }} /></div><b>{s.count}</b></div>)}</div></div></> }
+
   function listing(page: string, kind: string) { let items: Row[] = db[kind] || []; const filterField = kind==='partners'?'recruitment_status':'status'; let available = [...new Set(items.map(x => x[filterField]).filter(Boolean))]; if (filter !== 'ALL') items = items.filter(x => x[filterField] === filter); if (q.trim()) items = items.filter(x => JSON.stringify(x).toLowerCase().includes(q.trim().toLowerCase())); let cols = SORT_FIELDS[kind] || ['id', 'name', 'status']; const canCreate = !['customers', 'partners'].includes(kind) && !READ_ONLY.includes(kind); return <><div className="panel"><div className="list-head"><div><h2>{HEADINGS[page][0]}</h2><p className="subtle">{items.length} bản ghi • {['customers', 'partners'].includes(kind) ? 'dữ liệu từ máy chủ' : 'dữ liệu mô phỏng trong trình duyệt'}</p></div><div className="row"><div className="inline-search"><Search size={17} /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Tìm kiếm bảng..." /></div>{canCreate && <button className="btn btn-primary" onClick={() => openForm(kind)}><Plus size={16} /> Tạo mới</button>}{kind === 'partners' && <button className="btn btn-outline" onClick={() => navigate('daily-milestones')}><Award size={15} /> Thưởng mốc đơn</button>}<button className="btn btn-outline" onClick={() => downloadFile('taskly-' + kind + '.csv', csv(items), 'text/csv')}><Download size={16} /> CSV</button></div></div>{available.length > 1 && <div className="filter-pills"><button className={filter === 'ALL' ? 'active' : ''} onClick={() => setFilter('ALL')}>Tất cả <small>{db[kind].length}</small></button>{available.map(v => <button className={filter === v ? 'active' : ''} key={v} onClick={() => setFilter(v)}>{partnerStatusLabels[v] || STATUS[v] || v}<small>{db[kind].filter((x: Row) => x[filterField] === v).length}</small></button>)}</div>}<div className="table-wrapper"><table><thead><tr>{cols.map(c => <th key={c}>{LABEL[c] || c}</th>)}<th>Thao tác</th></tr></thead><tbody>{items.map(item => <tr key={item.id}>{cols.map(c => <td key={c}>{c === 'name' || c === 'title' || c === 'subject' ? <div className="cell-person"><span>{String(item[c] || '?').slice(0, 1).toUpperCase()}</span><b>{item[c]}</b></div> : showField(db, c, item[c])}</td>)}<td><button className="table-action" onClick={() => goDetail(kind, item)}>Xem <ChevronRight size={16} /></button>{kind==='partners'&&<button className="table-action" onClick={()=>openForm(kind,item)}>Chỉnh sửa</button>}{kind === 'partners' && item.recruitment_status === 'ACTIVE' && item.application_id && <button className="table-action" disabled={savingCustomer} onClick={() => itemAction(kind, item, 'SUSPEND_TASKER')}>Tạm ngưng để kiểm tra</button>}</td></tr>)}{items.length === 0 && <tr><td colSpan={cols.length + 1} className="no-data">Không tìm thấy dữ liệu phù hợp</td></tr>}</tbody></table></div><div className="table-footer"><span>Hiển thị {items.length} / {db[kind]?.length || 0} bản ghi</span><span>{['customers', 'partners'].includes(kind) ? 'API TaskLy • Dữ liệu theo tài khoản' : 'Dữ liệu mô phỏng'}</span></div></div></> }
   function rewards() { return <><div style={{ display: 'flex', gap: 10, marginBottom: 18 }}><button className="btn btn-outline" style={{ background: '#ffffff', fontWeight: 800, borderColor: '#0b9879', color: '#0b9879' }}>Điểm khách hàng (TaskPoints)</button></div><div className="kpi-grid">{kpi('Tổng TaskPoints', db.customers.reduce((n: number, c: Row) => n + Number(c.points || 0), 0), <Gift size={20} />, 'Điểm mock hiện tại')}{kpi('Voucher hoạt động', db.vouchers.filter((x: Row) => x.active).length, <Gift size={20} />, 'Khuyến mãi', 'blue')}{kpi('Khách có điểm', db.customers.filter((x: Row) => x.points > 0).length, <Users size={20} />, 'Có ví Rewards', 'amber')}{kpi('Tỷ lệ đổi điểm', 'Demo', <BarChart3 size={20} />, 'Chưa có nghiệp vụ đổi thật', 'purple')}</div><div className="panel mt-22">{sectionTitle('Điều chỉnh điểm thưởng', 'Mỗi cập nhật ghi Audit Log')}{db.customers.map((c: Row) => <div className="reward-row" key={c.id}><div className="cell-person"><span>{c.name.slice(0, 1)}</span><b>{c.name}</b></div><strong>{c.points} điểm</strong><button className="btn btn-outline" onClick={() => attempt('rewards', () => { const x = prompt('Nhập số điểm cộng hoặc trừ:', '100'); if (x === null) return; const v = Number(x); if (!Number.isFinite(v) || c.points + v < 0) throw Error('Số điểm không hợp lệ'); update(d => { d.customers.find((u: Row) => u.id === c.id).points += v }, 'ADJUST_REWARDS', 'Customer', c.id, `${v >= 0 ? '+' : ''}${v} TaskPoints`) })}>Điều chỉnh</button></div>)}</div></> }
   function permissions() { let modules = ['customers', 'partners', 'tasks', 'matching', 'services', 'payments', 'refunds', 'payouts', 'tickets', 'disputes', 'reviews', 'banners']; return <div className="panel"><div className="notice">Ma trận này chỉ mô phỏng kiểm soát nút ở frontend. Hệ thống thật phải xác minh quyền tại backend.</div><div className="table-wrapper"><table className="permission-table"><thead><tr><th>Module</th>{ROLES.map(r => <th key={r}>{r}</th>)}</tr></thead><tbody>{modules.map(mod => <tr key={mod}><td><b>{HEADINGS[mod]?.[0] || mod}</b></td>{ROLES.map(r => <td key={r}>{can(r, mod) ? <CheckCircle2 size={18} color="#0d9d78" /> : <X size={17} color="#aab7b3" />}</td>)}</tr>)}</tbody></table></div></div> }

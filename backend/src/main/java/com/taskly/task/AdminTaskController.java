@@ -141,6 +141,21 @@ public class AdminTaskController {
         return ApiResponse.success(tasks);
     }
 
+    @GetMapping("/reviews")
+    public ApiResponse<List<Map<String, Object>>> reviews() {
+        return ApiResponse.success(db.queryForList("""
+            SELECT r.task_id, r.stars, r.comment, r.created_at,
+                   t.title, t.service_name_snapshot AS service,
+                   COALESCE(c.full_name, '') AS customer, COALESCE(p.full_name, '') AS partner
+            FROM customer_reviews r
+            JOIN tasks t ON t.id = r.task_id
+            LEFT JOIN user_profiles c ON c.user_id = r.customer_id
+            LEFT JOIN user_profiles p ON p.user_id = t.tasker_id
+            ORDER BY r.created_at DESC, r.task_id
+            """));
+    }
+
+
     @GetMapping("/{id}/messages")
     public ApiResponse<List<Map<String, Object>>> messages(@PathVariable UUID id) {
         if (db.queryForObject("SELECT COUNT(*) FROM tasks WHERE id=?", Integer.class, id) == 0)
