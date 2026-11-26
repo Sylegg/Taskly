@@ -55,7 +55,7 @@ spring:
     time-zone: UTC
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:${PORT:8080}}
   shutdown: graceful
   forward-headers-strategy: framework
   error:
@@ -112,6 +112,8 @@ app:
     local-directory: ${TASKLY_LOCAL_STORAGE_DIRECTORY:}
     public-base-url: ${STORAGE_PUBLIC_BASE_URL:http://127.0.0.1:8080}
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    region: ${MINIO_REGION:}
+    virtual-hosted-style: ${MINIO_VIRTUAL_HOSTED_STYLE:false}
     access-key: ${MINIO_ROOT_USER:taskly_dev}
     secret-key: ${MINIO_ROOT_PASSWORD:taskly_dev_password}
     private-bucket: ${MINIO_BUCKET_PRIVATE:taskly-private}

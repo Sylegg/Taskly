@@ -4,3 +4,5 @@
 build
 .idea
 *.iml
+.env*
+data/private-images
