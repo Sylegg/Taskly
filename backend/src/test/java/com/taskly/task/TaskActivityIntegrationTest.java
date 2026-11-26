@@ -176,6 +176,10 @@ class TaskActivityIntegrationTest {
   mvc.perform(get("/api/v1/task-activity").with(jwt().jwt(j->j.subject(tasker.getId().toString()))))
     .andExpect(jsonPath("$.data[0].budgetAmount").value(100000))
     .andExpect(jsonPath("$.data[0].partnerNetAmount").value(90000));
+  mvc.perform(get("/api/v1/task-activity?partner=false").with(jwt().jwt(j->j.subject(tasker.getId().toString()))))
+    .andExpect(status().isOk()).andExpect(jsonPath("$.data").isEmpty());
+  mvc.perform(get("/api/v1/task-activity?partner=true").with(jwt().jwt(j->j.subject(tasker.getId().toString()))))
+    .andExpect(status().isOk()).andExpect(jsonPath("$.data[0].id").value(id.toString()));
   db.update("INSERT INTO task_status_history(id,task_id,to_status,actor_role,occurred_at) VALUES(?,?,'ACCEPTED','TASKER',CURRENT_TIMESTAMP)",UUID.randomUUID(),id);
   for(int i=0;i<2;i++)mvc.perform(post("/api/v1/task-activity/"+id+"/messages").with(auth).contentType(MediaType.APPLICATION_JSON).content(message)).andExpect(status().isOk());
   String png="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";

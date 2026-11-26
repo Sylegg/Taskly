@@ -4,6 +4,9 @@ import com.taskly.common.api.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -37,12 +40,12 @@ public class EarlyStartController {
 
     public record CreateEarlyStartRequest(
         @NotNull Instant requestedStartAt,
-        String reason,
+        @Size(max = 500) String reason,
         String requestId
     ) {}
 
     public record CustomerDecisionRequest(
-        @NotBlank String action, // APPROVE or REJECT
+        @NotBlank @Pattern(regexp="APPROVE|REJECT") @JsonAlias("decision") String action,
         String reason
     ) {}
 
@@ -84,6 +87,7 @@ public class EarlyStartController {
         @AuthenticationPrincipal Jwt jwt,
         @PathVariable UUID id
     ) {
+        earlyStartService.getStartEligibility(user(jwt), id, true);
         return ApiResponse.success(earlyStartService.getEarlyStartRequests(id));
     }
 
@@ -114,6 +118,7 @@ public class EarlyStartController {
         @AuthenticationPrincipal Jwt jwt,
         @PathVariable UUID id
     ) {
+        earlyStartService.getStartEligibility(user(jwt), id, false);
         return ApiResponse.success(earlyStartService.getEarlyStartRequests(id));
     }
 

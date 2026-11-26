@@ -14,7 +14,7 @@ class CompletedScheduleTest {
   when(settings.getMinBufferMinutes()).thenReturn(60);
   when(db.queryForObject(anyString(),eq(Integer.class),any(),any(),any(),any())).thenReturn(0);
   when(db.queryForObject(anyString(),eq(Integer.class),any(),any(),any())).thenReturn(0);
-  when(db.queryForList(anyString(),any(),any(),any())).thenReturn(List.of(Map.of("status","COMPLETED")));
+  when(db.queryForList(anyString(),any(UUID.class),any(UUID.class))).thenReturn(List.of(Map.of("status","COMPLETED")));
   var result=new PartnerSchedulingService(db,settings).validateSchedule(UUID.randomUUID(),UUID.randomUUID(),Instant.now().plusSeconds(60),120,null,null);
   assertTrue(result.eligible());
  }

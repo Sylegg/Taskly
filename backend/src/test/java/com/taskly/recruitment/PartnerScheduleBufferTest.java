@@ -111,6 +111,7 @@ public class PartnerScheduleBufferTest {
             userId, name);
         db.update("INSERT INTO partner_bank_accounts(user_id, bank_name, account_name, account_number, updated_at) VALUES(?, 'MB Bank', ?, '123456789', CURRENT_TIMESTAMP)",
             userId, name);
+        db.update("INSERT INTO partner_wallets(user_id,balance) VALUES(?,300000)", userId);
         db.update("INSERT INTO identity_verifications(id,user_id,status,legal_name,document_type,document_number_masked,reviewed_by,reviewed_at,created_at,updated_at) VALUES(?,?,'APPROVED','Test Identity','NATIONAL_ID','001234567890',?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)", UUID.randomUUID(), userId, userId);
         var allTerms = db.queryForList("SELECT id FROM terms_versions WHERE active=true", UUID.class);
         for(var termId : allTerms) {
@@ -252,17 +253,15 @@ public class PartnerScheduleBufferTest {
         assertTrue(val.eligible());
     }
 
-    // Scenario 9: Self-reported completion without verification retains buffer to scheduled end
+    // Scenario 9: A completed booking from an older version no longer occupies the calendar.
     @Test
-    void scenario9_unverifiedCompletionRetainsScheduledBuffer() {
+    void scenario9_legacyCompletionReleasesSlot() {
         Instant t10 = Instant.parse("2026-10-15T10:00:00Z");
         createTask("Unverified Completed Task", t10, 120, "COMPLETED", partnerUser.getId()); // verified_actual_end_at is null
 
-        // Job at 12:00–13:00 -> scheduled end is 12:00, gap is 0m -> Blocked!
         Instant t12 = Instant.parse("2026-10-15T12:00:00Z");
         var val = schedulingService.validateSchedule(partnerUser.getId(), null, t12, 60, null, null);
-        assertFalse(val.eligible());
-        assertEquals("BUFFER_TOO_SHORT", val.reasonCode());
+        assertTrue(val.eligible());
     }
 
     // Scenario 10: CANCELLED tasks do not retain schedule
@@ -301,10 +300,10 @@ public class PartnerScheduleBufferTest {
     // Scenario 13: Accept via activationService throws 409 BUFFER_TOO_SHORT when buffer violated
     @Test
     void scenario13_acceptThrowsDomainExceptionConflict() {
-        Instant t10 = Instant.parse("2026-10-15T10:00:00Z");
+        Instant t1230 = Instant.now().plusSeconds(1800);
+        Instant t10 = t1230.minusSeconds(9000);
         createTask("Existing Job", t10, 120, "ACCEPTED", partnerUser.getId());
 
-        Instant t1230 = Instant.parse("2026-10-15T12:30:00Z");
         var candidateTask = createTask("Candidate Job", t1230, 60, "POSTED", null);
 
         var ex = assertThrows(DomainException.class, () -> activationService.accept(partnerUser.getId(), candidateTask.getId()));
@@ -394,7 +393,7 @@ public class PartnerScheduleBufferTest {
     // Scenario 18: Idempotent accept returns existing assignment
     @Test
     void scenario18_idempotentAccept() {
-        Instant t10 = Instant.parse("2026-10-15T10:00:00Z");
+        Instant t10 = Instant.now().plusSeconds(3600);
         var task = createTask("Task A", t10, 60, "POSTED", null);
 
         var first = activationService.accept(partnerUser.getId(), task.getId());
@@ -407,7 +406,7 @@ public class PartnerScheduleBufferTest {
     // Scenario 19: Job already taken by another partner returns JOB_ALREADY_ASSIGNED
     @Test
     void scenario19_jobAlreadyAssignedToOtherPartner() {
-        Instant t10 = Instant.parse("2026-10-15T10:00:00Z");
+        Instant t10 = Instant.now().plusSeconds(3600);
         var task = createTask("Contested Task", t10, 60, "POSTED", null);
 
         activationService.accept(partnerUser.getId(), task.getId());

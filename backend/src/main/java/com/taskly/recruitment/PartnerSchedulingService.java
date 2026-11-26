@@ -96,9 +96,9 @@ public class PartnerSchedulingService {
             FROM tasks
             WHERE tasker_id = ?
               AND status IN ('ACCEPTED', 'TASKER_ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS')
-              AND (id <> ? OR ? IS NULL)
+              AND id IS DISTINCT FROM ?
             ORDER BY scheduled_at ASC
-            """, partnerId, candidateTaskId, candidateTaskId);
+            """, partnerId, candidateTaskId);
 
         for (Map<String, Object> task : existingTasks) {
             if (Set.of("COMPLETED", "PAID", "CANCELLED", "REFUNDED", "EXPIRED").contains(String.valueOf(task.get("status")))) continue;

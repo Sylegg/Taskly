@@ -15,7 +15,7 @@ class TaskerViewTest {
   when(activation.feed(user)).thenReturn(List.of(Map.of("id",id)));
   var row=new HashMap<String,Object>();row.put("customer_id",user);row.put("status","POSTED");
   when(db.queryForMap(anyString(),eq(id))).thenReturn(row);
-  var controller=new TaskActivityController(db,null,null,activation);
+  var controller=new TaskActivityController(db,null,null,activation,null);
   assertDoesNotThrow(()->controller.recordView(jwt,id));
   verify(db,never()).update(anyString(),eq(user),eq(id));
   row.put("customer_id",UUID.randomUUID());

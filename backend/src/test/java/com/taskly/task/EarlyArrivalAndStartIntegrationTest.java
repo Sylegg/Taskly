@@ -23,15 +23,28 @@ import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 public class EarlyArrivalAndStartIntegrationTest {
@@ -48,6 +61,8 @@ public class EarlyArrivalAndStartIntegrationTest {
     @Autowired private CustomerTaskRepository tasks;
     @Autowired private RecruitmentService recruitment;
     @Autowired private jakarta.persistence.EntityManager em;
+    @Autowired private MockMvc mvc;
+    @Autowired private ObjectMapper json;
 
     private UserAccount partnerUser;
     private UserAccount otherPartner;
@@ -118,6 +133,7 @@ public class EarlyArrivalAndStartIntegrationTest {
             userId, name);
         db.update("INSERT INTO partner_bank_accounts(user_id, bank_name, account_name, account_number, updated_at) VALUES(?, 'MB Bank', ?, '123456789', CURRENT_TIMESTAMP)",
             userId, name);
+        db.update("INSERT INTO partner_wallets(user_id,balance) VALUES(?,300000)", userId);
         db.update("INSERT INTO identity_verifications(id,user_id,status,legal_name,document_type,document_number_masked,reviewed_by,reviewed_at,created_at,updated_at) VALUES(?,?,'APPROVED','Test Identity','NATIONAL_ID','001234567890',?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)", UUID.randomUUID(), userId, userId);
         var allTerms = db.queryForList("SELECT id FROM terms_versions WHERE active=true", UUID.class);
         for(var termId : allTerms) {
@@ -148,8 +164,8 @@ public class EarlyArrivalAndStartIntegrationTest {
     @Test
     @DisplayName("Case 1: Partner accepts job for Oct 14 on Oct 12 -> ACCEPTED, acceptedAt set, not IN_PROGRESS")
     void case01_partnerAcceptsAdvanceBooking_notAutoStarted() {
-        Instant oct14Noon = Instant.parse("2026-10-14T12:00:00Z");
-        var task = createBooking("Đơn ngày 14", oct14Noon, 120, "POSTED", null);
+        Instant scheduled = Instant.now().plus(Duration.ofDays(2)).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        var task = createBooking("Đơn đặt trước", scheduled, 120, "POSTED", null);
 
         var result = activationService.accept(partnerUser.getId(), task.getId());
         assertEquals("ACCEPTED", result.get("status"));
@@ -158,7 +174,7 @@ public class EarlyArrivalAndStartIntegrationTest {
         var refreshed = tasks.findById(task.getId()).orElseThrow();
         assertEquals("ACCEPTED", refreshed.getStatus().name());
         assertNotNull(refreshed.getAcceptedAt());
-        assertEquals(oct14Noon, refreshed.getOriginalScheduledStartAt());
+        assertEquals(scheduled, refreshed.getOriginalScheduledStartAt());
         assertNull(refreshed.getActualStartedAt());
         assertNull(refreshed.getCheckedInAt());
     }
@@ -351,12 +367,12 @@ public class EarlyArrivalAndStartIntegrationTest {
     @Test
     @DisplayName("Case 12: Proposed end preserves duration, price remains identical")
     void case12_durationPreserved_priceUnchanged() {
-        Instant origStart = Instant.parse("2026-10-14T12:00:00Z");
-        Instant reqStart = Instant.parse("2026-10-14T11:45:00Z");
+        Instant origStart = Instant.now().plusSeconds(1800).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        Instant reqStart = origStart.minusSeconds(900);
         var task = createBooking("Đơn 120p", origStart, 120, "ACCEPTED", partnerUser.getId());
 
         var req = earlyStartService.createEarlyStartRequest(partnerUser.getId(), task.getId(), reqStart, "Đến sớm 15p");
-        assertEquals(Instant.parse("2026-10-14T13:45:00Z"), req.proposedEndAt());
+        assertEquals(reqStart.plusSeconds(7200), req.proposedEndAt());
 
         var current = tasks.findById(task.getId()).orElseThrow();
         assertEquals(200000L, current.getBudgetAmount());
@@ -382,14 +398,14 @@ public class EarlyArrivalAndStartIntegrationTest {
     @Test
     @DisplayName("Case 14: Previous job ends 11:00, buffer 60, requesting 11:45 -> blocked by buffer")
     void case14_bufferViolationWithPreviousJob_blocked() {
-        Instant t09 = Instant.parse("2026-10-15T09:00:00Z");
+        Instant t12 = Instant.now().plusSeconds(1800);
+        Instant t09 = t12.minusSeconds(10800);
         createBooking("Ca sáng", t09, 120, "ACCEPTED", partnerUser.getId()); // 09:00 - 11:00
 
-        Instant t12 = Instant.parse("2026-10-15T12:00:00Z");
         var job2 = createBooking("Ca trưa", t12, 120, "ACCEPTED", partnerUser.getId()); // 12:00 - 14:00
 
         // Request 11:45 -> gap after Ca sáng is 45 mins < 60 mins required
-        Instant t1145 = Instant.parse("2026-10-15T11:45:00Z");
+        Instant t1145 = t12.minusSeconds(900);
         var ex = assertThrows(DomainException.class, () -> earlyStartService.createEarlyStartRequest(partnerUser.getId(), job2.getId(), t1145, "Làm sớm 11:45"));
         assertEquals("BUFFER_TOO_SHORT", ex.getCode());
     }
@@ -400,15 +416,15 @@ public class EarlyArrivalAndStartIntegrationTest {
     @Test
     @DisplayName("Case 15: Previous job completed early with verified end 10:45 -> 11:45 early start allowed")
     void case15_verifiedEarlyEnd_allowsEarlyStart() {
-        Instant t09 = Instant.parse("2026-10-15T09:00:00Z");
+        Instant t12 = Instant.now().plusSeconds(1800);
+        Instant t09 = t12.minusSeconds(10800);
         var job1 = createBooking("Ca sáng kết thúc sớm", t09, 120, "COMPLETED", partnerUser.getId());
-        db.update("UPDATE tasks SET verified_actual_end_at = ? WHERE id = ?", Timestamp.from(Instant.parse("2026-10-15T10:45:00Z")), job1.getId());
+        db.update("UPDATE tasks SET verified_actual_end_at = ? WHERE id = ?", Timestamp.from(t12.minusSeconds(4500)), job1.getId());
 
-        Instant t12 = Instant.parse("2026-10-15T12:00:00Z");
         var job2 = createBooking("Ca trưa", t12, 120, "ACCEPTED", partnerUser.getId());
 
         // Gap from verified end (10:45) to 11:45 is exactly 60 minutes -> Allowed!
-        Instant t1145 = Instant.parse("2026-10-15T11:45:00Z");
+        Instant t1145 = t12.minusSeconds(900);
         var req = earlyStartService.createEarlyStartRequest(partnerUser.getId(), job2.getId(), t1145, "Đã xong ca trước sớm");
         assertNotNull(req.id());
         assertEquals("PENDING", req.status());
@@ -431,9 +447,9 @@ public class EarlyArrivalAndStartIntegrationTest {
         // Force approved_start_at and check-in (ARRIVED)
         db.update("UPDATE tasks SET status = 'ARRIVED', approved_start_at = ?, checked_in_at = ? WHERE id = ?", Timestamp.from(reqStart), Timestamp.from(reqStart), job2.getId());
 
-        // Attempting to start job2 should revalidate active job1 and fail with SCHEDULE_CONFLICT / BUFFER_TOO_SHORT
+        // Job 1 is still active even after its scheduled end.
         var ex = assertThrows(DomainException.class, () -> earlyStartService.startJob(partnerUser.getId(), job2.getId()));
-        assertTrue(Set.of("SCHEDULE_CONFLICT", "BUFFER_TOO_SHORT").contains(ex.getCode()));
+        assertEquals("PARTNER_WORK_IN_PROGRESS", ex.getCode());
     }
 
     // ==========================================
@@ -638,6 +654,126 @@ public class EarlyArrivalAndStartIntegrationTest {
         assertEquals("Tôi đang đến địa chỉ thực hiện dịch vụ.", db.queryForObject("SELECT content FROM task_messages WHERE task_id=? AND sender_portal='PARTNER' AND content='Tôi đang đến địa chỉ thực hiện dịch vụ.'", String.class, id));
     }
 
+    @ParameterizedTest
+    @CsvSource({"CASH,0", "BANK,0", "CASH,40000", "CASH,150000"})
+    void customerCheckoutThroughPartnerCompletionAndReceipt(String paymentMethod, int balanceAmount) throws Exception {
+        UUID customerId = customerUser.getId();
+        UUID partnerId = partnerUser.getId();
+        var customer = jwt().jwt(token -> token.subject(customerId.toString())).authorities(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
+        var partner = jwt().jwt(token -> token.subject(partnerId.toString())).authorities(new SimpleGrantedAuthority("ROLE_TASKER"));
+        var anotherPartner = jwt().jwt(token -> token.subject(otherPartner.getId().toString())).authorities(new SimpleGrantedAuthority("ROLE_TASKER"));
+
+        UUID address = UUID.randomUUID();
+        UUID serviceId = testService.getId();
+        db.update("UPDATE service_categories SET active=true WHERE id=?", testService.getCategory().getId());
+        db.update("""
+            INSERT INTO addresses(id,user_id,label,address_line,city,is_default,version,created_at,updated_at,
+                recipient_name,recipient_phone,building_type,building_description)
+            VALUES(?,?,'Nhà','123 Cầu Giấy','Hà Nội',true,0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,
+                'Khách thử nghiệm','0901234567','Nhà riêng','Tầng 1')
+            """, address, customerId);
+        db.update("""
+            INSERT INTO service_pricing_rules(service_id,mode,base_amount,unit_amount,platform_fee_amount,
+                quote_ttl_minutes,enabled,updated_by)
+            VALUES(?,'FIXED',150000,0,15000,15,true,?)
+            """, serviceId, customerId);
+        Instant scheduled = Instant.now().plusSeconds(2700).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        var draft = Map.of("serviceId", serviceId, "schemaKey", "category-" + testService.getCategory().getId(),
+            "schemaVersion", 1, "details", Map.of(), "addressId", address, "duration", 2,
+            "description", "", "notes", "", "scheduledAt", scheduled.toString());
+        String quote = responseId(postJson("/api/v1/users/me/booking-quotes", customer, draft)
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data.total").value(150000)));
+        if (balanceAmount > 0) {
+            db.update("""
+                INSERT INTO partner_wallet_transactions(id,user_id,type,amount,status,user_role,completed_at)
+                VALUES(?,?,'DEPOSIT',?,'COMPLETED','CUSTOMER',CURRENT_TIMESTAMP)
+                """, UUID.randomUUID(), customerId, balanceAmount);
+        }
+        var checkout = new HashMap<String, Object>(Map.of("quoteId", quote, "method", paymentMethod));
+        if (balanceAmount > 0) checkout.put("balanceAmount", balanceAmount);
+        String task = responseId(postJson("/api/v1/users/me/booking-checkout", customer, checkout)
+            .andExpect(status().isOk()).andExpect(jsonPath("$.data.status").value("POSTED")));
+        assertEquals(task, responseId(postJson("/api/v1/users/me/booking-checkout", customer, checkout).andExpect(status().isOk())));
+
+        String activity = "/api/v1/task-activity/" + task;
+        String job = "/api/v1/partner/jobs/" + task;
+        String early = "/api/v1/customer/bookings/" + task + "/early-start-requests/";
+        boolean collectsCash = paymentMethod.equals("CASH") && balanceAmount < 150000;
+        mvc.perform(get("/api/v1/partner/jobs").with(partner)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[?(@.id == '%s')].id", task).value(task));
+        mvc.perform(get(activity + "/preview").with(partner)).andExpect(status().isOk());
+        mvc.perform(post(activity + "/view").with(partner)).andExpect(status().isOk());
+        mvc.perform(post(job + "/accept").with(partner)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("ACCEPTED"));
+        mvc.perform(post(job + "/accept").with(anotherPartner)).andExpect(status().isConflict());
+        mvc.perform(post(activity + "/cancel").with(customer)).andExpect(status().isUnprocessableEntity());
+        mvc.perform(post(activity + "/confirm-completion").with(customer)).andExpect(status().isConflict());
+
+        var travel = Map.of("expectedStatus", "ACCEPTED", "status", "TASKER_ON_THE_WAY", "requestId", "travel");
+        postJson(job + "/status", partner, travel).andExpect(status().isConflict());
+        var checkin = Map.of("imageData", samplePhoto(0x335577), "method", "PHOTO_CHAT");
+        postJson(job + "/check-in", partner, checkin).andExpect(status().isConflict());
+        var proposal = Map.of("requestedStartAt", Instant.now().minusSeconds(1).toString(), "reason", "Khách có thể tiếp sớm");
+        String rejected = responseId(postJson(job + "/early-start-requests", partner, proposal).andExpect(status().isOk()));
+        postJson(early + rejected + "/decision", customer, Map.of("action", "REJECT")).andExpect(status().isOk());
+        postJson(job + "/status", partner, travel).andExpect(status().isConflict());
+        String approved = responseId(postJson(job + "/early-start-requests", partner, proposal).andExpect(status().isOk()));
+        postJson(early + approved + "/decision", customer, Map.of("action", "APPROVE")).andExpect(status().isOk());
+        mvc.perform(get(activity).with(customer)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.task.originalScheduledStartAt").value(scheduled.toString()))
+            .andExpect(jsonPath("$.data.task.originalScheduledEndAt").value(scheduled.plusSeconds(7200).toString()))
+            .andExpect(jsonPath("$.data.task.durationMinutes").value(120))
+            .andExpect(jsonPath("$.data.task.cashAmountDue").value(collectsCash ? 150000 - balanceAmount : 0));
+        postJson(job + "/early-start-requests", partner, proposal).andExpect(status().isConflict())
+            .andExpect(jsonPath("$.error.code").value("EARLY_START_ALREADY_APPROVED"));
+        mvc.perform(get(job + "/start-eligibility").with(partner)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.canRequestEarlyStart").value(false));
+        postJson(job + "/status", partner, travel).andExpect(status().isOk());
+        mvc.perform(post(job + "/start").with(partner)).andExpect(status().isConflict());
+        postJson(job + "/check-in", partner, checkin).andExpect(status().isOk()).andExpect(jsonPath("$.data.status").value("ARRIVED"));
+        postJson(job + "/check-in", partner, checkin).andExpect(status().isOk());
+        mvc.perform(post(job + "/start").with(partner)).andExpect(status().isOk()).andExpect(jsonPath("$.data.status").value("IN_PROGRESS"));
+        postJson(job + "/check-in", partner, checkin).andExpect(status().isConflict());
+
+        String firstPhoto = samplePhoto(0x114422);
+        String secondPhoto = samplePhoto(0x442211);
+        postJson(job + "/complete", partner, Map.of("images", List.of(firstPhoto, firstPhoto),
+            "requestId", "duplicate-photos", "confirmedAllAreas", true)).andExpect(status().isUnprocessableEntity());
+        var completion = Map.of("images", List.of(firstPhoto, secondPhoto), "requestId", "completion", "confirmedAllAreas", true);
+        for (int retry = 0; retry < 2; retry++) {
+            postJson(job + "/complete", partner, completion).andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("COMPLETED"));
+            mvc.perform(post(activity + "/confirm-completion").with(customer)).andExpect(status().isOk());
+        }
+        mvc.perform(post(job + "/payment-received").with(partner)).andExpect(status().isOk());
+        mvc.perform(post(job + "/payment-received").with(partner)).andExpect(status().isOk());
+        mvc.perform(get(activity).with(customer)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.task.status").value(collectsCash ? "PAID" : "COMPLETED"))
+            .andExpect(jsonPath("$.data.task.customerConfirmedAt").isNotEmpty())
+            .andExpect(jsonPath("$.data.task.partnerPaymentConfirmedAt").isNotEmpty())
+            .andExpect(jsonPath("$.data.task.budgetAmount").value(150000));
+        UUID taskId = UUID.fromString(task);
+        assertEquals(2, db.queryForObject("SELECT COUNT(*) FROM task_messages WHERE task_id=? AND content=?", Integer.class, taskId, TaskCompletionService.PHOTO_CONTENT));
+        assertEquals(paymentMethod.equals("CASH") ? balanceAmount - 15000L : 135000L, db.queryForObject(
+            "SELECT wallet_delta FROM partner_task_settlements WHERE task_id=?", Long.class, taskId));
+    }
+
+    private ResultActions postJson(String path, RequestPostProcessor actor, Map<String, ?> body) throws Exception {
+        return mvc.perform(post(path).with(actor).contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(body)));
+    }
+
+    private String responseId(ResultActions response) throws Exception {
+        return json.readTree(response.andReturn().getResponse().getContentAsString()).path("data").path("id").asText();
+    }
+
+    private String samplePhoto(int color) throws Exception {
+        var image = new java.awt.image.BufferedImage(2, 2, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        image.setRGB(0, 0, color);
+        var bytes = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(image, "png", bytes);
+        return "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes.toByteArray());
+    }
+
     @Test
     void checkInPhotoAndNoticeAreSentOnce() throws Exception {
         var task = createBooking("Đơn check-in ảnh", Instant.now().minusSeconds(60), 60, "TASKER_ON_THE_WAY", partnerUser.getId());
@@ -649,6 +785,28 @@ public class EarlyArrivalAndStartIntegrationTest {
         }
         assertEquals(1, db.queryForObject("SELECT COUNT(*) FROM task_messages WHERE task_id=? AND sender_portal='PARTNER' AND image_data=? AND content LIKE 'Tôi đã check-in%'", Integer.class, task.getId(), photo));
         assertEquals("ARRIVED", db.queryForObject("SELECT status FROM tasks WHERE id=?", String.class, task.getId()));
+    }
+
+    @Test
+    void legacyArrivalCanSubmitMissingCheckinPhoto() throws Exception {
+        var task = createBooking("Đơn cũ chưa có ảnh", Instant.now().minusSeconds(60), 60, "ARRIVED", partnerUser.getId());
+        var id = task.getId();
+        var eligibility = earlyStartService.getStartEligibility(partnerUser.getId(), id, true);
+        assertTrue(eligibility.canCheckIn());
+        assertFalse(eligibility.canStart());
+        earlyStartService.checkInWithPhoto(partnerUser.getId(), id, null, null, "PHOTO_CHAT", "legacy-photo", samplePhoto(0x115588));
+        assertTrue(earlyStartService.getStartEligibility(partnerUser.getId(), id, true).canStart());
+    }
+
+    @Test
+    void approvedEarlySlotDoesNotOpenTravelUntilItsWindow() {
+        var now = Instant.now();
+        var task = createBooking("Đơn ngày mai", now.plusSeconds(86400), 60, "ACCEPTED", partnerUser.getId());
+        var requested = now.plusSeconds(84600).truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+        var request = earlyStartService.createEarlyStartRequest(partnerUser.getId(), task.getId(), requested, "Đến sớm 30 phút");
+        earlyStartService.customerDecision(customerUser.getId(), task.getId(), request.id(), "APPROVE", null);
+        assertFalse(TaskTravelPolicy.canTravel(db, task.getId(), partnerUser.getId(), requested.minusSeconds(901)));
+        assertTrue(TaskTravelPolicy.canTravel(db, task.getId(), partnerUser.getId(), requested.minusSeconds(900)));
     }
 
     @Test

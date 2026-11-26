@@ -199,7 +199,11 @@ public class AdminTaskController {
         if (req.partnerId().equals(task.get("tasker_id"))) return ApiResponse.success(Map.of("id", id, "tasker_id", req.partnerId(), "status", "ACCEPTED"));
         String fromStatus = (String) task.get("status");
         var now = Timestamp.from(Instant.now());
-        db.update("UPDATE tasks SET tasker_id=?, status='ACCEPTED', updated_at=?, version=version+1 WHERE id=?", req.partnerId(), now, id);
+        db.update("""
+            UPDATE tasks SET tasker_id=?, status='ACCEPTED', accepted_at=?, approved_start_at=NULL,
+                early_start_request_id=NULL, expected_end_at=?, updated_at=?, version=version+1 WHERE id=?
+            """, req.partnerId(), now, Timestamp.from(scheduledAt.plusSeconds(duration * 60L)), now, id);
+        cancelEarlyStartRequests(id);
         String histReason = req.override() ? "Admin điều phối đặc biệt (override): " + req.auditReason() : "Admin phân công Đối tác";
         db.update("INSERT INTO task_status_history(id,task_id,from_status,to_status,actor_role,reason,occurred_at) VALUES(?,?,?,?,'ADMIN',?,?)",
             UUID.randomUUID(), id, fromStatus, "ACCEPTED", histReason, now);
@@ -226,11 +230,25 @@ public class AdminTaskController {
             }
         }
         var now = Timestamp.from(Instant.now());
-        db.update("UPDATE tasks SET scheduled_at=?, estimated_duration_minutes=?, updated_at=?, version=version+1 WHERE id=?",
-            Timestamp.from(req.scheduledAt()), duration, now, id);
+        if (!java.util.Set.of("POSTED", "MATCHING", "ACCEPTED", "TASKER_ON_THE_WAY").contains(task.get("status"))) {
+            throw new DomainException("TASK_NOT_RESCHEDULABLE", "Chỉ có thể đổi lịch trước khi đối tác check-in.", HttpStatus.CONFLICT);
+        }
+        db.update("""
+            UPDATE tasks SET scheduled_at=?, estimated_duration_minutes=?, approved_start_at=NULL,
+                early_start_request_id=NULL, expected_end_at=?, updated_at=?, version=version+1 WHERE id=?
+            """, Timestamp.from(req.scheduledAt()), duration,
+            Timestamp.from(req.scheduledAt().plusSeconds(duration * 60L)), now, id);
+        cancelEarlyStartRequests(id);
         db.update("INSERT INTO task_status_history(id,task_id,from_status,to_status,actor_role,reason,occurred_at) VALUES(?,?,?,?,'ADMIN',?,?)",
             UUID.randomUUID(), id, task.get("status"), task.get("status"), "Admin đổi lịch: " + Objects.toString(req.reason(), "Cập nhật thời gian"), now);
         return ApiResponse.success(Map.of("id", id, "scheduled_at", req.scheduledAt(), "estimated_duration_minutes", duration));
+    }
+
+    private void cancelEarlyStartRequests(UUID taskId) {
+        db.update("""
+            UPDATE early_start_requests SET status='CANCELLED',version=version+1
+            WHERE task_id=? AND status IN ('PENDING','APPROVED')
+            """, taskId);
     }
 
     @GetMapping("/{id}/eligible-partners")

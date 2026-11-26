@@ -12,13 +12,15 @@ import org.springframework.web.bind.annotation.*;
 public class BookingCheckoutController {
  private final BookingCheckout checkout; private final JdbcTemplate db;
  public BookingCheckoutController(BookingCheckout checkout,JdbcTemplate db){this.checkout=checkout;this.db=db;}
- public record Confirm(@NotNull UUID quoteId,@NotNull @Pattern(regexp="CASH|BANK") String method,@Min(0) long balanceAmount){}
+ public record Confirm(@NotNull UUID quoteId,@NotNull @Pattern(regexp="CASH|BANK") String method,@Min(0) Long balanceAmount){}
  @PostMapping("/users/me/booking-checkout") @PreAuthorize("hasRole('CUSTOMER')")
- public ApiResponse<Map<String,Object>> confirm(@AuthenticationPrincipal Jwt jwt,@Valid @RequestBody Confirm body){return ApiResponse.success(checkout.checkout(UUID.fromString(jwt.getSubject()),body.quoteId(),body.method(),body.balanceAmount()));}
+ public ApiResponse<Map<String,Object>> confirm(@AuthenticationPrincipal Jwt jwt,@Valid @RequestBody Confirm body){return ApiResponse.success(checkout.checkout(UUID.fromString(jwt.getSubject()),body.quoteId(),body.method(),Objects.requireNonNullElse(body.balanceAmount(),0L)));}
  @PostMapping("/task-activity/{id}/cancel") @PreAuthorize("hasRole('CUSTOMER')")
  public ApiResponse<Void> cancel(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID id){checkout.cancel(UUID.fromString(jwt.getSubject()),id);return ApiResponse.success(null);}
  @PostMapping("/partner/jobs/{id}/cash-received") @PreAuthorize("hasRole('TASKER')")
  public ApiResponse<Void> cash(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID id){checkout.cashReceived(UUID.fromString(jwt.getSubject()),id);return ApiResponse.success(null);}
+ @PostMapping("/partner/jobs/{id}/payment-received") @PreAuthorize("hasRole('TASKER')")
+ public ApiResponse<Void> receipt(@AuthenticationPrincipal Jwt jwt,@PathVariable UUID id){checkout.paymentReceived(UUID.fromString(jwt.getSubject()),id);return ApiResponse.success(null);}
   @GetMapping("/users/me/booking-notifications") @PreAuthorize("hasRole('CUSTOMER')")
   public ApiResponse<List<Map<String,Object>>> notifications(@AuthenticationPrincipal Jwt jwt){
    UUID customerId = UUID.fromString(jwt.getSubject());
@@ -41,11 +43,7 @@ public class BookingCheckoutController {
  public ApiResponse<?> balance(@AuthenticationPrincipal Jwt jwt){return ApiResponse.success(Map.of("amount",available(UUID.fromString(jwt.getSubject())),"currency","VND"));}
  @PostMapping("/users/me/refund-withdrawals") @PreAuthorize("hasRole('CUSTOMER')") @org.springframework.transaction.annotation.Transactional
  public ApiResponse<?> withdraw(@AuthenticationPrincipal Jwt jwt,@Valid @RequestBody Withdrawal body){
-  UUID owner=UUID.fromString(jwt.getSubject());db.queryForObject("SELECT id FROM users WHERE id=? FOR UPDATE",UUID.class,owner);
-  if(body.amount()>available(owner))throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY,"Insufficient available balance");
-  UUID id=UUID.randomUUID();db.update("INSERT INTO customer_refund_withdrawals(id,customer_id,amount,bank_name,account_name,account_number) VALUES(?,?,?,?,?,?)",id,owner,body.amount(),body.bankName().trim(),body.accountName().trim(),body.accountNumber());
-  WalletNotifications.send(db,owner,"CUSTOMER","WITHDRAWAL",body.amount(),"PENDING",null);
-  return ApiResponse.success(Map.of("id",id,"status","PENDING"));
+  return ApiResponse.success(CustomerWithdrawals.create(db,UUID.fromString(jwt.getSubject()),UUID.randomUUID(),body.amount(),body.bankName(),body.accountName(),body.accountNumber(),null));
  }
  @GetMapping("/users/me/refund-withdrawals") @PreAuthorize("hasRole('CUSTOMER')")
  public ApiResponse<?> withdrawals(@AuthenticationPrincipal Jwt jwt){return ApiResponse.success(db.queryForList("SELECT id,amount,status,bank_name,created_at FROM customer_refund_withdrawals WHERE customer_id=? ORDER BY created_at DESC",UUID.fromString(jwt.getSubject())));}

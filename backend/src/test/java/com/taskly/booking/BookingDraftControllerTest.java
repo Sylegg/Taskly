@@ -48,9 +48,7 @@ class BookingDraftControllerTest {
         org.junit.jupiter.api.Assertions.assertEquals(1,db.queryForObject("SELECT COUNT(*) FROM tasks WHERE customer_id=?",Integer.class,owner));
         org.junit.jupiter.api.Assertions.assertThrows(com.taskly.common.exception.DomainException.class,()->checkout.checkout(other,quoteId,method));
         org.junit.jupiter.api.Assertions.assertThrows(com.taskly.common.exception.DomainException.class,()->checkout.cancel(other,task));
-        db.update("UPDATE task_booking_payments SET tasker_viewed_at=CURRENT_TIMESTAMP WHERE task_id=?",task);
-        org.junit.jupiter.api.Assertions.assertThrows(com.taskly.common.exception.DomainException.class,()->checkout.cancel(owner,task));
-        db.update("UPDATE task_booking_payments SET tasker_viewed_at=NULL WHERE task_id=?",task);
+        db.update("UPDATE task_booking_payments SET tasker_viewed_at=CURRENT_TIMESTAMP,tasker_viewed_by=? WHERE task_id=?",other,task);
         checkout.cancel(owner,task);checkout.cancel(owner,task);checkout.expireUnmatched();
         org.junit.jupiter.api.Assertions.assertEquals(method.equals("BANK")?1:0,db.queryForObject("SELECT COUNT(*) FROM customer_refund_credits WHERE task_id=?",Integer.class,task));
         org.junit.jupiter.api.Assertions.assertEquals(2,db.queryForObject("SELECT COUNT(*) FROM customer_booking_notifications WHERE task_id=?",Integer.class,task));

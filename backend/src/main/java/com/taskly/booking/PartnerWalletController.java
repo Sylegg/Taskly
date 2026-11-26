@@ -31,7 +31,7 @@ public class PartnerWalletController {
   db.update("INSERT INTO partner_wallets(user_id) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM partner_wallets WHERE user_id=?)", owner,owner);
  }
  private long available(UUID owner) {
-  return db.queryForObject("SELECT balance - COALESCE((SELECT SUM(amount) FROM partner_wallet_transactions WHERE user_id=? AND type='WITHDRAWAL' AND status IN ('PENDING','APPROVED')),0) FROM partner_wallets WHERE user_id=?", Long.class, owner, owner);
+  return db.queryForObject("SELECT balance - COALESCE((SELECT SUM(amount) FROM partner_wallet_transactions WHERE user_id=? AND user_role='PARTNER' AND type='WITHDRAWAL' AND status IN ('PENDING','APPROVED')),0) FROM partner_wallets WHERE user_id=?", Long.class, owner, owner);
  }
  @GetMapping("/partner/wallet") @PreAuthorize("hasRole('TASKER')") @Transactional
  public ApiResponse<?> wallet(@AuthenticationPrincipal Jwt jwt) {
@@ -45,9 +45,11 @@ public class PartnerWalletController {
   if (!Set.of("deposit","withdraw").contains(type)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
   ensureWallet(owner); db.queryForObject("SELECT balance FROM partner_wallets WHERE user_id=? FOR UPDATE",Long.class,owner);
   var existing=db.queryForList("SELECT * FROM partner_wallet_transactions WHERE id=?",body.requestId());
+  if(!db.queryForList("SELECT id FROM customer_refund_withdrawals WHERE id=?",body.requestId()).isEmpty())
+   throw new ResponseStatusException(HttpStatus.CONFLICT,"Mã giao dịch đã được sử dụng cho Customer");
   if (!existing.isEmpty()) {
    var tx=existing.getFirst();
-   if (!owner.equals(tx.get("user_id")) || ((Number)tx.get("amount")).longValue()!=body.amount() || !tx.get("type").equals(type.equals("deposit")?"DEPOSIT":"WITHDRAWAL")) throw new ResponseStatusException(HttpStatus.CONFLICT,"Yêu cầu không khớp");
+   if (!owner.equals(tx.get("user_id")) || !"PARTNER".equals(tx.get("user_role")) || ((Number)tx.get("amount")).longValue()!=body.amount() || !tx.get("type").equals(type.equals("deposit")?"DEPOSIT":"WITHDRAWAL")) throw new ResponseStatusException(HttpStatus.CONFLICT,"Yêu cầu không khớp");
    return ApiResponse.success(tx);
   }
   boolean withdrawal=type.equals("withdraw");
@@ -72,7 +74,7 @@ public class PartnerWalletController {
    if (bankName==null || bankName.isBlank() || bankName.length()>100 || accountName==null || accountName.isBlank() || accountName.length()>150 || accountNumber==null || !accountNumber.matches("[0-9]{6,34}")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Thông tin ngân hàng không hợp lệ");
    if(body.amount()>available(owner)) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Số dư khả dụng không đủ");
    var start=LocalDate.now(ZoneId.of("Asia/Bangkok")).atStartOfDay(ZoneId.of("Asia/Bangkok"));
-   long today=db.queryForObject("SELECT COALESCE(SUM(amount),0) FROM partner_wallet_transactions WHERE user_id=? AND type='WITHDRAWAL' AND status IN ('PENDING','APPROVED','PAID') AND created_at>=? AND created_at<?",Long.class,owner,Timestamp.from(start.toInstant()),Timestamp.from(start.plusDays(1).toInstant()));
+   long today=db.queryForObject("SELECT COALESCE(SUM(amount),0) FROM partner_wallet_transactions WHERE user_id=? AND user_role='PARTNER' AND type='WITHDRAWAL' AND status IN ('PENDING','APPROVED','PAID') AND created_at>=? AND created_at<?",Long.class,owner,Timestamp.from(start.toInstant()),Timestamp.from(start.plusDays(1).toInstant()));
    if(today+body.amount()>config.maxWithdrawDaily()) throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,"Vượt hạn mức rút tiền trong ngày");
   }
   db.update("INSERT INTO partner_wallet_transactions(id,user_id,type,amount,status,bank_name,account_name,account_number) VALUES(?,?,?,?,?,?,?,?)",body.requestId(),owner,withdrawal?"WITHDRAWAL":"DEPOSIT",body.amount(),withdrawal?"PENDING":"COMPLETED",bankName,accountName,accountNumber);
@@ -95,8 +97,12 @@ public class PartnerWalletController {
  @PostMapping("/admin/partner-wallet-transactions") @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')") @Transactional
  public ApiResponse<?> manual(@AuthenticationPrincipal Jwt jwt,@Valid @RequestBody Manual body) {
   if(db.queryForObject("SELECT COUNT(*) FROM users WHERE id=?",Integer.class,body.userId())==0) throw new ResponseStatusException(HttpStatus.NOT_FOUND,"Người dùng không tồn tại");
+  if("CUSTOMER".equals(body.userRole()) && "WITHDRAWAL".equals(body.type()))
+   return ApiResponse.success(CustomerWithdrawals.create(db,body.userId(),body.requestId(),body.amount(),body.bankName(),body.accountName(),body.accountNumber(),body.note()));
   if("CUSTOMER".equals(body.userRole()) && "DEPOSIT".equals(body.type())) {
    db.queryForObject("SELECT id FROM users WHERE id=? FOR UPDATE",UUID.class,body.userId());
+   if(!db.queryForList("SELECT id FROM customer_refund_withdrawals WHERE id=?",body.requestId()).isEmpty())
+    throw new ResponseStatusException(HttpStatus.CONFLICT,"Mã giao dịch đã được sử dụng cho lệnh rút");
    var rows=db.queryForList("SELECT * FROM partner_wallet_transactions WHERE id=?",body.requestId());
    if(!rows.isEmpty()) {
     var tx=rows.getFirst();
@@ -122,6 +128,8 @@ public class PartnerWalletController {
   UUID owner=(UUID)rows.getFirst().get("user_id");
   db.queryForObject("SELECT id FROM users WHERE id=? FOR UPDATE",UUID.class,owner);
   var customerTx=db.queryForMap("SELECT * FROM partner_wallet_transactions WHERE id=? FOR UPDATE",id);
+  if("CUSTOMER".equals(customerTx.get("user_role")) && "WITHDRAWAL".equals(customerTx.get("type")))
+   throw new ResponseStatusException(HttpStatus.CONFLICT,"Lệnh rút Customer cũ cần đối soát; không được trừ vào ví Partner. Hãy dùng mục Rút số dư Customer.");
   if("CUSTOMER".equals(customerTx.get("user_role")) && "DEPOSIT".equals(customerTx.get("type"))) {
    String target="APPROVED".equals(body.status())?"COMPLETED":body.status();
    if(target.equals(customerTx.get("status")))return ApiResponse.success(customerTx);

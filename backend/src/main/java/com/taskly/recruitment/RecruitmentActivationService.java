@@ -5,6 +5,8 @@ import jakarta.validation.constraints.*;
 import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
+import com.taskly.task.EarlyStartService;
+import com.taskly.task.TaskCompletionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -27,10 +29,12 @@ public class RecruitmentActivationService {
   if ("ARRIVED".equals(w.status())) {
    throw new DomainException("CHECKIN_PHOTO_REQUIRED","Vui lòng chụp ảnh và dùng chức năng check-in của đơn.",HttpStatus.BAD_REQUEST);
   } else if ("IN_PROGRESS".equals(w.status())) {
-   db.update("UPDATE tasks SET status=?,actual_started_at=COALESCE(actual_started_at,?),updated_at=?,version=version+1 WHERE id=?",w.status(),now,now,id);
-   db.update("UPDATE early_start_requests SET status='APPLIED' WHERE task_id=? AND status='APPROVED'",id);
+   var started = earlyStart.startJob(user,id,w.requestId());
+   db.update("INSERT INTO recruitment_requests VALUES(?,?,?,?,?)",user,w.requestId(),hash,a.id(),now);
+   recruitment.audit(user,a.id(),"JOB_STATUS_UPDATED",current,w.status(),"Task "+id);
+   return started;
   } else if ("COMPLETED".equals(w.status())) {
-   if(db.queryForObject("SELECT COUNT(*) FROM task_messages WHERE task_id=? AND sender_id=? AND sender_portal='PARTNER' AND content='Ảnh xác nhận khu vực đã hoàn thành theo yêu cầu khách hàng' AND image_data IS NOT NULL",Integer.class,id,user)<2)
+   if(db.queryForObject("SELECT COUNT(DISTINCT image_data) FROM task_messages WHERE task_id=? AND sender_id=? AND sender_portal='PARTNER' AND content=? AND image_data IS NOT NULL",Integer.class,id,user,TaskCompletionService.PHOTO_CONTENT)<2)
     throw new DomainException("COMPLETION_PHOTOS_REQUIRED","Chụp ít nhất 2 ảnh các khu vực đã làm và vị trí khách yêu cầu trước khi hoàn thành.",HttpStatus.BAD_REQUEST);
    com.taskly.task.PartnerTaskSettlement.settle(db,id,user);
    db.update("UPDATE tasks SET status=?,verified_actual_end_at=COALESCE(verified_actual_end_at,?),updated_at=?,version=version+1 WHERE id=?",w.status(),now,now,id);
@@ -44,7 +48,7 @@ public class RecruitmentActivationService {
    case "TASKER_ON_THE_WAY"->"Đối tác "+partnerName+" đang trên đường đến địa chỉ thực hiện đơn \""+taskInfo.get("service_name_snapshot")+"\".";
    case "ARRIVED"->"Đối tác "+partnerName+" đã đến nơi. Vui lòng hỗ trợ đối tác bắt đầu công việc.";
    case "IN_PROGRESS"->"Đối tác đã bắt đầu thực hiện công việc \""+taskInfo.get("service_name_snapshot")+"\".";
-   case "COMPLETED"->"Công việc \""+taskInfo.get("service_name_snapshot")+"\" đã hoàn thành! Vui lòng kiểm tra và hoàn tất thanh toán.";
+   case "COMPLETED"->"Công việc \""+taskInfo.get("service_name_snapshot")+"\" đã được đối tác gửi ảnh hoàn thành. Vui lòng xem ảnh và xác nhận hoàn thành.";
    default->"Trạng thái công việc \""+taskInfo.get("service_name_snapshot")+"\" đã chuyển sang: "+w.status();
   };
   db.update("INSERT INTO customer_booking_notifications(id,customer_id,task_id,title,created_at) VALUES(?,?,?,?,?)",UUID.randomUUID(),taskInfo.get("customer_id"),id,noteTitle,now);
@@ -59,15 +63,16 @@ public class RecruitmentActivationService {
   db.update("INSERT INTO recruitment_requests VALUES(?,?,?,?,?)",user,w.requestId(),hash,a.id(),now);recruitment.audit(user,a.id(),"JOB_STATUS_UPDATED",current,w.status(),"Task "+id);return Map.of("id",id,"status",w.status());
  }
  public record Appeal(@NotBlank @Size(max=1000) String reason) {}
- public record Completion(@NotNull @Size(min=2,max=10) List<@NotBlank String> images,@NotBlank String requestId,boolean confirmedAllAreas) {}
+ public record Completion(@NotNull @Size(min=2,max=10) List<@NotBlank String> images,@NotBlank @Size(max=100) String requestId,boolean confirmedAllAreas) {}
  @Transactional public Map<String,Object> completeWithPhotos(UUID user,UUID task,Completion body) {
   com.taskly.task.PartnerWorkPolicy.lock(db,user);
   var rows=db.queryForList("SELECT status FROM tasks WHERE id=? AND tasker_id=? FOR UPDATE",task,user);
   if(rows.isEmpty())throw new DomainException("TASK_NOT_FOUND","Không tìm thấy đơn.",HttpStatus.NOT_FOUND);
   if(Set.of("COMPLETED","PAID").contains(rows.getFirst().get("status")))return Map.of("id",task,"status",rows.getFirst().get("status"));
+  if(!"IN_PROGRESS".equals(rows.getFirst().get("status")))throw RecruitmentService.invalid("Chỉ có thể gửi ảnh hoàn thành khi đang thực hiện công việc.");
   if(!body.confirmedAllAreas() || body.images()==null || body.images().size()<2 || body.images().size()>10 || new HashSet<>(body.images()).size()!=body.images().size())throw RecruitmentService.invalid("Chụp 2–10 ảnh khác nhau và xác nhận đã chụp đủ khu vực khách yêu cầu.");
   for(String image:body.images())com.taskly.task.TaskActivityController.validateImage(image);
-  for(String image:body.images())db.update("INSERT INTO task_messages(id,task_id,sender_id,content,image_data,sender_portal) VALUES(?,?,?,?,?,'PARTNER')",UUID.randomUUID(),task,user,"Ảnh xác nhận khu vực đã hoàn thành theo yêu cầu khách hàng",image);
+  for(String image:body.images())db.update("INSERT INTO task_messages(id,task_id,sender_id,content,image_data,sender_portal) VALUES(?,?,?,?,?,'PARTNER')",UUID.randomUUID(),task,user,TaskCompletionService.PHOTO_CONTENT,image);
   return progressJob(user,task,new JobStatus("IN_PROGRESS","COMPLETED",body.requestId()));
  }
  public record AppealDecision(@NotBlank @Pattern(regexp="REOPEN|DECLINE") String action,@NotBlank @Size(max=1000) String reason) {}
@@ -102,8 +107,8 @@ public class RecruitmentActivationService {
   if(w.action().equals("REOPEN"))db.update("UPDATE partner_applications SET status=?,preliminary_approved=false,final_approved=false,reason=?,version=version+1,updated_at=? WHERE id=?",next,reason,Timestamp.from(Instant.now()),a.id());
   recruitment.audit(actor,a.id(),"APPEAL_"+w.action(),a.status(),next,reason);review.notify(a.id(),"Kết quả đề nghị xem xét lại",reason);return recruitment.detail(a.id());
  }
- private final JdbcTemplate db;private final RecruitmentService recruitment;private final RecruitmentReviewService review;private final RecruitmentSlaService slaService;private final PartnerSchedulingService schedulingService;
- public RecruitmentActivationService(JdbcTemplate db,RecruitmentService recruitment,RecruitmentReviewService review,RecruitmentSlaService slaService,PartnerSchedulingService schedulingService){this.db=db;this.recruitment=recruitment;this.review=review;this.slaService=slaService;this.schedulingService=schedulingService;}
+ private final JdbcTemplate db;private final RecruitmentService recruitment;private final RecruitmentReviewService review;private final RecruitmentSlaService slaService;private final PartnerSchedulingService schedulingService;private final EarlyStartService earlyStart;
+ public RecruitmentActivationService(JdbcTemplate db,RecruitmentService recruitment,RecruitmentReviewService review,RecruitmentSlaService slaService,PartnerSchedulingService schedulingService,EarlyStartService earlyStart){this.db=db;this.recruitment=recruitment;this.review=review;this.slaService=slaService;this.schedulingService=schedulingService;this.earlyStart=earlyStart;}
  private boolean ready(RecruitmentDtos.Application a){return List.of("preliminary_approved","uniform_resolved","appointment_checked_in","documents_valid","agreements_current").stream().allMatch(k->Boolean.TRUE.equals(a.eligibility().get(k)))&&a.documentsReceivedAt()!=null;}
  @Transactional public RecruitmentDtos.Application finalDecision(UUID actor,UUID id,RecruitmentReviewService.Decision w){
   var user=db.queryForObject("SELECT user_id FROM partner_applications WHERE id=?",UUID.class,id);var a=recruitment.current(user);
@@ -141,6 +146,7 @@ public class RecruitmentActivationService {
       + "LEFT JOIN service_pricing_rules r ON r.service_id = t.service_id "
       + "WHERE t.status IN ('POSTED','MATCHING') "
       + "  AND t.tasker_id IS NULL "
+      + "  AND t.customer_id <> ? "
       + "  AND t.service_id IN (SELECT service_id FROM partner_application_services WHERE application_id = ?) "
       + "  AND ( "
       + "    t.city_snapshot IN (SELECT r.city FROM recruitment_areas r JOIN partner_application_areas pa ON pa.area_id = r.id WHERE pa.application_id = ?) "
@@ -162,7 +168,7 @@ public class RecruitmentActivationService {
       + "  ) "
       + "  AND (t.scheduled_at >= ? OR (t.expires_at IS NOT NULL AND t.expires_at > CURRENT_TIMESTAMP)) "
       + "ORDER BY t.scheduled_at ASC LIMIT 100";
-  var rows=db.queryForList(query, a.id(), a.id(), a.id(), a.id(), Timestamp.from(windowStart));
+  var rows=db.queryForList(query, user, a.id(), a.id(), a.id(), a.id(), Timestamp.from(windowStart));
   var list=new ArrayList<Map<String,Object>>();
   for(var row:rows){
    var map=new LinkedHashMap<String,Object>(row);
@@ -187,14 +193,15 @@ public class RecruitmentActivationService {
   com.taskly.task.PartnerWorkPolicy.lock(db,user);
   var previous=db.queryForList("SELECT id,status FROM tasks WHERE id=? AND tasker_id=?",task,user);
   if(!previous.isEmpty())return previous.getFirst();
-  com.taskly.task.PartnerAcceptanceBalance.require(db,user);
   var appRows=db.queryForList("SELECT id,status FROM partner_applications WHERE user_id=? FOR UPDATE",user);
   if(appRows.isEmpty())throw new DomainException("PARTNER_NOT_FOUND","Không tìm thấy hồ sơ đối tác.",HttpStatus.FORBIDDEN);
   var a=eligible(user);
+  com.taskly.task.PartnerAcceptanceBalance.require(db,user);
   if(db.queryForObject("SELECT COUNT(*) FROM partner_bank_accounts WHERE user_id=?",Integer.class,user)==0)throw RecruitmentService.invalid("Vui lòng thêm ngân hàng trước khi nhận việc.");
   var taskRows=db.queryForList("SELECT t.id,t.status,t.tasker_id,t.scheduled_at,t.estimated_duration_minutes,t.latitude,t.longitude,t.expires_at,t.service_id,t.city_snapshot,t.service_name_snapshot,t.customer_id FROM tasks t WHERE t.id=? FOR UPDATE",task);
   if(taskRows.isEmpty())throw new DomainException("TASK_NOT_FOUND","Không tìm thấy công việc.",HttpStatus.NOT_FOUND);
   var candidate=taskRows.getFirst();
+  if(user.equals(candidate.get("customer_id")))throw new DomainException("TASK_NOT_AVAILABLE","Bạn không thể nhận đơn dịch vụ của chính mình.",HttpStatus.CONFLICT);
   UUID currentTasker=(UUID)candidate.get("tasker_id");
   if(currentTasker!=null){
    if(currentTasker.equals(user))return Map.of("id",task,"status",candidate.get("status"));
@@ -207,7 +214,13 @@ public class RecruitmentActivationService {
   if(rawExpires!=null&&time(rawExpires).isBefore(Instant.now()))throw new DomainException("UNAVAILABLE_SLOT","Công việc đã hết hạn nhận.",HttpStatus.CONFLICT);
   UUID serviceId=(UUID)candidate.get("service_id");
   String city=(String)candidate.get("city_snapshot");
-  boolean skillMatch=db.queryForObject("SELECT COUNT(*) FROM partner_application_services WHERE application_id=? AND service_id=?",Integer.class,a.id(),serviceId)>0;
+  boolean skillMatch=db.queryForObject("SELECT COUNT(*) FROM partner_application_services WHERE application_id=? AND service_id=?",Integer.class,a.id(),serviceId)>0
+      && db.queryForObject("""
+          SELECT COUNT(*) FROM task_booking_services bs
+          WHERE bs.task_id=? AND NOT EXISTS (
+            SELECT 1 FROM partner_application_services s WHERE s.application_id=? AND s.service_id=bs.service_id
+          )
+          """,Integer.class,task,a.id())==0;
   boolean areaMatch=db.queryForObject("""
       SELECT COUNT(*) FROM recruitment_areas r JOIN partner_application_areas pa ON pa.area_id=r.id
       WHERE pa.application_id=? AND (

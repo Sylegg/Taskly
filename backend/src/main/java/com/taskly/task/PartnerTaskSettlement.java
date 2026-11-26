@@ -15,7 +15,7 @@ public final class PartnerTaskSettlement {
         String method = String.valueOf(payment.get("method"));
         if (!method.equals("CASH") && !(method.equals("BANK") && "PAID".equals(payment.get("payment_status"))))
             throw new DomainException("PAYMENT_NOT_READY", "Đơn chưa được thanh toán qua tài khoản.", HttpStatus.CONFLICT);
-        db.update("INSERT INTO partner_wallets(user_id) VALUES(?) ON CONFLICT(user_id) DO NOTHING", partner);
+        db.update("INSERT INTO partner_wallets(user_id) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM partner_wallets WHERE user_id=?)", partner, partner);
         long balance = db.queryForObject("SELECT balance FROM partner_wallets WHERE user_id=? FOR UPDATE", Long.class, partner);
         if (db.queryForObject("SELECT COUNT(*) FROM partner_task_settlements WHERE task_id=?", Integer.class, task) > 0) return;
         long fee = ((Number)payment.get("fee")).longValue();

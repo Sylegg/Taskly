@@ -26,6 +26,9 @@ class PartnerWalletControllerTest {
   db.update("INSERT INTO users VALUES(?),(?)",owner,admin);
   new ResourceDatabasePopulator(new ClassPathResource("db/migration/V78__partner_wallet.sql")).execute(source);
   new ResourceDatabasePopulator(new ClassPathResource("db/migration/V79__finance_wallet_settings.sql")).execute(source);
+  new ResourceDatabasePopulator(new ClassPathResource("db/migration/V64__customer_refund_withdrawals.sql")).execute(source);
+  db.execute("CREATE TABLE partner_applications(id UUID PRIMARY KEY,user_id UUID)");
+  db.execute("CREATE TABLE partner_notification_outbox(id UUID,application_id UUID,channel VARCHAR(20),status VARCHAR(20),title VARCHAR(1000),message VARCHAR(2000),created_at TIMESTAMP,delivered_at TIMESTAMP)");
   controller = new PartnerWalletController(db);
   transaction = new TransactionTemplate(new DataSourceTransactionManager(source));
   partner = Jwt.withTokenValue("partner").header("alg","none").subject(owner.toString()).build();

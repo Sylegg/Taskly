@@ -6,6 +6,7 @@ import com.taskly.settings.SystemSettingsService;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -14,6 +15,8 @@ import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -21,18 +24,31 @@ public class EarlyStartService {
     private final JdbcTemplate db;
     private final SystemSettingsService settingsService;
     private final PartnerSchedulingService schedulingService;
+    private final Clock clock;
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.of("Asia/Ho_Chi_Minh"));
     private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ofPattern("HH:mm 'ngày' dd/MM").withZone(ZoneId.of("Asia/Ho_Chi_Minh"));
+    private static final Set<String> BEFORE_START = Set.of("ACCEPTED", "TASKER_ON_THE_WAY", "ARRIVED");
 
     public EarlyStartService(
         JdbcTemplate db,
         SystemSettingsService settingsService,
         PartnerSchedulingService schedulingService
     ) {
+        this(db, settingsService, schedulingService, Clock.systemUTC());
+    }
+
+    @Autowired
+    public EarlyStartService(
+        JdbcTemplate db,
+        SystemSettingsService settingsService,
+        PartnerSchedulingService schedulingService,
+        Clock clock
+    ) {
         this.db = db;
         this.settingsService = settingsService;
         this.schedulingService = schedulingService;
+        this.clock = clock;
     }
 
     private Instant toInstant(Object value) {
@@ -74,17 +90,22 @@ public class EarlyStartService {
         Instant originalScheduledStartAt,
         Instant approvedStartAt,
         Instant expectedEndAt,
+        Instant earliestAllowedCheckin,
         int earlyCheckInWindowMinutes,
         int minBufferMinutes,
         int maxEarlyStartMinutes,
         EarlyStartRequestDto activeRequest,
         Instant serverNow,
-        String message
+        String message,
+        String taskStatus,
+        Instant checkedInAt,
+        Instant actualStartedAt
     ) {}
 
     /**
      * Compute full eligibility for a task based on current server clock and domain policies.
      */
+    @Transactional
     public StartEligibilityDto getStartEligibility(UUID userId, UUID taskId, boolean partner) {
         var rows = db.queryForList("""
             SELECT id, customer_id, tasker_id, status, scheduled_at, estimated_duration_minutes,
@@ -106,7 +127,7 @@ public class EarlyStartService {
             throw new DomainException("UNAUTHORIZED_ACTION", "Chỉ khách hàng sở hữu đơn mới có quyền truy cập.", HttpStatus.FORBIDDEN);
         }
 
-        Instant serverNow = Instant.now();
+        Instant serverNow = clock.instant();
         Instant scheduledAt = toInstant(task.get("scheduled_at"));
         Instant origStart = toInstant(task.get("original_scheduled_start_at"));
         if (origStart == null) origStart = scheduledAt;
@@ -125,10 +146,11 @@ public class EarlyStartService {
 
         boolean checkedIn = checkedInAt != null;
         boolean canCheckIn = !checkedIn
-            && Set.of("ACCEPTED", "TASKER_ON_THE_WAY").contains(status)
+            && BEFORE_START.contains(status)
             && !serverNow.isBefore(earliestCheckIn);
 
         // Active early request
+        expirePendingRequests(taskId, serverNow);
         var reqList = getEarlyStartRequests(taskId);
         EarlyStartRequestDto activeReq = reqList.stream()
             .filter(r -> "PENDING".equals(r.status()))
@@ -137,8 +159,9 @@ public class EarlyStartService {
 
         boolean canRequestEarly = taskerId != null
             && actualStartedAt == null
-            && !Set.of("IN_PROGRESS", "COMPLETED", "PAID", "CANCELLED", "REFUNDED", "EXPIRED").contains(status)
+            && BEFORE_START.contains(status)
             && serverNow.isBefore(scheduledAt)
+            && approvedStart == null
             && activeReq == null;
 
         boolean canStart = checkedIn
@@ -174,19 +197,25 @@ public class EarlyStartService {
             origStart,
             approvedStart,
             expectedEnd,
+            earliestCheckIn,
             earlyCheckinWindow,
             minBuffer,
             settingsService.getMaxEarlyStartMinutes(),
             activeReq,
             serverNow,
-            message
+            message,
+            status,
+            checkedInAt,
+            actualStartedAt
         );
     }
 
+    @Transactional
     public Map<String, Object> checkIn(UUID partnerId, UUID taskId, Double lat, Double lng) {
         return checkIn(partnerId, taskId, lat != null ? BigDecimal.valueOf(lat) : null, lng != null ? BigDecimal.valueOf(lng) : null, "GPS", "checkin-" + UUID.randomUUID());
     }
 
+    @Transactional
     public Map<String, Object> checkIn(UUID partnerId, UUID taskId, BigDecimal lat, BigDecimal lng) {
         return checkIn(partnerId, taskId, lat, lng, "GPS", "checkin-" + UUID.randomUUID());
     }
@@ -219,17 +248,16 @@ public class EarlyStartService {
         }
 
         String currentStatus = (String) task.get("status");
-        if (Set.of("COMPLETED", "PAID", "CANCELLED", "REFUNDED", "EXPIRED").contains(currentStatus)) {
-            throw new DomainException("INVALID_START_STATE", "Công việc đã kết thúc hoặc bị hủy, không thể check-in.", HttpStatus.CONFLICT);
-        }
-
         // Idempotency check if already arrived
         Instant alreadyCheckedInAt = toInstant(task.get("checked_in_at"));
         if (alreadyCheckedInAt != null && "ARRIVED".equals(currentStatus)) {
             return Map.of("id", taskId, "status", "ARRIVED", "checkedInAt", alreadyCheckedInAt);
         }
+        if (!BEFORE_START.contains(currentStatus)) {
+            throw new DomainException("INVALID_START_STATE", "Công việc không ở trạng thái có thể check-in.", HttpStatus.CONFLICT);
+        }
 
-        Instant serverNow = Instant.now();
+        Instant serverNow = clock.instant();
         Instant scheduledAt = toInstant(task.get("scheduled_at"));
         Instant approvedStartAt = toInstant(task.get("approved_start_at"));
         Instant targetStart = approvedStartAt != null ? approvedStartAt : scheduledAt;
@@ -286,6 +314,7 @@ public class EarlyStartService {
         return result;
     }
 
+    @Transactional
     public EarlyStartRequestDto createEarlyStartRequest(UUID partnerId, UUID taskId, Instant requestedStartAt, String reason) {
         return createEarlyStartRequest(partnerId, taskId, requestedStartAt, reason, "early-" + UUID.randomUUID());
     }
@@ -301,9 +330,10 @@ public class EarlyStartService {
         String reason,
         String requestId
     ) {
+        PartnerWorkPolicy.lock(db, partnerId);
         var rows = db.queryForList("""
             SELECT id, customer_id, tasker_id, status, scheduled_at, estimated_duration_minutes,
-                   latitude, longitude, service_name_snapshot, actual_started_at, version
+                   latitude, longitude, service_name_snapshot, actual_started_at, approved_start_at, version
             FROM tasks WHERE id = ? FOR UPDATE
             """, taskId);
         if (rows.isEmpty()) {
@@ -322,12 +352,17 @@ public class EarlyStartService {
         }
 
         String status = (String) task.get("status");
-        if (task.get("actual_started_at") != null || Set.of("IN_PROGRESS", "COMPLETED", "PAID", "CANCELLED", "REFUNDED", "EXPIRED").contains(status)) {
-            throw new DomainException("INVALID_START_STATE", "Công việc đã bắt đầu hoặc đã kết thúc, không thể xin bắt đầu sớm.", HttpStatus.CONFLICT);
+        if (task.get("actual_started_at") != null || !BEFORE_START.contains(status)) {
+            throw new DomainException("INVALID_START_STATE", "Công việc không ở trạng thái có thể xin bắt đầu sớm.", HttpStatus.CONFLICT);
+        }
+        PartnerWorkPolicy.requireFree(db, partnerId, taskId);
+        if (task.get("approved_start_at") != null) {
+            throw new DomainException("EARLY_START_ALREADY_APPROVED", "Khách hàng đã duyệt giờ bắt đầu sớm cho đơn này.", HttpStatus.CONFLICT);
         }
 
         Instant scheduledAt = toInstant(task.get("scheduled_at"));
-        Instant serverNow = Instant.now();
+        Instant serverNow = clock.instant();
+        if (!serverNow.isBefore(scheduledAt)) throw new ExpiredEarlyStartRequestException();
 
         if (!requestedStartAt.isBefore(scheduledAt)) {
             throw new DomainException("INVALID_START_TIME", "Giờ đề nghị bắt đầu sớm phải trước giờ hẹn ban đầu.", HttpStatus.BAD_REQUEST);
@@ -414,7 +449,7 @@ public class EarlyStartService {
     /**
      * Customer responds to EarlyStartRequest (APPROVE / REJECT).
      */
-    @Transactional
+    @Transactional(noRollbackFor = ExpiredEarlyStartRequestException.class)
     public EarlyStartRequestDto customerDecision(
         UUID customerId,
         UUID taskId,
@@ -422,6 +457,12 @@ public class EarlyStartService {
         String decision,
         String reason
     ) {
+        var assignedPartners = db.queryForList(
+            "SELECT tasker_id FROM tasks WHERE id=? AND customer_id=? AND tasker_id IS NOT NULL",
+            UUID.class, taskId, customerId);
+        if (!assignedPartners.isEmpty()) {
+            PartnerWorkPolicy.lock(db, assignedPartners.getFirst());
+        }
         var taskRows = db.queryForList("""
             SELECT id, customer_id, tasker_id, status, scheduled_at, estimated_duration_minutes,
                    latitude, longitude, service_name_snapshot, version
@@ -445,15 +486,19 @@ public class EarlyStartService {
         }
         var req = reqRows.getFirst();
         String currentStatus = (String) req.get("status");
+        if ("EXPIRED".equals(currentStatus)) throw new ExpiredEarlyStartRequestException();
         if (!"PENDING".equals(currentStatus)) {
             throw new DomainException("STALE_REQUEST", "Yêu cầu đã được xử lý trước đó (trạng thái: " + currentStatus + ").", HttpStatus.CONFLICT);
         }
 
-        Instant serverNow = Instant.now();
+        Instant serverNow = clock.instant();
         Instant expiresAt = toInstant(req.get("expires_at"));
-        if (serverNow.isAfter(expiresAt)) {
-            db.update("UPDATE early_start_requests SET status = 'EXPIRED' WHERE id = ?", requestId);
-            throw new DomainException("EARLY_START_REQUEST_EXPIRED", "Yêu cầu bắt đầu sớm này đã hết hạn hiệu lực.", HttpStatus.CONFLICT);
+        if (!serverNow.isBefore(expiresAt) || !serverNow.isBefore(toInstant(task.get("scheduled_at"))) ||
+            !BEFORE_START.contains(task.get("status")) ||
+            !Objects.equals(task.get("tasker_id"), req.get("partner_id")) ||
+            assignedPartners.isEmpty() || !assignedPartners.getFirst().equals(req.get("partner_id"))) {
+            db.update("UPDATE early_start_requests SET status = 'EXPIRED', version = version + 1 WHERE id = ?", requestId);
+            throw new ExpiredEarlyStartRequestException();
         }
 
         Instant requestedStartAt = toInstant(req.get("requested_start_at"));
@@ -530,6 +575,7 @@ public class EarlyStartService {
         }
     }
 
+    @Transactional
     public Map<String, Object> startJob(UUID partnerId, UUID taskId) {
         return startJob(partnerId, taskId, "start-" + UUID.randomUUID());
     }
@@ -585,7 +631,7 @@ public class EarlyStartService {
             throw new DomainException("CHECKIN_REQUIRED", "Bạn cần check-in xác nhận có mặt tại địa điểm trước khi bắt đầu công việc.", HttpStatus.CONFLICT);
         }
 
-        Instant serverNow = Instant.now();
+        Instant serverNow = clock.instant();
         Instant scheduledAt = toInstant(task.get("scheduled_at"));
         Instant approvedStartAt = toInstant(task.get("approved_start_at"));
         Instant allowedStartAt = approvedStartAt != null ? approvedStartAt : scheduledAt;
@@ -638,6 +684,30 @@ public class EarlyStartService {
         db.update("INSERT INTO task_messages(id,task_id,sender_id,content,sender_portal,created_at) VALUES(?,?,?,?,'PARTNER',?)", UUID.randomUUID(), taskId, partnerId,
             "Tôi đã bắt đầu thực hiện công việc lúc " + DATE_TIME_FMT.format(serverNow) + ".", nowTs);
         return Map.of("id", taskId, "status", "IN_PROGRESS", "actualStartedAt", serverNow);
+    }
+
+    private void expirePendingRequests(UUID taskId, Instant now) {
+        String sql="""
+            UPDATE early_start_requests SET status='EXPIRED', version=version+1
+            WHERE status='PENDING' AND (expires_at<=? OR EXISTS (
+                SELECT 1 FROM tasks t WHERE t.id=early_start_requests.task_id AND (t.scheduled_at<=? OR t.actual_started_at IS NOT NULL
+                OR t.status NOT IN ('ACCEPTED','TASKER_ON_THE_WAY','ARRIVED'))
+            ))
+            """;
+        if(taskId==null) db.update(sql,Timestamp.from(now),Timestamp.from(now));
+        else db.update(sql+" AND task_id=?",Timestamp.from(now),Timestamp.from(now),taskId);
+    }
+
+    @Scheduled(fixedDelay=10000)
+    @Transactional
+    public void expireStaleRequests() {
+        expirePendingRequests(null,clock.instant());
+    }
+
+    public static class ExpiredEarlyStartRequestException extends DomainException {
+        public ExpiredEarlyStartRequestException() {
+            super("EARLY_START_REQUEST_EXPIRED", "Đề nghị đã hết hạn hoặc đã đến giờ hẹn. Lịch làm việc được cập nhật theo trạng thái hiện tại.", HttpStatus.CONFLICT);
+        }
     }
 
     public List<EarlyStartRequestDto> getEarlyStartRequests(UUID taskId) {
