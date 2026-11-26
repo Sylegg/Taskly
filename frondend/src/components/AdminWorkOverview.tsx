@@ -79,7 +79,7 @@ export default function AdminWorkOverview({ page, orders, onOrder, onOpenTasks }
         <span>Phạm vi đơn hàng</span>
         <select value={scope} onChange={event => setScope(event.target.value as typeof scope)}>
           <option value="all">Tất cả đơn</option>
-          <option value="demo">Demo EXE201</option>
+          <option value="demo">Bộ đơn trình diễn</option>
           <option value="other">Các đơn ngoài EXE201</option>
         </select>
       </label>}

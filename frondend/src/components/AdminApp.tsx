@@ -225,7 +225,7 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
             <p>{route === 'categories' ? 'Cấu hình danh mục và biểu mẫu riêng cho từng loại dịch vụ.' : pageHeading?.[1]}</p>
           </div>
           {(showDemoLabel || canReloadAccounts) && <div className="header-buttons">
-            {showDemoLabel && <span className="badge neutral">Demo EXE201</span>}
+            {showDemoLabel && <span className="badge neutral">Dữ liệu trình diễn</span>}
             {canReloadAccounts && <button className="btn btn-outline" disabled={customerLoading} onClick={() => void onRefreshCustomers().catch(e => notify(e.message))}><RefreshCw size={16} />Tải lại {portalName}</button>}
           </div>}
         </div>
