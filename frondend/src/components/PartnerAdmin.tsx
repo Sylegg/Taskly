@@ -23,6 +23,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import PartnerDetailModal from './PartnerDetailModal';
+import PartnerKycBadge from './PartnerKycBadge';
 import { getPartnerCriteriaProgress } from '@/lib/partner-criteria';
 import { partnerStatusLabels } from './PartnerChecks';
 import './partner-admin.css';
@@ -381,9 +382,7 @@ export default function PartnerAdmin({
 
                     {/* KYC */}
                     <td>
-                      <span className={`partner-badge ${item.kyc === 'APPROVED' ? 'active' : item.kyc === 'SUBMITTED' ? 'pending' : 'neutral'}`}>
-                        {item.kyc === 'APPROVED' ? '✓ Đã duyệt' : item.kyc === 'SUBMITTED' ? 'Chờ duyệt' : 'Chưa nộp'}
-                      </span>
+                      <PartnerKycBadge partner={item} />
                     </td>
 
                     {/* Jobs */}

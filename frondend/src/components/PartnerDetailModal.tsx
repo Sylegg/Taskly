@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { getPartnerCriteriaProgress, partnerCriteria } from '@/lib/partner-criteria';
 import { partnerStatusLabels } from './PartnerChecks';
+import PartnerKycBadge, { hasSimulatedKycApproval } from './PartnerKycBadge';
 import './partner-admin.css';
 import PartnerProfileEditor from './PartnerProfileEditor';
 
@@ -134,11 +135,7 @@ export default function PartnerDetailModal({
                 <span className="partner-badge info">
                   {recruitmentLabel}
                 </span>
-                {partner.kyc && (
-                  <span className={`partner-badge ${partner.kyc === 'APPROVED' ? 'active' : 'pending'}`}>
-                    KYC: {partner.kyc === 'APPROVED' ? 'Đã duyệt' : partner.kyc === 'SUBMITTED' ? 'Chờ duyệt' : 'Chưa nộp'}
-                  </span>
-                )}
+                {partner.kyc && <PartnerKycBadge partner={partner} prefix="KYC " />}
               </div>
               <div className="partner-modal-id-row">
                 <span><Phone size={13} /> {partner.phone || 'Chưa có SĐT'}</span>
@@ -409,6 +406,10 @@ export default function PartnerDetailModal({
                     <span className="partner-spec-label">Phê duyệt CCCD</span>
                     <span className="partner-spec-value">{partnerChecks.identity_approved ? 'Đã phê duyệt' : 'Chưa phê duyệt'}</span>
                   </div>
+                  {hasSimulatedKycApproval(partner) && <div className="partner-spec-item">
+                    <span className="partner-spec-label">Kết quả EXE201</span>
+                    <PartnerKycBadge partner={partner} />
+                  </div>}
                 </div>
 
                 {/* Exam result */}
