@@ -23,7 +23,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import PartnerDetailModal from './PartnerDetailModal';
-import PartnerKycBadge from './PartnerKycBadge';
+import PartnerKycBadge, { Exe201ApprovalBadge, hasSimulatedKycApproval } from './PartnerKycBadge';
 import { getPartnerCriteriaProgress } from '@/lib/partner-criteria';
 import { partnerStatusLabels } from './PartnerChecks';
 import './partner-admin.css';
@@ -71,6 +71,7 @@ export default function PartnerAdmin({
   const activeCount = partners.filter((p) => p.status === 'ACTIVE').length;
   const suspendedCount = partners.filter((p) => p.status === 'SUSPENDED').length;
   const kycApprovedCount = partners.filter((p) => p.kyc === 'APPROVED').length;
+  const hasExe201Results = partners.some(hasSimulatedKycApproval);
   const pendingReviewCount = partners.filter((p) =>
     ['PENDING_REVIEW', 'PRELIMINARY_REVIEW', 'FINAL_REVIEW', 'ACTION_REQUIRED'].includes(p.recruitment_status)
   ).length;
@@ -322,6 +323,7 @@ export default function PartnerAdmin({
                 <th>Trạng thái tài khoản</th>
                 <th>Tiến trình hồ sơ</th>
                 <th>Định danh KYC</th>
+                {hasExe201Results && <th>Kết quả EXE201</th>}
                 <th>Hiệu suất việc</th>
                 <th>Tiêu chuẩn thẩm định</th>
                 <th style={{ textAlign: 'right' }}>Thao tác</th>
@@ -384,6 +386,7 @@ export default function PartnerAdmin({
                     <td>
                       <PartnerKycBadge partner={item} />
                     </td>
+                    {hasExe201Results && <td>{hasSimulatedKycApproval(item) ? <Exe201ApprovalBadge /> : '—'}</td>}
 
                     {/* Jobs */}
                     <td>
@@ -442,7 +445,7 @@ export default function PartnerAdmin({
 
               {filteredPartners.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '48px 24px', color: '#94a3b8' }}>
+                  <td colSpan={hasExe201Results ? 9 : 8} style={{ textAlign: 'center', padding: '48px 24px', color: '#94a3b8' }}>
                     <Users size={36} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
                     <strong style={{ display: 'block', fontSize: 15, color: '#475569', marginBottom: 4 }}>
                       Không tìm thấy đối tác nào phù hợp

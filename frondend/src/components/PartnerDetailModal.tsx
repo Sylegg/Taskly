@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { getPartnerCriteriaProgress, partnerCriteria } from '@/lib/partner-criteria';
 import { partnerStatusLabels } from './PartnerChecks';
-import PartnerKycBadge, { hasSimulatedKycApproval } from './PartnerKycBadge';
+import PartnerKycBadge, { Exe201ApprovalBadge, hasSimulatedKycApproval } from './PartnerKycBadge';
 import './partner-admin.css';
 import PartnerProfileEditor from './PartnerProfileEditor';
 
@@ -408,7 +408,7 @@ export default function PartnerDetailModal({
                   </div>
                   {hasSimulatedKycApproval(partner) && <div className="partner-spec-item">
                     <span className="partner-spec-label">Kết quả EXE201</span>
-                    <PartnerKycBadge partner={partner} />
+                    <Exe201ApprovalBadge />
                   </div>}
                 </div>
 

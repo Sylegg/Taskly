@@ -16,13 +16,11 @@ export function hasSimulatedKycApproval(partner: PartnerIdentity) {
   return partner.demo_exe201 === true && partner.kyc === 'NOT_SUBMITTED' && exe201SampleTaskers.has(partner.id);
 }
 
-export default function PartnerKycBadge({ partner, prefix = '' }: { partner: PartnerIdentity; prefix?: string }) {
-  if (hasSimulatedKycApproval(partner)) {
-    return <span className="partner-badge active" title="Hồ sơ định danh chính thức chưa nộp">
-      {prefix}✓ Đã duyệt (mô phỏng)
-    </span>;
-  }
+export function Exe201ApprovalBadge() {
+  return <span className="partner-badge active">✓ Đã duyệt</span>;
+}
 
+export default function PartnerKycBadge({ partner, prefix = '' }: { partner: PartnerIdentity; prefix?: string }) {
   const status = partner.kyc || 'NOT_SUBMITTED';
   const pending = status === 'SUBMITTED' || status === 'UNDER_REVIEW';
   const tone = status === 'APPROVED' ? 'active' : pending ? 'pending' : 'neutral';
