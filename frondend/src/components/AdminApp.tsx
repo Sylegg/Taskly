@@ -74,7 +74,7 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
   const users: Row[] = accounts.map(row => ({ ...row, apps: [row.customer_app && 'Customer', row.partner_app && 'Partner'].filter(Boolean).join(' + ') || 'Customer' }));
   const customers = users.filter(row => row.customer_app || !row.partner_app);
   const partners = users.filter(row => row.partner_app);
-  const hasDemo = users.some(row => /^exe201\.(?:customer|tasker)\d{2}@taskly\.invalid$/i.test(row.email ?? ''));
+  const hasDemo = users.some(row => row.demo_exe201 === true || /^exe201\.(?:customer|tasker)\d{2}@taskly\.invalid$/i.test(row.email ?? ''));
   const [serverOrders, setServerOrders] = useState<AdminOrder[]>([]);
   const [orderState, setOrderState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [reloadOrders, setReloadOrders] = useState(0);
@@ -226,7 +226,7 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
         </div>
         {!isCatalogue && customerError && <div role="alert" className="api-error">{customerError}</div>}
         {['customers', 'partners'].includes(route) && customerLoading && <div className="notice">Đang tải {portalName} từ máy chủ…</div>}
-        {(hasDemo || serverOrders.some(isDemoOrder)) && <div className="notice">Dashboard có dữ liệu Demo EXE201. Các đơn mang mã EXE201 và tài khoản có địa chỉ @taskly.invalid thuộc bộ trình diễn mô phỏng.</div>}
+        {(hasDemo || serverOrders.some(isDemoOrder)) && <div className="notice">Dashboard có dữ liệu Demo EXE201. Các đơn mang mã EXE201 thuộc bộ trình diễn mô phỏng.</div>}
         {viewClassic ? <div className="original-panel"><div className="notice">Chế độ tham chiếu: mở bản HTML Admin nguyên bản để so sánh toàn bộ tính năng và bố cục. Chế độ này lưu dữ liệu riêng với React dashboard.</div><iframe title="TaskLy Admin HTML original" src="/reference/admin-original.html" /></div> : view}
       </main>
     </div>

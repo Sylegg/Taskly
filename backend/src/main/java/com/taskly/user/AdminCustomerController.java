@@ -115,6 +115,7 @@ public class AdminCustomerController {
         var rows = db.queryForList("""
             SELECT u.id, COALESCE(NULLIF(p.full_name, ''), NULLIF(a.full_name, ''), '') AS name,
               u.email, COALESCE(u.phone, a.contact_phone, '') AS phone, u.status,
+              COALESCE(p.bio='Dữ liệu thử nghiệm EXE201',false) AS demo_exe201,
               (SELECT f.portrait FROM partner_final_documents f WHERE f.application_id=a.id) AS avatar,
               u.used_customer AS customer_app, (u.used_partner OR a.id IS NOT NULL) AS partner_app,
               u.created_at AS created,
