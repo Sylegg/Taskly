@@ -47,7 +47,7 @@ public class AdminTaskController {
 
     @GetMapping
     public ApiResponse<List<Map<String, Object>>> list() {
-        var tasks = new java.util.ArrayList<Map<String,Object>>(db.queryForList("""
+        var tasks = new java.util.ArrayList<Map<String, Object>>(db.queryForList("""
             SELECT t.id, t.title, t.description, t.status,
               t.service_name_snapshot AS service, t.customer_id, t.tasker_id,
               COALESCE(c.full_name, '') AS customer, COALESCE(p.full_name, '') AS partner,
@@ -56,24 +56,46 @@ public class AdminTaskController {
               t.latitude, t.longitude, t.budget_amount AS total, t.currency, t.created_at, t.updated_at,
               t.verified_actual_end_at, t.original_scheduled_start_at, t.original_scheduled_end_at,
               t.approved_start_at, t.expected_end_at, t.accepted_at, t.checked_in_at, t.actual_started_at,
-              t.early_start_request_id
+              t.early_start_request_id, %1$s AS platform_fee, (t.budget_amount - %1$s) AS partner_net_amount,
+              payment.method AS booking_payment_method, payment.status AS booking_payment_status,
+              payment.draft_payload AS booking_draft_payload, quote.line_items AS booking_line_items,
+              early.id AS early_id, early.requested_start_at AS early_requested_start_at,
+              early.proposed_end_at AS early_proposed_end_at, early.reason AS early_reason,
+              early.status AS early_status, early.requested_at AS early_requested_at,
+              early.expires_at AS early_expires_at
             FROM tasks t
             LEFT JOIN user_profiles c ON c.user_id=t.customer_id
             LEFT JOIN user_profiles p ON p.user_id=t.tasker_id
+            LEFT JOIN service_pricing_rules r ON r.service_id=t.service_id
+            LEFT JOIN task_booking_payments payment ON payment.task_id=t.id
+            LEFT JOIN customer_price_quotes quote ON quote.id=payment.quote_id
+            LEFT JOIN early_start_requests early ON early.id=(
+              SELECT matching.id FROM early_start_requests matching
+              WHERE matching.task_id=t.id ORDER BY matching.requested_at DESC LIMIT 1
+            )
             ORDER BY t.created_at DESC, t.id
-            """));
-        for(var task:tasks) {
-            var earnings=db.queryForMap("SELECT "+PartnerEarnings.FEE_SQL+" AS fee,(t.budget_amount-"+PartnerEarnings.FEE_SQL+") AS net FROM tasks t LEFT JOIN service_pricing_rules r ON r.service_id=t.service_id WHERE t.id=?",task.get("id"));
-            task.put("platform_fee",earnings.get("fee"));task.put("partner_net_amount",earnings.get("net"));
-            var payments=db.queryForList("SELECT p.method,p.status,p.draft_payload,q.line_items FROM task_booking_payments p JOIN customer_price_quotes q ON q.id=p.quote_id WHERE p.task_id=?",task.get("id"));
-            if(!payments.isEmpty()) {
-                var payment=payments.getFirst();var draft=json.readValue(payment.get("draft_payload").toString(),com.taskly.booking.BookingDraftController.Draft.class);
-                task.put("booking_details",draft.details());task.put("description",draft.description());task.put("payment_method",payment.get("method"));task.put("payment_status",payment.get("status"));
-                task.put("selected_services",json.readValue(payment.get("line_items").toString(),Object.class));
+            """.formatted(PartnerEarnings.FEE_SQL)));
+        for (var task : tasks) {
+            var paymentMethod = task.remove("booking_payment_method");
+            var paymentStatus = task.remove("booking_payment_status");
+            var draftPayload = task.remove("booking_draft_payload");
+            var lineItems = task.remove("booking_line_items");
+            if (draftPayload != null) {
+                var draft = json.readValue(draftPayload.toString(), com.taskly.booking.BookingDraftController.Draft.class);
+                task.put("booking_details", draft.details());
+                task.put("description", draft.description());
+                task.put("payment_method", paymentMethod);
+                task.put("payment_status", paymentStatus);
+                task.put("selected_services", json.readValue(lineItems.toString(), Object.class));
             }
-            var earlyReqs = db.queryForList("SELECT id, requested_start_at, proposed_end_at, reason, status, requested_at, expires_at FROM early_start_requests WHERE task_id=? ORDER BY requested_at DESC LIMIT 1", task.get("id"));
-            if (!earlyReqs.isEmpty()) {
-                task.put("early_start_request", earlyReqs.getFirst());
+
+            var early = new java.util.LinkedHashMap<String, Object>();
+            for (var field : List.of("id", "requested_start_at", "proposed_end_at", "reason", "status",
+                    "requested_at", "expires_at")) {
+                early.put(field, task.remove("early_" + field));
+            }
+            if (early.get("id") != null) {
+                task.put("early_start_request", early);
             }
         }
         for(var row:db.queryForList("SELECT b.id,b.customer_id,b.payload,b.updated_at,COALESCE(p.full_name,'') AS customer FROM customer_pending_bookings b LEFT JOIN user_profiles p ON p.user_id=b.customer_id ORDER BY b.updated_at DESC")) {
