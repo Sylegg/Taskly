@@ -1,4 +1,5 @@
 import { CheckCircle2, Circle, AlertCircle } from 'lucide-react';
+import { getPartnerCriteriaProgress, partnerCriteria } from '@/lib/partner-criteria';
 
 export const partnerStatusLabels: Record<string, string> = {
   NOT_REGISTERED: 'Chưa đăng ký hồ sơ',
@@ -30,17 +31,6 @@ export const partnerStatusLabels: Record<string, string> = {
   EXPIRED: 'Đã hết hạn',
 };
 
-export const checks: Record<string, string> = {
-  profile_complete: 'Hồ sơ cá nhân',
-  agreements_current: 'Cam kết đối tác',
-  exam_passed: 'Bài thi đầu vào (≥16/20)',
-  identity_complete: 'Giấy tờ CCCD hợp lệ',
-  preliminary_approved: 'Duyệt sơ bộ',
-  appointment_checked_in: 'Check-in văn phòng',
-  uniform_resolved: 'Đồng phục & thanh toán',
-  final_approved: 'Duyệt chính thức',
-};
-
 export default function PartnerChecks({
   values,
   reason,
@@ -48,10 +38,7 @@ export default function PartnerChecks({
   values?: Record<string, boolean>;
   reason?: string;
 }) {
-  const entries = Object.entries(checks);
-  const doneCount = entries.filter(([key]) => !!values?.[key]).length;
-  const totalCount = entries.length;
-  const percentage = Math.round((doneCount / totalCount) * 100);
+  const { passed: doneCount, total: totalCount, percentage } = getPartnerCriteriaProgress(values);
 
   return (
     <section className="partner-checks-container">
@@ -74,7 +61,7 @@ export default function PartnerChecks({
       </div>
 
       <ol className="partner-check-grid">
-        {entries.map(([key, label], index) => {
+        {partnerCriteria.map(({ key, label }, index) => {
           const isDone = !!values?.[key];
           return (
             <li

@@ -23,6 +23,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import PartnerDetailModal from './PartnerDetailModal';
+import { getPartnerCriteriaProgress } from '@/lib/partner-criteria';
 import { partnerStatusLabels } from './PartnerChecks';
 import './partner-admin.css';
 
@@ -123,9 +124,7 @@ export default function PartnerAdmin({
         return Number(b.completed_jobs || 0) - Number(a.completed_jobs || 0);
       }
       if (sortBy === 'standards') {
-        const countA = Object.values(a.partner_checks || {}).filter(Boolean).length;
-        const countB = Object.values(b.partner_checks || {}).filter(Boolean).length;
-        return countB - countA;
+        return getPartnerCriteriaProgress(b.partner_checks).passed - getPartnerCriteriaProgress(a.partner_checks).passed;
       }
       // default: created
       return String(b.created || '').localeCompare(String(a.created || ''));
@@ -329,10 +328,8 @@ export default function PartnerAdmin({
             </thead>
             <tbody>
               {filteredPartners.map((item) => {
-                const checks = item.partner_checks || {};
-                const passedCount = Object.values(checks).filter(Boolean).length;
-                const totalChecks = 14;
-                const checksPercent = Math.round((passedCount / totalChecks) * 100);
+                const { passed: passedCount, total: totalChecks, percentage: checksPercent } =
+                  getPartnerCriteriaProgress(item.partner_checks);
 
                 const recLabel = partnerStatusLabels[item.recruitment_status] || item.recruitment_status || 'Chưa đăng ký';
                 const isSuspended = item.status === 'SUSPENDED';

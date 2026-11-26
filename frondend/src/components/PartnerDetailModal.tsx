@@ -29,6 +29,7 @@ import {
   Sparkles,
   Edit3,
 } from 'lucide-react';
+import { getPartnerCriteriaProgress, partnerCriteria } from '@/lib/partner-criteria';
 import { partnerStatusLabels } from './PartnerChecks';
 import './partner-admin.css';
 import PartnerProfileEditor from './PartnerProfileEditor';
@@ -43,21 +44,6 @@ type PartnerDetailModalProps = {
   initialEdit?: boolean;
   onSaved?: () => void;
 };
-
-const CRITERIA_DEFINITIONS: { key: string; label: string; desc: string }[] = [
-  { key: 'profile_complete', label: 'Hồ sơ cá nhân', desc: 'Đầy đủ họ tên, SĐT, ngày sinh, phương tiện' },
-  { key: 'identity_complete', label: 'Giấy tờ CCCD hợp lệ', desc: '12 chữ số hợp lệ, đủ 3 mặt ảnh đạt chuẩn' },
-  { key: 'identity_approved', label: 'CCCD đã phê duyệt', desc: 'Admin đã thẩm định và chấp thuận CCCD' },
-  { key: 'exam_passed', label: 'Bài thi đầu vào', desc: 'Đạt điểm chuẩn bài thi lý thuyết quy trình' },
-  { key: 'agreements_current', label: 'Cam kết đối tác', desc: 'Đã ký thỏa thuận hợp tác và quy tắc ứng xử' },
-  { key: 'preliminary_approved', label: 'Duyệt sơ bộ hồ sơ', desc: 'Đội ngũ tuyển dụng đã thông qua vòng sơ khảo' },
-  { key: 'appointment_checked_in', label: 'Check-in văn phòng', desc: 'Có mặt tại văn phòng đối soát hồ sơ gốc' },
-  { key: 'documents_valid', label: 'Hồ sơ giấy tờ đối chiếu', desc: 'Bản gốc đối chiếu trùng khớp bản scan' },
-  { key: 'uniform_resolved', label: 'Đồng phục & trang bị', desc: 'Đã đăng ký và thanh toán áo/nón TaskLy' },
-  { key: 'skills_configured', label: 'Kỹ năng dịch vụ', desc: 'Đã thiết lập các dịch vụ nhận việc' },
-  { key: 'areas_configured', label: 'Khu vực hoạt động', desc: 'Đã kích hoạt địa bàn phục vụ' },
-  { key: 'final_approved', label: 'Duyệt chính thức', desc: 'Quyết định phê duyệt vận hành từ ban quản trị' },
-];
 
 export default function PartnerDetailModal({
   partner,
@@ -119,9 +105,8 @@ export default function PartnerDetailModal({
 
   // Resolve checks from partner or dossier
   const partnerChecks: Record<string, boolean> = partner.partner_checks || data?.dossier?.application?.eligibility || {};
-  const passedCriteriaCount = CRITERIA_DEFINITIONS.filter((c) => !!partnerChecks[c.key]).length;
-  const totalCriteriaCount = CRITERIA_DEFINITIONS.length;
-  const criteriaPercent = Math.round((passedCriteriaCount / totalCriteriaCount) * 100);
+  const { passed: passedCriteriaCount, total: totalCriteriaCount, percentage: criteriaPercent } =
+    getPartnerCriteriaProgress(partnerChecks);
 
   const dossier = data?.dossier;
   const bankAccounts = data?.bank || [];
@@ -304,7 +289,7 @@ export default function PartnerDetailModal({
               <div className="partner-criteria-header-row">
                 <div className="partner-criteria-title">
                   <h3>Tiến trình đạt chuẩn TaskLy Partner</h3>
-                  <p>Hệ thống tự động rà soát 14 tiêu chí thẩm định trước và trong quá trình hoạt động của đối tác.</p>
+                  <p>Tiến độ theo {totalCriteriaCount} tiêu chí tuyển dụng và thiết lập hoạt động. Xem định danh CCCD ở mục Giấy tờ &amp; Tuyển dụng.</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <span style={{ fontSize: 14, fontWeight: 800, color: criteriaPercent === 100 ? '#059669' : '#d97706' }}>
@@ -327,7 +312,7 @@ export default function PartnerDetailModal({
               )}
 
               <div className="partner-criteria-grid">
-                {CRITERIA_DEFINITIONS.map((crit, index) => {
+                {partnerCriteria.map((crit, index) => {
                   const isPassed = !!partnerChecks[crit.key];
                   return (
                     <div key={crit.key} className={`partner-criteria-item ${isPassed ? 'passed' : 'failed'}`}>
@@ -385,7 +370,7 @@ export default function PartnerDetailModal({
                 <div className="partner-card-header">
                   <h4 className="partner-card-title"><FileText size={16} color="#2563eb" /> Căn cước công dân (CCCD)</h4>
                   <span className={`partner-badge ${partner.kyc === 'APPROVED' ? 'active' : 'pending'}`}>
-                    {partner.kyc === 'APPROVED' ? 'Hợp lệ' : 'Đang xử lý'}
+                    {partnerStatusLabels[partner.kyc] || 'Chưa nộp định danh'}
                   </span>
                 </div>
                 {dossier?.identities && dossier.identities.length > 0 ? (
@@ -411,12 +396,20 @@ export default function PartnerDetailModal({
                       <span className="partner-spec-label">Họ tên đăng ký:</span>
                       <strong className="partner-spec-value">{partner.name}</strong>
                     </div>
-                    <div className="partner-spec-item">
-                      <span className="partner-spec-label">Tình trạng CCCD:</span>
-                      <span className="partner-spec-value">{partnerChecks.identity_complete ? 'Đủ 3 mặt ảnh đạt chuẩn' : 'Chưa hoàn tất nộp giấy tờ'}</span>
-                    </div>
+
                   </div>
                 )}
+
+                <div className="partner-spec-list">
+                  <div className="partner-spec-item">
+                    <span className="partner-spec-label">Giấy tờ CCCD</span>
+                    <span className="partner-spec-value">{partnerChecks.identity_complete ? 'Hợp lệ' : 'Chưa đạt yêu cầu'}</span>
+                  </div>
+                  <div className="partner-spec-item">
+                    <span className="partner-spec-label">Phê duyệt CCCD</span>
+                    <span className="partner-spec-value">{partnerChecks.identity_approved ? 'Đã phê duyệt' : 'Chưa phê duyệt'}</span>
+                  </div>
+                </div>
 
                 {/* Exam result */}
                 <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 14 }}>
