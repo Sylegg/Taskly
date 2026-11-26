@@ -40,8 +40,8 @@
     "Theo dõi dòng tiền nạp ví, giữ tiền cọc, phê duyệt lệnh rút tiền đối tác & hoàn tiền khách hàng."
   ],
   "refunds": [
-    "Refund Requests",
-    "Phê duyệt hoàn tiền theo quy tắc demo và lưu vết quyết định."
+    "Rút số dư Customer",
+    "Xử lý yêu cầu rút số dư về ngân hàng. Tiền hoàn đơn được cộng tự động vào số dư Customer."
   ],
   "disputes": [
     "Dispute Resolution",

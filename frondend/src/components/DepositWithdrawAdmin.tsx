@@ -109,6 +109,7 @@ function formatDate(dateStr: string): string {
 }
 
 interface DepositWithdrawAdminProps {
+  withdrawalsOnly?: boolean;
   role: 'CUSTOMER' | 'PARTNER';
   db: Record<string, any>;
   customers?: any[];
@@ -124,6 +125,7 @@ export default function DepositWithdrawAdmin({
   customers = [],
   partners = [],
   initialTab = 'ALL',
+  withdrawalsOnly = false,
   onNotify,
   onRefreshParent,
 }: DepositWithdrawAdminProps) {
@@ -150,7 +152,7 @@ export default function DepositWithdrawAdmin({
   const [rejectNote, setRejectNote] = useState('');
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [newTxType, setNewTxType] = useState<TransactionType>('DEPOSIT');
+  const [newTxType, setNewTxType] = useState<TransactionType>(withdrawalsOnly ? 'WITHDRAWAL' : 'DEPOSIT');
   const [newTxUserRole, setNewTxUserRole] = useState<'CUSTOMER' | 'PARTNER'>(role);
   const [newTxUserId, setNewTxUserId] = useState('');
   const [newTxAmount, setNewTxAmount] = useState('200000');
@@ -220,15 +222,16 @@ export default function DepositWithdrawAdmin({
           createdAt: tx.created_at, completedAt: tx.completed_at, refCode: tx.reference_code, note: tx.note,
         };
       });
-      const refunds = await fetch('/api/admin/refund-withdrawals', { cache: 'no-store' });
-      if (role === 'CUSTOMER' && refunds.ok) {
+      if (role === 'CUSTOMER') {
+        const refunds = await fetch('/api/admin/refund-withdrawals', { cache: 'no-store' });
         const result = await refunds.json();
-        if (result.success && Array.isArray(result.data)) result.data.forEach((tx: any) => {
+        if (!refunds.ok || !result.success || !Array.isArray(result.data)) throw new Error('Không thể tải yêu cầu rút số dư Customer');
+        result.data.forEach((tx: any) => {
           const user = allUsers.find(u => u.id === tx.customer_id);
           list.push({ id: tx.id, backendId: tx.id, source: 'CUSTOMER_REFUND', type: 'WITHDRAWAL', category: 'CUSTOMER_REFUND', amount: Number(tx.amount), fee: Number(tx.fee || 0), status: tx.status, userId: tx.customer_id, userName: user?.name || tx.account_name || tx.customer_id, userPhone: user?.phone || '', userRole: 'CUSTOMER', method: 'Chuyển khoản hoàn tiền', bankName: tx.bank_name, accountName: tx.account_name, accountNumber: tx.account_number, createdAt: tx.created_at });
         });
       }
-      setTransactions(list.filter(tx => tx.userRole === role));
+      setTransactions(list.filter(tx => tx.userRole === role && (!withdrawalsOnly || tx.type === 'WITHDRAWAL')));
       setLoadError(null);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Không thể tải giao dịch');
@@ -424,17 +427,18 @@ export default function DepositWithdrawAdmin({
   };
 
   return (
-    <div className="dwa-container">
-      <h2>Nạp &amp; Rút tiền — {role === 'PARTNER' ? 'Partner' : 'Customer'}</h2>
+    <div className={`dwa-container${withdrawalsOnly ? ' withdrawals-only' : ''}`}>
+      <h2>{withdrawalsOnly ? 'Rút số dư Customer' : `Nạp & Rút tiền — ${role === 'PARTNER' ? 'Partner' : 'Customer'}`}</h2>
+      {withdrawalsOnly && <p>Yêu cầu rút từ số dư Customer được xử lý trên máy chủ. Tiền hoàn đơn được cộng tự động vào số dư khi đơn đủ điều kiện hoàn.</p>}
       {loadError && <div role="alert" className="notice">
         {loadError} <button className="btn btn-outline" onClick={() => void loadTransactions()}>Tải lại dữ liệu</button>
       </div>}
       {/* 1. EXECUTIVE FINANCIAL SUMMARY CARDS */}
       <div className="dwa-kpi-grid">
-        <div
+        {!withdrawalsOnly && <div
           className={`dwa-kpi-card ${activeTab === 'DEPOSIT' ? 'active' : ''}`}
           onClick={() => {
-            setActiveTab('DEPOSIT');
+            setActiveTab(withdrawalsOnly ? 'WITHDRAWAL' : 'DEPOSIT');
             setStatusFilter('ALL');
           }}
         >
@@ -451,7 +455,7 @@ export default function DepositWithdrawAdmin({
             </span>
             <span>{stats.depositCount} giao dịch nạp</span>
           </div>
-        </div>
+        </div>}
 
         <div
           className={`dwa-kpi-card ${activeTab === 'WITHDRAWAL' ? 'active' : ''}`}
@@ -468,7 +472,7 @@ export default function DepositWithdrawAdmin({
           </div>
           <div className="dwa-kpi-value">{formatVnd(stats.totalWithdrawals)}</div>
           <div className="dwa-kpi-sub">
-            <span>Đã giải ngân cho Đối tác & Khách hàng</span>
+            <span>Đã chuyển về ngân hàng cho {role === 'PARTNER' ? 'Partner' : 'Customer'}</span>
           </div>
         </div>
 
@@ -502,14 +506,14 @@ export default function DepositWithdrawAdmin({
 
         <div className="dwa-kpi-card">
           <div className="dwa-kpi-header">
-            <span className="dwa-kpi-title">Số dư ký quỹ & Escrow</span>
+            <span className="dwa-kpi-title">Tổng yêu cầu rút</span>
             <div className="dwa-kpi-icon purple">
               <ShieldCheck size={20} />
             </div>
           </div>
-          <div className="dwa-kpi-value">{formatVnd(stats.activeEscrow)}</div>
+          <div className="dwa-kpi-value">{stats.withdrawalCount} lệnh</div>
           <div className="dwa-kpi-sub">
-            <span>Tiền cọc giữ cho các đơn hàng đang làm</span>
+            <span>Yêu cầu rút tiền {role === 'PARTNER' ? 'Partner' : 'Customer'}</span>
           </div>
         </div>
       </div>
@@ -517,23 +521,23 @@ export default function DepositWithdrawAdmin({
       {/* 2. NAVIGATION BAR & TAB BUTTONS */}
       <div className="dwa-nav-bar">
         <div className="dwa-tabs">
-          <button
+          {!withdrawalsOnly && <button
             className={`dwa-tab-btn ${activeTab === 'ALL' ? 'active' : ''}`}
             onClick={() => setActiveTab('ALL')}
           >
             <Layers size={17} />
             <span>Tất cả giao dịch</span>
             <span className="dwa-tab-count">{stats.totalTxCount}</span>
-          </button>
+          </button>}
 
-          <button
+          {!withdrawalsOnly && <button
             className={`dwa-tab-btn ${activeTab === 'DEPOSIT' ? 'active' : ''}`}
             onClick={() => setActiveTab('DEPOSIT')}
           >
             <ArrowDownLeft size={17} color="#059669" />
             <span>Quản lý Nạp tiền</span>
             <span className="dwa-tab-count">{stats.depositCount}</span>
-          </button>
+          </button>}
 
           <button
             className={`dwa-tab-btn ${activeTab === 'WITHDRAWAL' ? 'active' : ''}`}
@@ -544,13 +548,13 @@ export default function DepositWithdrawAdmin({
             {stats.pendingCount > 0 && <span className="dwa-tab-count alert">{stats.pendingCount} chờ duyệt</span>}
           </button>
 
-          <button
+          {!withdrawalsOnly && <button
             className={`dwa-tab-btn ${activeTab === 'CONFIG' ? 'active' : ''}`}
             onClick={() => setActiveTab('CONFIG')}
           >
             <Settings2 size={17} />
-            <span>Cấu hình & Hạn mức</span>
-          </button>
+            <span>Cấu hình & Hạn mức dùng chung</span>
+          </button>}
         </div>
 
         <div className="dwa-filter-group">
@@ -564,7 +568,7 @@ export default function DepositWithdrawAdmin({
           </button>
           <button className="dwa-btn dwa-btn-primary" onClick={() => { setManualRequestId(null); setCreateModalOpen(true); }}>
             <Plus size={16} />
-            <span>Tạo lệnh Nạp / Rút</span>
+            <span>{withdrawalsOnly ? 'Tạo yêu cầu rút Customer' : 'Tạo lệnh Nạp / Rút'}</span>
           </button>
         </div>
       </div>
@@ -1252,7 +1256,7 @@ export default function DepositWithdrawAdmin({
           <div className="dwa-modal" onClick={e => e.stopPropagation()}>
             <div className="dwa-modal-header">
               <h2 style={{ fontSize: 17, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Plus size={20} color="#2563EB" /> Tạo lệnh Nạp / Rút thủ công
+                <Plus size={20} color="var(--portal-accent, #2563eb)" /> {withdrawalsOnly ? 'Tạo yêu cầu rút Customer' : 'Tạo lệnh Nạp / Rút thủ công'}
               </h2>
               <button
                 style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
@@ -1268,6 +1272,7 @@ export default function DepositWithdrawAdmin({
                 <button
                   type="button"
                   className={`dwa-btn ${newTxType === 'DEPOSIT' ? 'dwa-btn-success' : 'dwa-btn-outline'}`}
+                  disabled={withdrawalsOnly}
                   style={{ justifyContent: 'center' }}
                   onClick={() => setNewTxType('DEPOSIT')}
                 >

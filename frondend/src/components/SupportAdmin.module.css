@@ -56,13 +56,13 @@
 
 .tabBtn.activePartner {
   background: #ffffff;
-  color: #0b9879;
+  color: #2563eb;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .tabBtn.activeCustomer {
   background: #ffffff;
-  color: #2563eb;
+  color: #0b9879;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
@@ -231,12 +231,12 @@
 }
 
 .partnerAvatar {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: #ffffff;
 }
 
 .customerAvatar {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(135deg, #10b981, #059669);
   color: #ffffff;
 }
 
@@ -301,13 +301,13 @@
 }
 
 .partnerTag {
-  background: #e6f7ef;
-  color: #0b9879;
+  background: #eff6ff;
+  color: #2563eb;
 }
 
 .customerTag {
-  background: #eff6ff;
-  color: #2563eb;
+  background: #e6f7ef;
+  color: #0b9879;
 }
 
 .unreadCountBadge {

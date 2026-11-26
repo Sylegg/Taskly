@@ -395,12 +395,6 @@ export default function RecruitmentAdmin({
         <RecruitmentExamAdmin />
       </section>
     );
-  if (tab === 'config')
-    return (
-      <section className="catalogue-manager">
-        <RecruitmentConfigAdmin />
-      </section>
-    );
 
   return (
     <div className="recruitment-container">

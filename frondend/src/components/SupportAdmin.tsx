@@ -5,6 +5,7 @@ import styles from './SupportAdmin.module.css';
 
 type Role = 'partner' | 'customer';
 interface Props {
+ initialRole?: Role;
  fullPage?: boolean;
  visible?: boolean;
  onNewMessage?: () => void;
@@ -13,7 +14,8 @@ interface Props {
 }
 
 export default function SupportAdmin(props: Props) {
- const [role,setRole]=useState<Role>('partner');
+ const [role,setRole]=useState<Role>(props.initialRole ?? 'partner');
+ useEffect(()=>{setRole(props.initialRole ?? 'partner');},[props.initialRole]);
  const [unread,setUnread]=useState({partner:{count:0,name:''},customer:{count:0,name:''}});
  const unreadCallback=useRef(props.onUnreadChange);
  unreadCallback.current=props.onUnreadChange;
