@@ -4,8 +4,9 @@ const headings=JSON.parse(fs.readFileSync(new URL('../src/data/headings.json',im
 const seed=JSON.parse(fs.readFileSync(new URL('../src/data/seed.json',import.meta.url),'utf8'));
 const paths=nav.flatMap(x=>x[1].map(y=>y[0]));
 const missing=paths.filter(x=>!headings[x]);
-if(paths.length!==26||missing.length||paths.includes('pricing')||headings.pricing||['kyc','safety','recruitment-academy'].some(route=>paths.includes(route)||headings[route]))throw Error(`Navigation mismatch: ${paths.length}, missing headings: ${missing}`);
+const removed=['pricing','kyc','safety','recruitment-academy','operations','analytics'].filter(route=>paths.includes(route)||headings[route]);
+if(new Set(paths).size!==paths.length||missing.length||removed.length)throw Error(`Navigation mismatch: ${paths.length} entries, missing headings: ${missing}, retired routes: ${removed}`);
 for(const k of ['tasks','customers','partners','kycs','payments','refunds','payouts','ledger','audit'])if(!Array.isArray(seed[k]))throw Error('Missing seed '+k);
 for(const p of ['src/components/AdminApp.tsx','src/app/page.tsx','src/app/globals.css','public/reference/admin-original.html'])if(!fs.existsSync(new URL('../'+p,import.meta.url)))throw Error('Missing '+p);
-console.log('OK — 26 menus, removed KYC and Safety pages, service pricing in catalogue, core seed arrays, React source, original HTML');
+console.log(`OK — ${paths.length} unique menu entries, retired routes absent, core seed arrays, React source, original HTML`);
 console.log('Demo seed:',seed.customers.length,'customers,',seed.partners.length,'partners,',seed.tasks.length,'tasks');

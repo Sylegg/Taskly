@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Activity, AlertTriangle, ArrowDownToLine, ArrowLeft, ArrowRight, BarChart3, Bell, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, ClipboardCheck, Clock3, CreditCard, Download, FileText, Filter, Gift, Globe2, LayoutDashboard, LockKeyhole, MapPin, Menu, MessageSquare, MoreHorizontal, Plus, RefreshCw, Search, Settings2, ShieldCheck, SlidersHorizontal, Sparkles, TrendingUp, Upload, Users, Wallet, X, Zap, Video, Shirt, Award } from 'lucide-react';
+import { AlertTriangle, ArrowDownToLine, ArrowLeft, ArrowRight, BarChart3, Bell, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, ClipboardCheck, Clock3, CreditCard, Download, FileText, Filter, Gift, Globe2, LayoutDashboard, LockKeyhole, MapPin, Menu, MessageSquare, MoreHorizontal, Plus, RefreshCw, Search, Settings2, ShieldCheck, SlidersHorizontal, Sparkles, TrendingUp, Upload, Users, Wallet, X, Zap, Video, Shirt, Award } from 'lucide-react';
 import rawSeed from '@/data/seed.json';
 import rawNav from '@/data/navigation.json';
 import { AdminPortal, navigationForPortal, portalForRoute } from '@/lib/admin-navigation';
@@ -42,7 +42,7 @@ const NUMBER_FIELDS = new Set(['price', 'points', 'bookings', 'completed', 'tota
 const DATE_FIELDS = new Set(['date', 'expiry', 'next']);
 const OPTIONS: Record<string, string[]> = { status: ['ACTIVE', 'RESTRICTED', 'SUSPENDED', 'PENDING', 'APPROVED', 'REJECTED', 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'PAUSED', 'DRAFT', 'SENT', 'COMPLETED', 'CANCELLED', 'MATCHING', 'ACCEPTED', 'TASKER_ON_THE_WAY', 'ARRIVED', 'PAID', 'REFUNDED'], kyc: ['PENDING', 'APPROVED', 'REJECTED'], role: ROLES, priority: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'], category: ['Việc nhà', 'Kỹ thuật', 'Vận chuyển', 'Tiện ích', 'Chăm sóc'], tier: ['New', 'Silver', 'Gold', 'Platinum'], channel: ['Push (demo)', 'Email (demo)', 'In-app (demo)'], audience: ['Customers', 'Partners', 'All'], cadence: ['Hằng tuần', 'Hai tuần', 'Hằng tháng'], placement: ['Customer Home', 'Partner Home', 'Onboarding'] };
 const NAV_ICONS: Record<string, typeof FileText> = {
-  dashboard: LayoutDashboard, operations: Activity, analytics: BarChart3,
+  dashboard: LayoutDashboard,
   'recruitment-areas': MapPin, 'recruitment-applications': ClipboardCheck,
   'recruitment-exam': FileText, 'recruitment-uniforms': Shirt,
   customers: Users, partners: Users, 'daily-milestones': Award,
@@ -54,7 +54,6 @@ const NAV_ICONS: Record<string, typeof FileText> = {
   staff: Users, permissions: LockKeyhole, audit: FileText, settings: Settings2,
   integrations: Globe2, datalab: Download,
 };
-const mainRoutes = new Set(['dashboard', 'operations', 'analytics']);
 const today = () => new Date().toISOString().slice(0, 10);
 const statusTone = (x: any) => { let v = String(x || ''); return ['ACTIVE', 'APPROVED', 'PAID', 'RELEASED', 'COMPLETED', 'RESOLVED', 'SENT', 'IN_PROGRESS', 'ARRIVED'].includes(v) ? 'green' : ['PENDING', 'MATCHING', 'HELD', 'OPEN', 'ACCEPTED', 'DRAFT', 'REVIEW', 'TASKER_ON_THE_WAY'].includes(v) ? 'amber' : ['REJECTED', 'FAILED', 'CANCELLED', 'REFUNDED', 'DISPUTED', 'RESTRICTED', 'SUSPENDED'].includes(v) ? 'red' : 'neutral' };
 function Badge({ value }: { value: any }) { let v = String(value ?? '—'); return <span className={'badge ' + statusTone(v)}>{STATUS[v] || partnerStatusLabels[v] || v}</span> }
@@ -102,7 +101,7 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
   useEffect(() => { if (!toast) return; let t = setTimeout(() => setToast(''), 3500); return () => clearTimeout(t) }, [toast]);
   useEffect(() => { setDb(previous => ({ ...previous, customers, partners })); }, [accounts]);
   useEffect(() => {
-    if (!mainRoutes.has(route) && route !== 'customers' && route !== 'disputes') return;
+    if (route !== 'dashboard' && route !== 'customers' && route !== 'disputes') return;
     const controller = new AbortController();
     setOrderState('loading');
     fetch('/api/admin/tasks', { cache: 'no-store', signal: controller.signal })
@@ -216,7 +215,7 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
     </aside>
     <div className="main-area">
       <header className="topbar"><div className="top-left"><button className="icon-button mobile-trigger" aria-label="Mở menu" onClick={() => setMenuOpen(true)}><Menu size={21} /></button><div className="breadcrumbs"><span>TaskLy</span><ChevronRight size={15} /><b>{pageHeading?.[0]}</b></div></div><div className="top-right"><div className="top-search"><Search size={17} /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Tìm trong trang..." aria-label="Tìm kiếm" /><kbd>⌘ K</kbd></div><span className="badge green">ADMIN</span><button className="btn btn-outline" onClick={() => void onLogout().catch(e => notify(e.message))}>Đăng xuất</button><button className="icon-button notify-icon" onClick={() => setNotifs(!notifs)} aria-label="Thông báo"><Bell size={20} /><span /></button><div className="top-avatar">A</div></div></header>
-      {notifs && <div className="notif-pop"><b>Thông báo vận hành</b><p>{customerLoading || customerError ? 'Đang chờ dữ liệu hồ sơ.' : `${partners.filter(partner => partner.kyc === 'SUBMITTED').length} hồ sơ KYC chờ duyệt`}</p><p>{orderState === 'ready' ? `${serverOrders.filter(order => order.status === 'MATCHING').length} công việc đang tìm đối tác` : 'Mở Vận hành để xem công việc.'}</p><button onClick={() => { setNotifs(false); navigate('operations') }}>Đến Operations →</button></div>}
+      {notifs && <div className="notif-pop"><b>Thông báo vận hành</b><p>{customerLoading || customerError ? 'Đang chờ dữ liệu hồ sơ.' : `${partners.filter(partner => partner.kyc === 'SUBMITTED').length} hồ sơ KYC chờ duyệt`}</p>{orderState === 'ready' && <p>{serverOrders.filter(order => order.status === 'MATCHING').length} công việc đang tìm đối tác</p>}<button onClick={() => { setNotifs(false); navigate('tasks') }}>Xem công việc →</button></div>}
       <main className={'workspace' + (isCatalogue ? ' catalogue-workspace' : '')}>
         <div className={'page-header' + (isCatalogue ? ' catalogue-page-header' : '')}>
           <div>
@@ -345,12 +344,12 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
       onEditCustomer={(customer) => openForm('customers', customer)}
       onSelectTask={openServerOrder}
     />;
-    if (route === 'dashboard' || route === 'operations' || route === 'analytics') {
+    if (route === 'dashboard') {
       if (orderState === 'loading') return <div role="status" className="notice">Đang tải công việc từ máy chủ…</div>;
       if (orderState === 'error') return <div role="alert" className="notice">
         Không thể tải công việc từ máy chủ. {btn('Thử lại', () => setReloadOrders(value => value + 1))}
       </div>;
-      return <AdminWorkOverview key={route} page={route} orders={serverOrders}
+      return <AdminWorkOverview orders={serverOrders}
         onOrder={openServerOrder} onOpenTasks={() => navigate('tasks')} />;
     }
     if (route === 'settings') return settings();

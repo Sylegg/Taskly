@@ -31,8 +31,7 @@ function monthOf(value: string) {
   return fields.find(field => field.type === 'year')?.value + '-' + fields.find(field => field.type === 'month')?.value;
 }
 
-export default function AdminWorkOverview({ page, orders, onOrder, onOpenTasks }: {
-  page: 'dashboard' | 'operations' | 'analytics';
+export default function AdminWorkOverview({ orders, onOrder, onOpenTasks }: {
   orders: AdminOrder[];
   onOrder: (id: string) => void;
   onOpenTasks: () => void;
@@ -43,27 +42,17 @@ export default function AdminWorkOverview({ page, orders, onOrder, onOpenTasks }
     (scope === 'all' || isDemoOrder(order) === (scope === 'demo')));
   const paid = filtered.filter(order => order.status === 'PAID' && order.payment_status === 'PAID');
   const monthCounts = new Map<string, number>();
-  const serviceCounts = new Map<string, number>();
   for (const order of filtered) {
     const month = monthOf(order.created_at);
     monthCounts.set(month, (monthCounts.get(month) ?? 0) + 1);
-    serviceCounts.set(order.service, (serviceCounts.get(order.service) ?? 0) + 1);
   }
   const months = [...monthCounts].sort(([a], [b]) => a.localeCompare(b));
-  const services = [...serviceCounts].sort((a, b) => b[1] - a[1]);
   const totals = [
     ['Đơn đã tạo', filtered.length],
     ['Đã thanh toán', paid.length],
     ['Đang xử lý', filtered.filter(order => active.has(order.status)).length],
     [scope === 'demo' ? 'Giá trị thanh toán mô phỏng' : 'Giá trị thanh toán ghi nhận',
       money(paid.reduce((sum, order) => sum + Number(order.total ?? 0), 0))],
-  ] as const;
-  const activity = [
-    ['Chờ nhận việc', ['POSTED', 'MATCHING']],
-    ['Đã nhận việc', ['ACCEPTED', 'TASKER_ON_THE_WAY', 'ARRIVED']],
-    ['Đang thực hiện', ['IN_PROGRESS']],
-    ['Hoàn thành / đã thanh toán', ['COMPLETED', 'PAID']],
-    ['Ngoại lệ', ['CANCELLED', 'REFUNDED', 'EXPIRED', 'DISPUTED']],
   ] as const;
 
   function orderLink(order: AdminOrder) {
@@ -89,16 +78,7 @@ export default function AdminWorkOverview({ page, orders, onOrder, onOpenTasks }
       {totals.map(([label, value]) => <div className="kpi-card" key={label}><span>{label}</span><strong>{value}</strong></div>)}
     </div>
     {!filtered.length && <div className="notice">Chưa có đơn hàng trong phạm vi này.</div>}
-    {page === 'operations' && filtered.length > 0 && <div className="kanban">
-      {activity.map(([label, statuses]) => {
-        const items = filtered.filter(order => (statuses as readonly string[]).includes(order.status));
-        return <section className="kanban-col" key={label}>
-          <div className="kanban-head">{label}<b>{items.length}</b></div>
-          {items.length ? items.slice(0, 6).map(orderLink) : <p className="kanban-empty">Chưa có công việc</p>}
-        </section>;
-      })}
-    </div>}
-    {page !== 'operations' && filtered.length > 0 && <div className="dashboard-grid">
+    {filtered.length > 0 && <div className="dashboard-grid">
       <section className="panel">
         <h2>Đơn đặt theo tháng</h2>
         <div className="analysis-bars">{months.map(([period, count]) => <div className="analysis-row" key={period}>
@@ -108,12 +88,8 @@ export default function AdminWorkOverview({ page, orders, onOrder, onOpenTasks }
         </div>)}</div>
       </section>
       <section className="panel">
-        <h2>{page === 'analytics' ? 'Đơn theo dịch vụ' : 'Đơn cập nhật gần đây'}</h2>
-        {page === 'analytics'
-          ? <div className="analysis-bars">{services.map(([label, count]) => <div className="analysis-row" key={label}>
-            <span>{label}</span><progress value={count} max={services[0][1]} aria-label={label} /><b>{count}</b>
-          </div>)}</div>
-          : <div className="list-stack">{filtered.slice(0, 6).map(orderLink)}</div>}
+        <h2>Đơn cập nhật gần đây</h2>
+        <div className="list-stack">{filtered.slice(0, 6).map(orderLink)}</div>
       </section>
     </div>}
   </>;
