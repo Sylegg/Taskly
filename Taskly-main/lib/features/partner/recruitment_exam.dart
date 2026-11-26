@@ -377,7 +377,7 @@ class _RecruitmentExamState extends State<RecruitmentExam> {
                 decoration: BoxDecoration(
                   gradient: isPassed
                       ? const LinearGradient(
-                          colors: [Color(0xFF059669), Color(0xFF10B981)],
+                          colors: [Color(0xFF1D4ED8), Color(0xFF2563EB)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         )
@@ -524,14 +524,14 @@ class _RecruitmentExamState extends State<RecruitmentExam> {
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     color: isPassed
-                        ? const Color(0xFFECFDF5)
+                        ? const Color(0xFFEFF6FF)
                         : isFailed
                         ? const Color(0xFFFFF1F2)
                         : Colors.white,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
                       color: isPassed
-                          ? const Color(0xFFA7F3D0)
+                          ? const Color(0xFFBFDBFE)
                           : isFailed
                           ? const Color(0xFFFECDD3)
                           : const Color(0xFFE2E8F0),
@@ -549,7 +549,7 @@ class _RecruitmentExamState extends State<RecruitmentExam> {
                                 ? Icons.cancel_rounded
                                 : Icons.info_outline_rounded,
                             color: isPassed
-                                ? const Color(0xFF10B981)
+                                ? const Color(0xFF2563EB)
                                 : isFailed
                                 ? const Color(0xFFE11D48)
                                 : PartnerColors.primary,
@@ -566,7 +566,7 @@ class _RecruitmentExamState extends State<RecruitmentExam> {
                               fontSize: 13,
                               fontWeight: FontWeight.w800,
                               color: isPassed
-                                  ? const Color(0xFF065F46)
+                                  ? const Color(0xFF1E40AF)
                                   : isFailed
                                   ? const Color(0xFF9F1239)
                                   : const Color(0xFF0F172A),
@@ -581,7 +581,7 @@ class _RecruitmentExamState extends State<RecruitmentExam> {
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: isPassed
-                              ? const Color(0xFF047857)
+                              ? const Color(0xFF1D4ED8)
                               : isFailed
                               ? const Color(0xFFBE123C)
                               : const Color(0xFF334155),
@@ -635,7 +635,7 @@ class _RecruitmentExamState extends State<RecruitmentExam> {
                             ),
                           ),
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF10B981),
+                            backgroundColor: const Color(0xFF2563EB),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),

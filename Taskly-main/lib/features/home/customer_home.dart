@@ -205,88 +205,130 @@ class _TaskLyCustomerHomeState extends State<TaskLyCustomerHome>
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: c,
     builder: (context, _) => Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        bottom: false,
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: widget.extras.loading || (c.data == null && c.error == null)
-                ? const HomeSkeleton()
-                : c.data == null
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.cloud_off_outlined,
-                          color: HomeColors.muted,
-                          size: 38,
-                        ),
-                        const SizedBox(height: 12),
-                        const Text('Không thể tải dữ liệu'),
-                        const SizedBox(height: 12),
-                        FilledButton(
-                          onPressed: widget.onRetry ?? c.initialize,
-                          child: const Text('Thử lại'),
-                        ),
-                      ],
-                    ),
-                  )
-                : RefreshIndicator(
-                    color: HomeColors.emerald,
-                    onRefresh: () async {
-                      await widget.onRetry?.call();
-                      await c.initialize();
-                    },
-                    child: NotificationListener<ScrollNotification>(
-                      onNotification: (notification) {
-                        if (notification.metrics.axis != Axis.vertical) {
-                          return false;
-                        }
-                        if (notification is UserScrollNotification) {
-                          if (notification.direction ==
-                                  ScrollDirection.reverse &&
-                              _isNavVisible) {
-                            setState(() => _isNavVisible = false);
-                          } else if (notification.direction ==
-                                  ScrollDirection.forward &&
-                              !_isNavVisible) {
-                            setState(() => _isNavVisible = true);
-                          }
-                        } else if (notification is ScrollUpdateNotification) {
-                          final delta = notification.scrollDelta ?? 0;
-                          if (delta > 8 && _isNavVisible) {
-                            setState(() => _isNavVisible = false);
-                          } else if (delta < -8 && !_isNavVisible) {
-                            setState(() => _isNavVisible = true);
-                          }
-                        }
-                        return false;
-                      },
-                      child: ListView(
-                        padding: const EdgeInsets.only(top: 12, bottom: 84),
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        keyboardDismissBehavior:
-                            ScrollViewKeyboardDismissBehavior.onDrag,
-                        children: content()
-                            .map(
-                              (section) => section is PopularServicesCard
-                                  ? section
-                                  : Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
-                                      child: section,
-                                    ),
-                            )
-                            .toList(),
-                      ),
-                    ),
-                  ),
+      backgroundColor: const Color(0xFFF2F9F6),
+      body: Stack(
+        children: [
+          Positioned(
+            top: -40,
+            left: -40,
+            child: IgnorePointer(
+              child: Container(
+                width: 220,
+                height: 220,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0x1F10B981), // rgba(16, 185, 129, 0.12)
+                ),
+              ),
+            ),
           ),
-        ),
+          Positioned(
+            top: 200,
+            right: -60,
+            child: IgnorePointer(
+              child: Container(
+                width: 260,
+                height: 260,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0x2634D399), // rgba(52, 211, 153, 0.15)
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            top: false,
+            bottom: false,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child:
+                    widget.extras.loading || (c.data == null && c.error == null)
+                    ? const HomeSkeleton()
+                    : c.data == null
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.cloud_off_outlined,
+                              color: HomeColors.muted,
+                              size: 38,
+                            ),
+                            const SizedBox(height: 12),
+                            const Text('Không thể tải dữ liệu'),
+                            const SizedBox(height: 12),
+                            FilledButton(
+                              onPressed: widget.onRetry ?? c.initialize,
+                              child: const Text('Thử lại'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        color: HomeColors.emerald,
+                        onRefresh: () async {
+                          await widget.onRetry?.call();
+                          await c.initialize();
+                        },
+                        child: NotificationListener<ScrollNotification>(
+                          onNotification: (notification) {
+                            if (notification.metrics.axis != Axis.vertical) {
+                              return false;
+                            }
+                            if (notification is UserScrollNotification) {
+                              if (notification.direction ==
+                                      ScrollDirection.reverse &&
+                                  _isNavVisible) {
+                                setState(() => _isNavVisible = false);
+                              } else if (notification.direction ==
+                                      ScrollDirection.forward &&
+                                  !_isNavVisible) {
+                                setState(() => _isNavVisible = true);
+                              }
+                            } else if (notification
+                                is ScrollUpdateNotification) {
+                              final delta = notification.scrollDelta ?? 0;
+                              if (delta > 8 && _isNavVisible) {
+                                setState(() => _isNavVisible = false);
+                              } else if (delta < -8 && !_isNavVisible) {
+                                setState(() => _isNavVisible = true);
+                              }
+                            }
+                            return false;
+                          },
+                          child: ListView(
+                            padding: EdgeInsets.only(
+                              top: MediaQuery.viewPaddingOf(context).top + 12,
+                              bottom: TaskLyBottomNav.contentBottomPadding(
+                                context,
+                              ),
+                            ),
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            keyboardDismissBehavior:
+                                ScrollViewKeyboardDismissBehavior.onDrag,
+                            children: content()
+                                .map(
+                                  (section) =>
+                                      section is PopularServicesCard ||
+                                          section is HomePolaroidBanner
+                                      ? section
+                                      : Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          child: section,
+                                        ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                      ),
+              ),
+            ),
+          ),
+        ],
       ),
       extendBody: true,
       bottomNavigationBar: TaskLyBottomNav(
@@ -453,17 +495,25 @@ class _TaskLyCustomerHomeState extends State<TaskLyCustomerHome>
         padding: const EdgeInsets.only(top: 14),
         child: Container(
           decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment(-0.8, -0.6),
+              end: Alignment(0.8, 0.6),
+              stops: [0.0, 0.55, 1.0],
+              colors: [Color(0xFF022C22), Color(0xFF065F46), Color(0xFF0D9488)],
+            ),
             image: const DecorationImage(
               image: AssetImage('assets/images/hinh1.png'),
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
+              opacity: 0.45,
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x22087A60),
-                blurRadius: 18,
-                offset: Offset(0, 6),
+                color: Color(0x4734D399), // rgba(52, 211, 153, 0.28)
+                blurRadius: 28,
+                spreadRadius: 2,
+                offset: Offset(0, 8),
               ),
             ],
           ),
@@ -471,10 +521,12 @@ class _TaskLyCustomerHomeState extends State<TaskLyCustomerHome>
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 195),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -495,55 +547,50 @@ class _TaskLyCustomerHomeState extends State<TaskLyCustomerHome>
                             ),
                           ),
                           const SizedBox(height: 12),
-                          FilledButton(
+                          ShimmerCtaButton(
                             onPressed: book,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF087A60),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              minimumSize: const Size(0, 38),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text(
-                              'Đặt dịch vụ ngay',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+                            label: 'Đặt dịch vụ ngay',
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    const TaskLyRobot(size: 72),
+                    const SizedBox(width: 4),
+                    const Expanded(
+                      child: TaskLyRobot(
+                        size: 82,
+                        stageHeight: 160,
+                        showBubble: true,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              ArcServiceCarousel(
-                onService: (id) {
-                  c.categoryFilter = id;
-                  c.search = '';
-                  c.open(PageId.services);
-                },
-                onAllServices: () {
-                  c.search = '';
-                  c.categoryFilter = '';
-                  c.open(PageId.services);
-                },
-                categories: data.categories,
-                isEmbedded: true,
+              SizedBox(
+                height: 192,
+                child: Transform.translate(
+                  offset: const Offset(0, -22),
+                  child: ArcServiceCarousel(
+                    onService: (id) {
+                      c.categoryFilter = id;
+                      c.search = '';
+                      c.open(PageId.services);
+                    },
+                    onAllServices: () {
+                      c.search = '';
+                      c.categoryFilter = '';
+                      c.open(PageId.services);
+                    },
+                    categories: data.categories,
+                    isEmbedded: true,
+                  ),
+                ),
               ),
             ],
           ),
         ),
       ),
       PopularServicesCard(services: data.services, onService: service),
+      const HomePolaroidBanner(),
       HomePromoSection(banners: data.banners),
       if (!c.demoMode && data.services.isEmpty)
         const HomeSurface(
@@ -575,8 +622,9 @@ class _TaskLyCustomerHomeState extends State<TaskLyCustomerHome>
                                 (c.repository as ApiCustomerRepository).session,
                             taskId: t.id,
                             partner: false,
-                            initialServiceName:
-                                data.service(t.draft.serviceId).name,
+                            initialServiceName: data
+                                .service(t.draft.serviceId)
+                                .name,
                             initialTaskerName: partner(t)?.name,
                           ),
                         ),

@@ -158,21 +158,41 @@ class _PopularServiceTileState extends State<_PopularServiceTile>
                       width: 46,
                       height: 46,
                       decoration: BoxDecoration(
-                        color: _pressed
-                            ? const Color(0xFFC7EFE3)
-                            : HomeColors.soft,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: _pressed
+                              ? const [
+                                  Color(0xFFD1FAE5),
+                                  Color(0xFFECFDF5),
+                                ]
+                              : const [
+                                  Color(0xFFECFDF5),
+                                  Color(0xFFFFFFFF),
+                                ],
+                        ),
+                        border: Border.all(
+                          color: const Color(0xFFD1FAE5),
+                          width: 1.2,
+                        ),
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: _pressed
                             ? [
                                 BoxShadow(
-                                  color: HomeColors.emerald.withValues(
-                                    alpha: .18,
+                                  color: const Color(0xFF059669).withValues(
+                                    alpha: .22,
                                   ),
                                   blurRadius: 12,
                                   spreadRadius: 2,
                                 ),
                               ]
-                            : [],
+                            : const [
+                                BoxShadow(
+                                  color: Color(0x0D059669),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(14),
@@ -224,7 +244,7 @@ class _PopularServiceTileState extends State<_PopularServiceTile>
                                           child: const Icon(
                                             Icons.auto_awesome,
                                             size: 12,
-                                            color: Color(0xFF09A98C),
+                                            color: Color(0xFF059669),
                                           ),
                                         ),
                                       ),
@@ -234,9 +254,15 @@ class _PopularServiceTileState extends State<_PopularServiceTile>
                             );
                           },
                           child: Center(
-                            child: ServiceSymbol.forService(
-                              widget.service,
-                              size: 28,
+                            child: ColorFiltered(
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF059669),
+                                BlendMode.srcIn,
+                              ),
+                              child: ServiceSymbol.forService(
+                                widget.service,
+                                size: 28,
+                              ),
                             ),
                           ),
                         ),
@@ -290,20 +316,19 @@ class _PopularBadge extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: const Color(0xFFF1C45B), width: .7),
-            gradient: LinearGradient(
-              begin: Alignment(-1 + phase * 2, -1),
-              end: Alignment(1 - phase * 2, 1),
-              colors: const [
-                Color(0xFFFFE494),
-                Color(0xFFFFF9DC),
-                Color(0xFFFFD66C),
+            border: Border.all(color: const Color(0xFFFCD34D), width: .8),
+            gradient: const LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                Color(0xFFFEF3C7),
+                Color(0xFFFDE68A),
               ],
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFFCA40)
-                    .withValues(alpha: .12 + .12 * math.sin(phase * math.pi)),
+                color: const Color(0xFFFCD34D)
+                    .withValues(alpha: .22 + .12 * math.sin(phase * math.pi)),
                 blurRadius: 5,
               ),
             ],
@@ -314,7 +339,7 @@ class _PopularBadge extends StatelessWidget {
               fontSize: 7.5,
               height: 1,
               fontWeight: FontWeight.w800,
-              color: Color(0xFFA67409),
+              color: Color(0xFFB45309),
             ),
           ),
         );

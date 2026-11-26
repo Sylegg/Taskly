@@ -6,7 +6,7 @@ abstract final class AppColors {
   static const primary = Color(0xFF0F9D7A),
       navy = Color(0xFF0F172A),
       mint = Color(0xFFDDF5EE),
-      background = Color(0xFFF7FBF9),
+      background = Color(0xFFF2F9F6),
       muted = Color(0xFF667085),
       border = Color(0xFFDDE7E4),
       warning = Color(0xFFF5A524),
@@ -23,19 +23,19 @@ abstract final class AppRadius {
 
 abstract final class AppTheme {
   static ThemeData get partner => light.copyWith(
-    scaffoldBackgroundColor: const Color(0xFFF8FAFD),
-    colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E5BF8))
+    scaffoldBackgroundColor: const Color(0xFFF1F6FD),
+    colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2563EB))
         .copyWith(
-          primary: const Color(0xFF1E5BF8),
+          primary: const Color(0xFF2563EB),
           onPrimary: Colors.white,
           primaryContainer: const Color(0xFFEFF6FF),
-          onPrimaryContainer: const Color(0xFF1345C7),
+          onPrimaryContainer: const Color(0xFF1D4ED8),
           secondaryContainer: const Color(0xFFEFF6FF),
           surface: Colors.white,
           onSurface: const Color(0xFF0F172A),
         ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFFF8FAFD),
+      backgroundColor: Color(0xFFF1F6FD),
       foregroundColor: Color(0xFF0F172A),
       elevation: 0,
       scrolledUnderElevation: 0,

@@ -21,7 +21,7 @@ abstract final class PartnerColors {
   static const borderLight = Color(0xFFEDF2F7);
   static const navy = Color(0xFF0F172A); // Midnight Slate Text
   static const muted = Color(0xFF64748B); // Slate Muted Text
-  static const success = Color(0xFF10B981);
+  static const success = Color(0xFF2563EB);
   static const warning = Color(0xFFF59E0B);
   static const error = Color(0xFFEF4444);
 
@@ -682,9 +682,9 @@ class _Partner3DButtonState extends State<Partner3DButton> {
         textColor = Colors.white;
         break;
       case Partner3DVariant.green:
-        bgTop = const Color(0xFF25C89F);
-        bgBottom = const Color(0xFF0AAB82);
-        shadowColor = const Color(0xFF047F64);
+        bgTop = const Color(0xFF38BDF8);
+        bgBottom = const Color(0xFF0284C7);
+        shadowColor = const Color(0xFF0369A1);
         textColor = Colors.white;
         break;
       case Partner3DVariant.red:
@@ -950,9 +950,9 @@ class PartnerPillBadge extends StatelessWidget {
 
     switch (type) {
       case 'green':
-        bg = const Color(0xFFE5FAF1);
-        border = const Color(0xFFC9EEE0);
-        fg = const Color(0xFF0B926B);
+        bg = const Color(0xFFEFF6FF);
+        border = const Color(0xFFBFDBFE);
+        fg = const Color(0xFF1D4ED8);
         break;
       case 'amber':
         bg = const Color(0xFFFFF6DF);
@@ -1398,14 +1398,14 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                         ),
                         decoration: BoxDecoration(
                           color: isDone
-                              ? const Color(0xFFDCFCE7)
+                              ? const Color(0xFFEFF6FF)
                               : isCurrent
                               ? const Color(0xFFFEF2F2)
                               : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isDone
-                                ? const Color(0xFF86EFAC)
+                                ? const Color(0xFFBFDBFE)
                                 : isCurrent
                                 ? const Color(0xFFFCA5A5)
                                 : const Color(0xFFE2E8F0),
@@ -1423,7 +1423,7 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                                   : (unlocked ? Icons.lock_open_rounded : Icons.lock_outline_rounded),
                               size: 16,
                               color: isDone
-                                  ? const Color(0xFF16A34A)
+                                  ? const Color(0xFF2563EB)
                                   : isCurrent
                                   ? const Color(0xFFDC2626)
                                   : const Color(0xFF94A3B8),
@@ -1438,7 +1438,7 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
                                   color: isDone
-                                      ? const Color(0xFF15803D)
+                                      ? const Color(0xFF1D4ED8)
                                       : isCurrent
                                       ? const Color(0xFFB91C1C)
                                       : const Color(0xFF64748B),
@@ -1485,7 +1485,7 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                 color: (isStageCurrent || needsSupplement)
                     ? const Color(0xFFDC2626)
                     : isStageDone
-                    ? const Color(0xFF86EFAC)
+                    ? const Color(0xFFBFDBFE)
                     : const Color(0xFFE2E8F0),
                 width: isStageCurrent ? 1.5 : 1,
               ),
@@ -1515,7 +1515,7 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                           height: 36,
                           decoration: BoxDecoration(
                             color: isStageDone
-                                ? const Color(0xFFDCFCE7)
+                                ? const Color(0xFFEFF6FF)
                                 : (isStageCurrent || needsSupplement)
                                 ? const Color(0xFFFEF2F2)
                                 : const Color(0xFFF1F5F9),
@@ -1526,7 +1526,7 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                             st.icon,
                             size: 20,
                             color: isStageDone
-                                ? const Color(0xFF16A34A)
+                                ? const Color(0xFF2563EB)
                                 : (isStageCurrent || needsSupplement)
                                 ? const Color(0xFFDC2626)
                                 : const Color(0xFF64748B),
@@ -1573,14 +1573,14 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                           ),
                           decoration: BoxDecoration(
                             color: isStageDone
-                                ? const Color(0xFFDCFCE7)
+                                ? const Color(0xFFEFF6FF)
                                 : (isStageCurrent || needsSupplement)
                                 ? const Color(0xFFFEF2F2)
                                 : const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: isStageDone
-                                  ? const Color(0xFF86EFAC)
+                                  ? const Color(0xFFBFDBFE)
                                   : (isStageCurrent || needsSupplement)
                                   ? const Color(0xFFFECACA)
                                   : const Color(0xFFE2E8F0),
@@ -1598,7 +1598,7 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                               fontSize: 10.5,
                               fontWeight: FontWeight.w700,
                               color: isStageDone
-                                  ? const Color(0xFF15803D)
+                                  ? const Color(0xFF1D4ED8)
                                   : (isStageCurrent || needsSupplement)
                                   ? const Color(0xFFB91C1C)
                                   : const Color(0xFF94A3B8),
@@ -1644,14 +1644,14 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                                   color: isStepCurrent
                                       ? const Color(0xFFFEF2F2)
                                       : isStepDone
-                                      ? const Color(0xFFF9FDF9)
+                                      ? const Color(0xFFEFF6FF)
                                       : const Color(0xFFFAFAFA),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: isStepCurrent
                                         ? const Color(0xFFFCA5A5)
                                         : isStepDone
-                                        ? const Color(0xFFDCFCE7)
+                                        ? const Color(0xFFEFF6FF)
                                         : const Color(0xFFE2E8F0),
                                     width: isStepCurrent ? 1.2 : 1,
                                   ),
@@ -1666,13 +1666,13 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
                                         color: isStepDone
-                                            ? const Color(0xFFDCFCE7)
+                                            ? const Color(0xFFEFF6FF)
                                             : isStepCurrent
                                             ? const Color(0xFFDC2626)
                                             : const Color(0xFFF1F5F9),
                                         border: Border.all(
                                           color: isStepDone
-                                              ? const Color(0xFF22C55E)
+                                              ? const Color(0xFF2563EB)
                                               : isStepCurrent
                                               ? const Color(0xFFDC2626)
                                               : const Color(0xFFCBD5E1),
@@ -1683,7 +1683,7 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                                           ? const Icon(
                                               Icons.check_rounded,
                                               size: 13,
-                                              color: Color(0xFF16A34A),
+                                              color: Color(0xFF2563EB),
                                             )
                                           : Icon(
                                               isStepCurrent
@@ -1813,7 +1813,7 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                                                 color: isStepCurrent
                                                     ? const Color(0xFFFEF2F2)
                                                     : isStepDone
-                                                    ? const Color(0xFFF0FDF4)
+                                                    ? const Color(0xFFEFF6FF)
                                                     : const Color(0xFFFFFFFF),
                                                 borderRadius:
                                                     BorderRadius.circular(8),
@@ -1821,7 +1821,7 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                                                   color: isStepCurrent
                                                       ? const Color(0xFFFECACA)
                                                       : isStepDone
-                                                      ? const Color(0xFFBBF7D0)
+                                                      ? const Color(0xFFBFDBFE)
                                                       : const Color(0xFFCBD5E1),
                                                 ),
                                               ),
@@ -1849,7 +1849,7 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                                                               )
                                                             : isStepDone
                                                             ? const Color(
-                                                                0xFF16A34A,
+                                                                0xFF2563EB,
                                                               )
                                                             : const Color(
                                                                 0xFF334155,
@@ -1871,7 +1871,7 @@ class _PartnerJourneyTimelineState extends State<PartnerJourneyTimeline> {
                                                           )
                                                         : isStepDone
                                                         ? const Color(
-                                                            0xFF16A34A,
+                                                            0xFF2563EB,
                                                           )
                                                         : const Color(
                                                             0xFF64748B,

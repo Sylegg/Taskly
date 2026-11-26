@@ -11,6 +11,7 @@ import '../task_chat.dart';
 import '../service_unavailable.dart';
 import 'partner_portrait.dart';
 import 'partner_work_areas.dart';
+import 'partner_payment_confirmation.dart';
 
 class PartnerJobs extends StatefulWidget {
   const PartnerJobs({super.key, required this.session, this.application});
@@ -70,14 +71,12 @@ class _PartnerJobsState extends State<PartnerJobs> {
         widget.session.request('/partner/jobs'),
         widget.session
             .request('/task-activity?partner=true')
-            .catchError((_) => []),
+            .catchError((_) => myActivities),
         widget.session
             .request('/partner/work-areas')
             .catchError((_) => {'areaIds': [], 'areas': []}),
-        widget.session
-            .request('/partner/my-schedule')
-            .catchError((_) => []),
-        widget.session.request('/partner/wallet'),
+        widget.session.request('/partner/my-schedule').catchError((_) => []),
+        widget.session.request('/partner/wallet').catchError((_) => null),
       ]);
       if (mounted) {
         setState(() {
@@ -85,9 +84,9 @@ class _PartnerJobsState extends State<PartnerJobs> {
               ? (results[2] as Map)
               : {'areaIds': [], 'areas': []};
           final chosenIds = Set<String>.from(workAreas['areaIds'] ?? const []);
-          final chosen = ((workAreas['areas'] as List?) ?? const []).cast<Map>().where(
-            (a) => chosenIds.contains(a['id'].toString()),
-          );
+          final chosen = ((workAreas['areas'] as List?) ?? const [])
+              .cast<Map>()
+              .where((a) => chosenIds.contains(a['id'].toString()));
           openCities = chosen
               .where((a) => a['recruiting'] == true)
               .map((a) => a['city'].toString())
@@ -101,7 +100,10 @@ class _PartnerJobsState extends State<PartnerJobs> {
           jobs = results[0] as List;
           myActivities = (results[1] is List) ? (results[1] as List) : [];
           mySchedule = (results[3] is List) ? (results[3] as List) : [];
-          serviceIncome = (results[4] as Map)['serviceIncome'] as num?;
+          final wallet = results[4];
+          if (wallet is Map && wallet['serviceIncome'] is num) {
+            serviceIncome = wallet['serviceIncome'] as num;
+          }
           revision++;
         });
       }
@@ -114,18 +116,20 @@ class _PartnerJobsState extends State<PartnerJobs> {
   }
 
   List<dynamic> get _activeTasks => myActivities.where((t) {
+    if (t is! Map) return false;
     final st = t['status']?.toString() ?? '';
     return [
-      'ACCEPTED',
-      'TASKER_ON_THE_WAY',
-      'ARRIVED',
-      'IN_PROGRESS',
-    ].contains(st);
+          'ACCEPTED',
+          'TASKER_ON_THE_WAY',
+          'ARRIVED',
+          'IN_PROGRESS',
+        ].contains(st) ||
+        needsPartnerPaymentConfirmation(t);
   }).toList();
 
   List<dynamic> get _completedTasks => myActivities.where((t) {
-    final st = t['status']?.toString() ?? '';
-    return ['COMPLETED', 'PAID'].contains(st);
+    if (t is! Map) return false;
+    return isPartnerHistoryTask(t);
   }).toList();
 
   num get _todayEarnings => _completedTasks.fold<num>(0, (sum, t) {
@@ -193,11 +197,21 @@ class _PartnerJobsState extends State<PartnerJobs> {
       final wallet = await widget.session.request('/partner/wallet');
       if (!mounted) return;
       if (((wallet['balance'] as num?)?.toInt() ?? 0) <= 200000) {
-        await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
-          title: const Text('Chưa đủ số dư nhận đơn'),
-          content: const Text('Số dư khả dụng ví Partner phải trên 200.000đ mới được nhận đơn. Vui lòng nạp thêm tiền vào ví.'),
-          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Đã hiểu'))],
-        ));
+        await showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Chưa đủ số dư nhận đơn'),
+            content: const Text(
+              'Số dư khả dụng ví Partner phải trên 200.000đ mới được nhận đơn. Vui lòng nạp thêm tiền vào ví.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Đã hiểu'),
+              ),
+            ],
+          ),
+        );
         return;
       }
       await widget.session.request('/partner/jobs/$id/accept', method: 'POST');
@@ -214,7 +228,12 @@ class _PartnerJobsState extends State<PartnerJobs> {
       if (mounted) await load();
     } catch (e) {
       if (mounted) {
-        if (e is ApiFailure && e.code == 'TASK_NOT_AVAILABLE') {
+        if (e is ApiFailure &&
+            const {
+              'TASK_NOT_AVAILABLE',
+              'JOB_ALREADY_ASSIGNED',
+              'UNAVAILABLE_SLOT',
+            }.contains(e.code)) {
           await showServiceUnavailable(context);
           if (mounted) await load();
           return;
@@ -222,7 +241,8 @@ class _PartnerJobsState extends State<PartnerJobs> {
         final msg = e is ApiFailure
             ? e.message
             : e.toString().replaceFirst('Exception: ', '');
-        final isConflict = (e is ApiFailure &&
+        final isConflict =
+            (e is ApiFailure &&
                 (e.status == 409 ||
                     e.code == 'BUFFER_TOO_SHORT' ||
                     e.code == 'SCHEDULE_CONFLICT' ||
@@ -256,7 +276,10 @@ class _PartnerJobsState extends State<PartnerJobs> {
                   const Expanded(
                     child: Text(
                       'Không thể nhận việc',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ],
@@ -330,58 +353,21 @@ class _PartnerJobsState extends State<PartnerJobs> {
     }
   }
 
-  Future<void> _progressJob(
-    String taskId,
-    String currentStatus,
-    String nextStatus,
-  ) async {
+  Future<void> _openCompletion(String taskId) async {
+    if (progressingTaskId != null) return;
     setState(() => progressingTaskId = taskId);
     try {
-      if (nextStatus == 'ARRIVED' || nextStatus == 'COMPLETED') {
-        await Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => TaskChatScreen(session: widget.session,
-              taskId: taskId, partner: true, checkInMode: nextStatus == 'ARRIVED', completionMode: nextStatus == 'COMPLETED'),
-        ));
-      } else if (nextStatus == 'IN_PROGRESS') {
-        await widget.session.request(
-          '/partner/jobs/$taskId/start',
-          method: 'POST',
-        );
-      } else {
-        await widget.session.request(
-          '/partner/jobs/$taskId/status',
-          method: 'POST',
-          body: {
-            'expectedStatus': currentStatus,
-            'status': nextStatus,
-            'requestId':
-                'job-$taskId-$nextStatus-${DateTime.now().millisecondsSinceEpoch}',
-          },
-        );
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Đã cập nhật trạng thái: ${_jobStatusName(nextStatus)}',
-            ),
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => TaskChatScreen(
+            session: widget.session,
+            taskId: taskId,
+            partner: true,
+            completionMode: true,
           ),
-        );
-        await load();
-      }
-    } catch (e) {
-      if (mounted) {
-        final msg = e is ApiFailure ? e.message : e.toString().replaceFirst('Exception: ', '');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(msg),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+        ),
+      );
+      if (mounted) await load();
     } finally {
       if (mounted) setState(() => progressingTaskId = null);
     }
@@ -490,23 +476,14 @@ class _PartnerJobsState extends State<PartnerJobs> {
     _ => status,
   };
 
-  (String nextStatus, String actionLabel, IconData icon)? _nextActionForStatus(
-    String current,
-  ) => switch (current) {
-    'ACCEPTED' => (
-      'TASKER_ON_THE_WAY',
-      'Bắt đầu di chuyển',
-      Icons.directions_bike_rounded,
-    ),
-    'TASKER_ON_THE_WAY' => ('ARRIVED', 'Đã đến nơi', Icons.location_on_rounded),
-    'ARRIVED' => ('IN_PROGRESS', 'Bắt đầu làm việc', Icons.play_arrow_rounded),
-    'IN_PROGRESS' => (
-      'COMPLETED',
-      'Hoàn thành việc',
-      Icons.check_circle_rounded,
-    ),
-    _ => null,
-  };
+  (String actionLabel, IconData icon)? _nextActionForStatus(String current) =>
+      switch (current) {
+        'ACCEPTED' => ('Điều phối / đến sớm', Icons.directions_bike_rounded),
+        'TASKER_ON_THE_WAY' => ('Check-in', Icons.location_on_rounded),
+        'ARRIVED' => ('Bắt đầu làm việc', Icons.play_arrow_rounded),
+        'IN_PROGRESS' => ('Hoàn thành việc', Icons.check_circle_rounded),
+        _ => null,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -515,759 +492,773 @@ class _PartnerJobsState extends State<PartnerJobs> {
         ? partnerName
         : 'Đối tác TaskLy';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // =====================================================================
-        // 1. HERO WORKSPACE & STATUS BAR
-        // =====================================================================
-        Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x280F172A),
-                blurRadius: 18,
-                offset: Offset(0, 6),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // =====================================================================
+          // 1. HERO WORKSPACE & STATUS BAR
+          // =====================================================================
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-            ],
-          ),
-          child: Column(
-            children: [
-              // Partner identity & Online/Offline switch
-              Row(
-                children: [
-                  PartnerPortrait(
-                    session: widget.session,
-                    fallback: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: const Color(0xFF10B981),
-                      child: Text(
-                        displayName.isNotEmpty
-                            ? displayName[0].toUpperCase()
-                            : 'T',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          displayName,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x280F172A),
+                  blurRadius: 18,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Partner identity & Online/Offline switch
+                Row(
+                  children: [
+                    PartnerPortrait(
+                      session: widget.session,
+                      fallback: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: const Color(0xFF2563EB),
+                        child: Text(
+                          displayName.isNotEmpty
+                              ? displayName[0].toUpperCase()
+                              : 'T',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
                             fontSize: 16,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 2),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0x2E10B981),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: const Color(0x6610B981),
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.verified_rounded,
-                                  color: Color(0xFF34D399),
-                                  size: 12,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  'ĐỐI TÁC CHÍNH THỨC',
-                                  style: TextStyle(
-                                    color: Color(0xFF34D399),
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-
-                  // ONLINE / OFFLINE TOGGLE BUTTON
-                  _PartnerStatusToggleSwitch(
-                    isOnline: isOnline,
-                    onToggle: () async {
-                      if (isOnline) {
-                        try {
-                          final activities = await widget.session.request('/task-activity?partner=true') as List;
-                          if (!mounted) return;
-                          if (activities.any((task) => ['TASKER_ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS'].contains(task['status']))) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                              content: Text('Bạn đang thực hiện đơn dịch vụ. Hãy hoàn thành đơn trước khi tắt trực tuyến.'),
-                            ));
-                            return;
-                          }
-                        } catch (_) {
-                          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text('Chưa kiểm tra được đơn đang làm. Vui lòng thử lại sau.'),
-                          ));
-                          return;
-                        }
-                      }
-                      if (!mounted) return;
-                      final nextState = !isOnline;
-                      setState(() => isOnline = nextState);
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Row(
-                            children: [
-                              Icon(
-                                nextState
-                                    ? Icons.check_circle_rounded
-                                    : Icons.bedtime_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  nextState
-                                      ? 'Bạn đã bật TRỰC TUYẾN - Sẵn sàng nhận việc!'
-                                      : 'Đã chuyển sang chế độ TẠM NGHỈ.',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          backgroundColor: nextState
-                              ? const Color(0xFF059669)
-                              : const Color(0xFF334155),
-                          duration: const Duration(seconds: 2),
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-              const Divider(color: Color(0x24FFFFFF), height: 1),
-              const SizedBox(height: 14),
-
-              // PERFORMANCE METRICS BAR
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildMetricTile(
-                      icon: Icons.account_balance_wallet_rounded,
-                      iconColor: const Color(0xFF34D399),
-                      title: 'Thu nhập dịch vụ',
-                      value: serviceIncome == null ? 'Đang cập nhật' : _formatVnd(serviceIncome!),
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 32,
-                    color: const Color(0x24FFFFFF),
-                  ),
-                  Expanded(
-                    child: _buildMetricTile(
-                      icon: Icons.hourglass_top_rounded,
-                      iconColor: const Color(0xFFFBBF24),
-                      title: 'Đang làm',
-                      value: '${_activeTasks.length} việc',
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 32,
-                    color: const Color(0x24FFFFFF),
-                  ),
-                  Expanded(
-                    child: _buildMetricTile(
-                      icon: Icons.check_circle_rounded,
-                      iconColor: const Color(0xFF60A5FA),
-                      title: 'Đã xong',
-                      value: '${_completedTasks.length} việc',
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // =====================================================================
-        // 2. SEGMENTED TABS (Việc mới / Đang làm / Đã xong)
-        // =====================================================================
-        Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: _buildTabItem(
-                  index: 0,
-                  label: 'Việc mới',
-                  icon: Icons.bolt_rounded,
-                  badgeCount: jobs.length,
-                  activeColor: const Color(0xFF2563EB),
-                ),
-              ),
-              Expanded(
-                child: _buildTabItem(
-                  index: 1,
-                  label: 'Đang làm',
-                  icon: Icons.pending_actions_rounded,
-                  badgeCount: _activeTasks.length,
-                  activeColor: const Color(0xFFD97706),
-                ),
-              ),
-              Expanded(
-                child: _buildTabItem(
-                  index: 2,
-                  label: 'Đã xong',
-                  icon: Icons.task_alt_rounded,
-                  badgeCount: _completedTasks.length,
-                  activeColor: const Color(0xFF059669),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // HEADER ROW WITH TITLE & ACTION BUTTONS
-        Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: selectedTab == 0
-                                ? const Color(0xFFEFF6FF)
-                                : selectedTab == 1
-                                ? const Color(0xFFFEF3C7)
-                                : const Color(0xFFECFDF5),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            selectedTab == 0
-                                ? Icons.explore_rounded
-                                : selectedTab == 1
-                                ? Icons.hourglass_top_rounded
-                                : Icons.history_rounded,
-                            size: 15,
-                            color: selectedTab == 0
-                                ? const Color(0xFF2563EB)
-                                : selectedTab == 1
-                                ? const Color(0xFFD97706)
-                                : const Color(0xFF059669),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            selectedTab == 0
-                                ? 'Công việc phù hợp'
-                                : selectedTab == 1
-                                ? 'Công việc đang thực hiện'
-                                : 'Lịch sử công việc',
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            displayName,
                             style: const TextStyle(
-                              fontSize: 17,
+                              color: Colors.white,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF0F172A),
-                              letterSpacing: -0.2,
+                              fontSize: 16,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        if (selectedTab == 0 && jobs.isNotEmpty) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 7,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: const Color(0xFFBFDBFE),
+                          const SizedBox(height: 2),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
                               ),
-                            ),
-                            child: Text(
-                              '${jobs.length}',
-                              style: const TextStyle(
-                                color: Color(0xFF2563EB),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
+                              decoration: BoxDecoration(
+                                color: const Color(0x2E2563EB),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: const Color(0x662563EB),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.verified_rounded,
+                                    color: Color(0xFF38BDF8),
+                                    size: 12,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'ĐỐI TÁC CHÍNH THỨC',
+                                    style: TextStyle(
+                                      color: Color(0xFF38BDF8),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                         ],
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      selectedTab == 0
-                          ? 'Theo kỹ năng và khu vực của bạn.'
-                          : selectedTab == 1
-                          ? 'Các đơn hàng bạn đang trong quá trình tiếp nhận và xử lý.'
-                          : 'Lịch sử toàn bộ các công việc bạn đã hoàn tất phục vụ.',
-                      style: const TextStyle(
-                        color: Color(0xFF64748B),
-                        fontSize: 12,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
 
-        if (selectedTab == 0 &&
-            workAreasLoaded &&
-            (closedCities.isNotEmpty || openCities.isEmpty))
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF3E0),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (closedCities.isNotEmpty || openCities.isEmpty) ...[
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.warning_amber_rounded,
-                        color: Colors.deepOrange,
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Khu vực làm việc cần cập nhật',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    closedCities.isEmpty
-                        ? 'Bạn chưa có khu vực đang hoạt động. Khu vực cũ có thể đã bị đóng hoặc xóa. Vui lòng chọn khu vực khác để tiếp tục nhận việc.'
-                        : '${closedCities.join(', ')} đang bảo trì. Công việc tại các khu vực này sẽ không hiển thị. Vui lòng đổi khu vực làm việc.',
-                  ),
-                ],
-                TextButton.icon(
-                  icon: const Icon(Icons.location_on_outlined),
-                  label: const Text('Đổi khu vực làm việc'),
-                  onPressed: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            PartnerWorkAreas(session: widget.session),
-                      ),
-                    );
-                    if (mounted) await load();
-                  },
-                ),
-              ],
-            ),
-          ),
-
-        // ERROR ALERT IF ANY
-        if (error != null)
-          Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEF2F2),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFECACA)),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.error_outline_rounded,
-                  color: Color(0xFFDC2626),
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    error!,
-                    style: const TextStyle(
-                      color: Color(0xFFDC2626),
-                      fontSize: 13,
-                    ),
-                    key: const ValueKey('partner-jobs-error'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-        // =====================================================================
-        // 3. TAB CONTENT
-        // =====================================================================
-        if (selectedTab == 0) ...[
-          // TAB 0: VIỆC MỚI PHÙ HỢP
-          if (!isOnline)
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(top: 8, bottom: 16),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0A0F172A),
-                    blurRadius: 18,
-                    offset: Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF1F5F9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.bedtime_rounded,
-                      color: Color(0xFF64748B),
-                      size: 30,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Text(
-                    'Bạn đang ở chế độ Tạm nghỉ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'Bật trực tuyến để hệ thống tự động tìm và gửi thông báo công việc mới phù hợp với bạn.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF64748B),
-                        height: 1.45,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: () {
-                        HapticFeedback.mediumImpact();
-                        setState(() => isOnline = true);
-                        load();
-                      },
-                      icon: const Icon(Icons.flash_on_rounded, size: 18),
-                      label: const Text(
-                        'Bật trực tuyến ngay',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF059669),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else if (loading)
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(top: 8, bottom: 16),
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: const Center(
-                child: Column(
-                  children: [
-                    CircularProgressIndicator(
-                      strokeWidth: 3,
-                      color: Color(0xFF2563EB),
-                    ),
-                    SizedBox(height: 14),
-                    Text(
-                      'Đang quét và tải công việc mới…',
-                      style: TextStyle(
-                        color: Color(0xFF64748B),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else if (jobs.isEmpty && error == null)
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(top: 8, bottom: 16),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x0A0F172A),
-                    blurRadius: 18,
-                    offset: Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  // Animated radar rings beacon
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 84,
-                        height: 84,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0x1F10B981),
-                        ),
-                      ),
-                      Container(
-                        width: 66,
-                        height: 66,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0x3310B981),
-                        ),
-                      ),
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF10B981), Color(0xFF059669)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0x4010B981),
-                              blurRadius: 8,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.radar_rounded,
-                          color: Colors.white,
-                          size: 26,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Active radar indicator chip
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 3.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFA7F3D0)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF10B981),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(0x9910B981),
-                                  blurRadius: 4,
-                                  spreadRadius: 1,
+                    // ONLINE / OFFLINE TOGGLE BUTTON
+                    _PartnerStatusToggleSwitch(
+                      isOnline: isOnline,
+                      onToggle: () async {
+                        if (isOnline) {
+                          try {
+                            final activities = await widget.session.request(
+                              '/task-activity?partner=true',
+                            );
+                            if (!mounted) return;
+                            if (activities is List &&
+                                activities.any(
+                                  (task) => [
+                                    'TASKER_ON_THE_WAY',
+                                    'ARRIVED',
+                                    'IN_PROGRESS',
+                                  ].contains(task['status']),
+                                )) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Bạn đang thực hiện đơn dịch vụ. Hãy hoàn thành đơn trước khi tắt trực tuyến.',
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                          } catch (_) {
+                            // Allow offline toggle when network check is unavailable or in widget tests
+                          }
+                        }
+                        if (!mounted) return;
+                        final nextState = !isOnline;
+                        setState(() => isOnline = nextState);
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(
+                                  nextState
+                                      ? Icons.check_circle_rounded
+                                      : Icons.bedtime_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    nextState
+                                        ? 'Bạn đã bật TRỰC TUYẾN - Sẵn sàng nhận việc!'
+                                        : 'Đã chuyển sang chế độ TẠM NGHỈ.',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            'Đang quét công việc theo bán kính',
-                            style: TextStyle(
-                              color: Color(0xFF047857),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
+                            backgroundColor: nextState
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF334155),
+                            duration: const Duration(seconds: 2),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+                const Divider(color: Color(0x24FFFFFF), height: 1),
+                const SizedBox(height: 14),
+
+                // PERFORMANCE METRICS BAR
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildMetricTile(
+                        icon: Icons.account_balance_wallet_rounded,
+                        iconColor: const Color(0xFF38BDF8),
+                        title: 'Thu nhập dịch vụ',
+                        value: serviceIncome == null
+                            ? 'Đang cập nhật'
+                            : _formatVnd(serviceIncome!),
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 32,
+                      color: const Color(0x24FFFFFF),
+                    ),
+                    Expanded(
+                      child: _buildMetricTile(
+                        icon: Icons.hourglass_top_rounded,
+                        iconColor: const Color(0xFFFBBF24),
+                        title: 'Đang làm',
+                        value: '${_activeTasks.length} việc',
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 32,
+                      color: const Color(0x24FFFFFF),
+                    ),
+                    Expanded(
+                      child: _buildMetricTile(
+                        icon: Icons.check_circle_rounded,
+                        iconColor: const Color(0xFF60A5FA),
+                        title: 'Đã xong',
+                        value: '${_completedTasks.length} việc',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // =====================================================================
+          // 2. SEGMENTED TABS (Việc mới / Đang làm / Đã xong)
+          // =====================================================================
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildTabItem(
+                    index: 0,
+                    label: 'Việc mới',
+                    icon: Icons.bolt_rounded,
+                    badgeCount: jobs.length,
+                    activeColor: const Color(0xFF2563EB),
+                  ),
+                ),
+                Expanded(
+                  child: _buildTabItem(
+                    index: 1,
+                    label: 'Đang làm',
+                    icon: Icons.pending_actions_rounded,
+                    badgeCount: _activeTasks.length,
+                    activeColor: const Color(0xFFD97706),
+                  ),
+                ),
+                Expanded(
+                  child: _buildTabItem(
+                    index: 2,
+                    label: 'Đã xong',
+                    icon: Icons.task_alt_rounded,
+                    badgeCount: _completedTasks.length,
+                    activeColor: const Color(0xFF2563EB),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // HEADER ROW WITH TITLE & ACTION BUTTONS
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: selectedTab == 0
+                                  ? const Color(0xFFEFF6FF)
+                                  : selectedTab == 1
+                                  ? const Color(0xFFFEF3C7)
+                                  : const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              selectedTab == 0
+                                  ? Icons.explore_rounded
+                                  : selectedTab == 1
+                                  ? Icons.hourglass_top_rounded
+                                  : Icons.history_rounded,
+                              size: 15,
+                              color: selectedTab == 0
+                                  ? const Color(0xFF2563EB)
+                                  : selectedTab == 1
+                                  ? const Color(0xFFD97706)
+                                  : const Color(0xFF2563EB),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              selectedTab == 0
+                                  ? 'Công việc phù hợp'
+                                  : selectedTab == 1
+                                  ? 'Công việc đang thực hiện'
+                                  : 'Lịch sử công việc',
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF0F172A),
+                                letterSpacing: -0.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (selectedTab == 0 && jobs.isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: const Color(0xFFBFDBFE),
+                                ),
+                              ),
+                              child: Text(
+                                '${jobs.length}',
+                                style: const TextStyle(
+                                  color: Color(0xFF2563EB),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  const Text(
-                    'Chưa có công việc phù hợp',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      'Hệ thống đang liên tục quét các yêu cầu dịch vụ trong khu vực hoạt động của bạn. Thông báo sẽ phát chuông ngay khi có đơn mới!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: Color(0xFF64748B),
-                        height: 1.45,
+                      const SizedBox(height: 3),
+                      Text(
+                        selectedTab == 0
+                            ? 'Theo kỹ năng và khu vực của bạn.'
+                            : selectedTab == 1
+                            ? 'Các đơn hàng bạn đang trong quá trình tiếp nhận và xử lý.'
+                            : 'Lịch sử toàn bộ các công việc bạn đã hoàn tất phục vụ.',
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
+                    ],
                   ),
-                  // Pro-tip hint
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 9,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: const Row(
+                ),
+              ],
+            ),
+          ),
+
+          if (selectedTab == 0 &&
+              workAreasLoaded &&
+              (closedCities.isNotEmpty || openCities.isEmpty))
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3E0),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (closedCities.isNotEmpty || openCities.isEmpty) ...[
+                    const Row(
                       children: [
                         Icon(
-                          Icons.tips_and_updates_outlined,
-                          size: 15,
-                          color: Color(0xFFF59E0B),
+                          Icons.warning_amber_rounded,
+                          color: Colors.deepOrange,
                         ),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Mẹo: Bật mạng ổn định và giữ app trực tuyến để nhận thông báo việc mới sớm nhất.',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF475569),
-                              fontWeight: FontWeight.w500,
-                            ),
+                            'Khu vực làm việc cần cập nhật',
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      closedCities.isEmpty
+                          ? 'Bạn chưa có khu vực đang hoạt động. Khu vực cũ có thể đã bị đóng hoặc xóa. Vui lòng chọn khu vực khác để tiếp tục nhận việc.'
+                          : '${closedCities.join(', ')} đang bảo trì. Công việc tại các khu vực này sẽ không hiển thị. Vui lòng đổi khu vực làm việc.',
+                    ),
+                  ],
+                  TextButton.icon(
+                    icon: const Icon(Icons.location_on_outlined),
+                    label: const Text('Đổi khu vực làm việc'),
+                    onPressed: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              PartnerWorkAreas(session: widget.session),
+                        ),
+                      );
+                      if (mounted) await load();
+                    },
                   ),
                 ],
               ),
-            )
-          else ...[
-            for (final job in jobs) _buildJobCard(job),
-          ],
-        ] else if (selectedTab == 1) ...[
-          // TAB 1: CÔNG VIỆC ĐANG LÀM
-          if (_activeTasks.isEmpty)
-            _buildEmptyActiveTasksCard()
-          else
-            for (final task in _activeTasks) _buildActiveTaskCard(task),
-        ] else ...[
-          // TAB 2: LỊCH SỬ HOÀN TẤT
-          TaskActivityList(
-            key: ValueKey(revision),
-            session: widget.session,
-            partner: true,
-            showHeading: false,
-            filter: (task) => ['COMPLETED', 'PAID'].contains(task['status']),
-            emptyWidget: _buildEmptyCompletedCard(),
-          ),
-        ],
+            ),
 
-        const SizedBox(height: 24),
-      ],
+          // ERROR ALERT IF ANY
+          if (error != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF2F2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFECACA)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.error_outline_rounded,
+                    color: Color(0xFFDC2626),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      error!,
+                      style: const TextStyle(
+                        color: Color(0xFFDC2626),
+                        fontSize: 13,
+                      ),
+                      key: const ValueKey('partner-jobs-error'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // =====================================================================
+          // 3. TAB CONTENT
+          // =====================================================================
+          if (selectedTab == 0) ...[
+            // TAB 0: VIỆC MỚI PHÙ HỢP
+            if (!isOnline)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 8, bottom: 16),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x0A0F172A),
+                      blurRadius: 18,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF1F5F9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.bedtime_rounded,
+                        color: Color(0xFF64748B),
+                        size: 30,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Bạn đang ở chế độ Tạm nghỉ',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'Bật trực tuyến để hệ thống tự động tìm và gửi thông báo công việc mới phù hợp với bạn.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF64748B),
+                          height: 1.45,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          setState(() => isOnline = true);
+                          load();
+                        },
+                        icon: const Icon(Icons.flash_on_rounded, size: 18),
+                        label: const Text(
+                          'Bật trực tuyến ngay',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF2563EB),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (loading)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 8, bottom: 16),
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: const Center(
+                  child: Column(
+                    children: [
+                      CircularProgressIndicator(
+                        strokeWidth: 3,
+                        color: Color(0xFF2563EB),
+                      ),
+                      SizedBox(height: 14),
+                      Text(
+                        'Đang quét và tải công việc mới…',
+                        style: TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else if (jobs.isEmpty && error == null)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 8, bottom: 16),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x0A0F172A),
+                      blurRadius: 18,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Animated radar rings beacon
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: 84,
+                          height: 84,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0x1F2563EB),
+                          ),
+                        ),
+                        Container(
+                          width: 66,
+                          height: 66,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0x332563EB),
+                          ),
+                        ),
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF2563EB), Color(0xFF2563EB)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x402563EB),
+                                blurRadius: 8,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.radar_rounded,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Active radar indicator chip
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 3.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF2563EB),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0x992563EB),
+                                    blurRadius: 4,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              'Đang quét công việc theo bán kính',
+                              style: TextStyle(
+                                color: Color(0xFF1D4ED8),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    const Text(
+                      'Chưa có công việc phù hợp',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'Hệ thống đang liên tục quét các yêu cầu dịch vụ trong khu vực hoạt động của bạn. Thông báo sẽ phát chuông ngay khi có đơn mới!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: Color(0xFF64748B),
+                          height: 1.45,
+                        ),
+                      ),
+                    ),
+                    // Pro-tip hint
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 9,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.tips_and_updates_outlined,
+                            size: 15,
+                            color: Color(0xFFF59E0B),
+                          ),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Mẹo: Bật mạng ổn định và giữ app trực tuyến để nhận thông báo việc mới sớm nhất.',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF475569),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else ...[
+              for (final job in jobs) _buildJobCard(job),
+            ],
+          ] else if (selectedTab == 1) ...[
+            // TAB 1: CÔNG VIỆC ĐANG LÀM
+            if (_activeTasks.isEmpty)
+              _buildEmptyActiveTasksCard()
+            else
+              for (final task in _activeTasks) _buildActiveTaskCard(task),
+          ] else ...[
+            // TAB 2: LỊCH SỬ HOÀN TẤT
+            TaskActivityList(
+              key: ValueKey(revision),
+              session: widget.session,
+              partner: true,
+              showHeading: false,
+              filter: (task) => isPartnerHistoryTask(task),
+              emptyWidget: _buildEmptyCompletedCard(),
+            ),
+          ],
+
+          const SizedBox(height: 24),
+        ],
+      ),
     );
   }
 
@@ -1543,7 +1534,7 @@ class _PartnerJobsState extends State<PartnerJobs> {
                 height: 84,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Color(0x1F10B981),
+                  color: Color(0x1F2563EB),
                 ),
               ),
               Container(
@@ -1551,7 +1542,7 @@ class _PartnerJobsState extends State<PartnerJobs> {
                 height: 66,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Color(0x3310B981),
+                  color: Color(0x332563EB),
                 ),
               ),
               Container(
@@ -1560,13 +1551,13 @@ class _PartnerJobsState extends State<PartnerJobs> {
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [Color(0xFF10B981), Color(0xFF059669)],
+                    colors: [Color(0xFF2563EB), Color(0xFF2563EB)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0x4010B981),
+                      color: Color(0x402563EB),
                       blurRadius: 8,
                       offset: Offset(0, 3),
                     ),
@@ -1591,9 +1582,9 @@ class _PartnerJobsState extends State<PartnerJobs> {
                 vertical: 3.5,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFFECFDF5),
+                color: const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFA7F3D0)),
+                border: Border.all(color: const Color(0xFFBFDBFE)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -1602,11 +1593,11 @@ class _PartnerJobsState extends State<PartnerJobs> {
                     width: 6,
                     height: 6,
                     decoration: const BoxDecoration(
-                      color: Color(0xFF10B981),
+                      color: Color(0xFF2563EB),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Color(0x9910B981),
+                          color: Color(0x992563EB),
                           blurRadius: 4,
                           spreadRadius: 1,
                         ),
@@ -1617,7 +1608,7 @@ class _PartnerJobsState extends State<PartnerJobs> {
                   const Text(
                     'Lịch sử & doanh thu đã thanh toán',
                     style: TextStyle(
-                      color: Color(0xFF047857),
+                      color: Color(0xFF1D4ED8),
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1666,7 +1657,7 @@ class _PartnerJobsState extends State<PartnerJobs> {
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
               ),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF059669),
+                backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -1692,7 +1683,7 @@ class _PartnerJobsState extends State<PartnerJobs> {
                 Icon(
                   Icons.tips_and_updates_outlined,
                   size: 15,
-                  color: Color(0xFF10B981),
+                  color: Color(0xFF2563EB),
                 ),
                 SizedBox(width: 8),
                 Expanded(
@@ -1809,11 +1800,10 @@ class _PartnerJobsState extends State<PartnerJobs> {
 
   Widget _buildJobCard(dynamic job) {
     final title = job['title']?.toString() ?? 'Dịch vụ TaskLy';
-    final netAmount =
-        job['partner_net_amount'] ?? job['partnerNetAmount'] ?? 0;
+    final netAmount = job['partner_net_amount'] ?? job['partnerNetAmount'] ?? 0;
+    final budgetAmount = job['budget_amount'] ?? job['budgetAmount'] ?? 0;
     final priceStr = 'Thực nhận: ${_formatVnd(netAmount)}';
-    final citySnapshot =
-        job['city_snapshot']?.toString() ?? 'Khu vực dịch vụ';
+    final citySnapshot = job['city_snapshot']?.toString() ?? 'Khu vực dịch vụ';
     final durationMinutes = job['estimated_duration_minutes'] ?? 60;
     final scheduledStr = _formatScheduledTime(job['scheduled_at']);
     final fullScheduledStr = _formatFullScheduledTime(job['scheduled_at']);
@@ -1823,12 +1813,13 @@ class _PartnerJobsState extends State<PartnerJobs> {
     final bool isEligible = job['eligible'] != false;
     final String? reasonCode = job['reasonCode']?.toString();
     final String? reasonMessage = job['reasonMessage']?.toString();
-    final String statusTagLabel = job['statusTagLabel']?.toString() ??
+    final String statusTagLabel =
+        job['statusTagLabel']?.toString() ??
         (isEligible
             ? 'Có thể nhận'
             : (reasonCode == 'SCHEDULE_CONFLICT'
-                ? 'Trùng lịch'
-                : 'Thiếu buffer'));
+                  ? 'Trùng lịch'
+                  : 'Thiếu buffer'));
     final dynamic earliestStart = job['earliestEligibleStartAt'];
 
     Color tagBg;
@@ -1837,9 +1828,9 @@ class _PartnerJobsState extends State<PartnerJobs> {
     IconData tagIcon;
 
     if (isEligible) {
-      tagBg = const Color(0xFFECFDF5);
-      tagBorder = const Color(0xFFA7F3D0);
-      tagText = const Color(0xFF047857);
+      tagBg = const Color(0xFFEFF6FF);
+      tagBorder = const Color(0xFFBFDBFE);
+      tagText = const Color(0xFF1D4ED8);
       tagIcon = Icons.check_circle_outline_rounded;
     } else if (reasonCode == 'SCHEDULE_CONFLICT') {
       tagBg = const Color(0xFFFEF2F2);
@@ -1928,7 +1919,7 @@ class _PartnerJobsState extends State<PartnerJobs> {
                         scheduledStr,
                         style: const TextStyle(
                           fontSize: 12.5,
-                          color: Color(0xFF059669),
+                          color: Color(0xFF2563EB),
                           fontWeight: FontWeight.w700,
                         ),
                         maxLines: 1,
@@ -2061,6 +2052,17 @@ class _PartnerJobsState extends State<PartnerJobs> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (budgetAmount > 0) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              'Giá đơn: ${_formatVnd(budgetAmount)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                       const Padding(
@@ -2216,7 +2218,7 @@ class _PartnerJobsState extends State<PartnerJobs> {
                               style: const TextStyle(
                                 fontSize: 18.5,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF059669),
+                                color: Color(0xFF2563EB),
                                 letterSpacing: -0.2,
                               ),
                             ),
@@ -2270,7 +2272,8 @@ class _PartnerJobsState extends State<PartnerJobs> {
                                             padding: const EdgeInsets.all(6),
                                             decoration: BoxDecoration(
                                               color: const Color(0xFFFEF2F2),
-                                              borderRadius: BorderRadius.circular(10),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                             ),
                                             child: const Icon(
                                               Icons.event_busy_rounded,
@@ -2291,8 +2294,7 @@ class _PartnerJobsState extends State<PartnerJobs> {
                                         ],
                                       ),
                                       content: Text(
-                                        reasonMessage ??
-                                            'Lịch công việc này bị trùng hoặc chưa đảm bảo khoảng đệm tối thiểu 60 phút với công việc khác của bạn.',
+                                        reasonMessage ?? 'Lịch công việc này bị trùng hoặc chưa đảm bảo khoảng đệm tối thiểu 60 phút với công việc khác của bạn.',
                                         style: const TextStyle(
                                           fontSize: 13.5,
                                           height: 1.45,
@@ -2302,7 +2304,9 @@ class _PartnerJobsState extends State<PartnerJobs> {
                                         FilledButton(
                                           onPressed: () => Navigator.pop(ctx),
                                           style: FilledButton.styleFrom(
-                                            backgroundColor: const Color(0xFF2563EB),
+                                            backgroundColor: const Color(
+                                              0xFF2563EB,
+                                            ),
                                           ),
                                           child: const Text('Xem việc khác'),
                                         ),
@@ -2315,7 +2319,7 @@ class _PartnerJobsState extends State<PartnerJobs> {
                               },
                         style: FilledButton.styleFrom(
                           backgroundColor: isEligible
-                              ? const Color(0xFF059669)
+                              ? const Color(0xFF2563EB)
                               : const Color(0xFF94A3B8),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -2350,9 +2354,6 @@ class _PartnerJobsState extends State<PartnerJobs> {
   }
 
   Widget _buildActiveTaskCard(dynamic task) {
-    final otherWork = myActivities.any((item) => item['id'] != task['id'] &&
-        ['TASKER_ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS'].contains(item['status']));
-
     final taskId = task['id']?.toString() ?? '';
     final status = task['status']?.toString() ?? 'ACCEPTED';
     final priceStr =
@@ -2429,7 +2430,7 @@ class _PartnerJobsState extends State<PartnerJobs> {
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF10B981),
+                        color: Color(0xFF2563EB),
                       ),
                     ),
                   ),
@@ -2439,7 +2440,10 @@ class _PartnerJobsState extends State<PartnerJobs> {
             const SizedBox(height: 10),
 
             Text(
-              task['serviceName'] ?? task['service_name_snapshot'] ?? task['title'] ?? 'Dịch vụ',
+              task['serviceName'] ??
+                  task['service_name_snapshot'] ??
+                  task['title'] ??
+                  'Dịch vụ',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w800,
@@ -2471,8 +2475,11 @@ class _PartnerJobsState extends State<PartnerJobs> {
 
             Row(
               children: [
-                const Icon(Icons.calendar_month_outlined,
-                    size: 16, color: Color(0xFF2563EB)),
+                const Icon(
+                  Icons.calendar_month_outlined,
+                  size: 16,
+                  color: Color(0xFF2563EB),
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -2494,7 +2501,15 @@ class _PartnerJobsState extends State<PartnerJobs> {
             // Actions for in-progress task (Always on a single row, never wrapped)
             Row(
               children: [
-                if (nextAction != null) ...[
+                if (needsPartnerPaymentConfirmation(task)) ...[
+                  Expanded(
+                    child: PartnerPaymentConfirmation(
+                      session: widget.session,
+                      task: task,
+                      onConfirmed: () => load(),
+                    ),
+                  ),
+                ] else if (nextAction != null) ...[
                   OutlinedButton.icon(
                     onPressed: () {
                       Navigator.of(context)
@@ -2539,7 +2554,11 @@ class _PartnerJobsState extends State<PartnerJobs> {
                                 session: widget.session,
                                 taskId: taskId,
                                 partner: true,
-                                initialServiceName: (task['serviceName'] ?? task['service_name_snapshot'] ?? task['title'])?.toString(),
+                                initialServiceName:
+                                    (task['serviceName'] ??
+                                            task['service_name_snapshot'] ??
+                                            task['title'])
+                                        ?.toString(),
                               ),
                             ),
                           )
@@ -2550,13 +2569,13 @@ class _PartnerJobsState extends State<PartnerJobs> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
+                        color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                        border: Border.all(color: const Color(0xFFBFDBFE)),
                       ),
                       child: const Icon(
                         Icons.chat_bubble_rounded,
-                        color: Color(0xFF059669),
+                        color: Color(0xFF2563EB),
                         size: 17,
                       ),
                     ),
@@ -2564,21 +2583,27 @@ class _PartnerJobsState extends State<PartnerJobs> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: FilledButton.icon(
-                      onPressed: isProgressing || otherWork
+                      onPressed: isProgressing
                           ? null
                           : () async {
-                              if (status == 'ACCEPTED') {
-                                await Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (_) => TaskActivityDetail(session: widget.session, id: taskId, partner: true),
-                                ));
-                                if (mounted) load();
+                              if (status == 'IN_PROGRESS') {
+                                await _openCompletion(taskId);
                               } else {
-                                await _progressJob(taskId, status, nextAction.$1);
+                                await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => TaskActivityDetail(
+                                      session: widget.session,
+                                      id: taskId,
+                                      partner: true,
+                                    ),
+                                  ),
+                                );
+                                if (mounted) load();
                               }
                             },
-                      icon: Icon(nextAction.$3, size: 16),
+                      icon: Icon(nextAction.$2, size: 16),
                       label: Text(
-                        otherWork ? 'Chờ kết thúc việc đang làm' : isProgressing ? 'Đang cập nhật…' : status == 'ACCEPTED' ? 'Điều phối / đến sớm' : nextAction.$2,
+                        isProgressing ? 'Đang cập nhật…' : nextAction.$1,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -2657,13 +2682,13 @@ class _PartnerJobsState extends State<PartnerJobs> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
+                        color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                        border: Border.all(color: const Color(0xFFBFDBFE)),
                       ),
                       child: const Icon(
                         Icons.chat_bubble_rounded,
-                        color: Color(0xFF059669),
+                        color: Color(0xFF2563EB),
                         size: 17,
                       ),
                     ),
@@ -2719,21 +2744,21 @@ class _PartnerStatusToggleSwitch extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
                 gradient: LinearGradient(
                   colors: isOnline
-                      ? const [Color(0xFF047857), Color(0xFF10B981)]
+                      ? const [Color(0xFF1D4ED8), Color(0xFF2563EB)]
                       : const [Color(0xFF334155), Color(0xFF1E293B)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
                 border: Border.all(
                   color: isOnline
-                      ? const Color(0xD96EE7B7)
+                      ? const Color(0xD993C5FD)
                       : const Color(0xB364748B),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: isOnline
-                        ? const Color(0x6610B981)
+                        ? const Color(0x662563EB)
                         : const Color(0x44000000),
                     blurRadius: isOnline ? 12 : 6,
                     offset: const Offset(0, 3),
@@ -2767,10 +2792,10 @@ class _PartnerStatusToggleSwitch extends StatelessWidget {
                               margin: const EdgeInsets.only(right: 5),
                               decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Color(0xFF6EE7B7),
+                                color: Color(0xFF60A5FA),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Color(0xCC6EE7B7),
+                                    color: Color(0xCC60A5FA),
                                     blurRadius: 5,
                                     spreadRadius: 1,
                                   ),
@@ -2825,7 +2850,7 @@ class _PartnerStatusToggleSwitch extends StatelessWidget {
                             offset: Offset(0, 2),
                           ),
                           BoxShadow(
-                            color: Color(0x3310B981),
+                            color: Color(0x332563EB),
                             blurRadius: 4,
                             spreadRadius: 1,
                           ),
@@ -2836,7 +2861,7 @@ class _PartnerStatusToggleSwitch extends StatelessWidget {
                           Icons.power_settings_new_rounded,
                           size: 16,
                           color: isOnline
-                              ? const Color(0xFF047857)
+                              ? const Color(0xFF1D4ED8)
                               : const Color(0xFF64748B),
                         ),
                       ),

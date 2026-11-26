@@ -95,8 +95,8 @@ class _CustomerNotificationViewState extends State<CustomerNotificationView> {
     if (lower.contains('nhận đơn') || lower.contains('đã nhận')) {
       return (
         icon: Icons.handshake_rounded,
-        bgColor: const Color(0xFFEFF6FF),
-        iconColor: const Color(0xFF2563EB),
+        bgColor: const Color(0xFFECFDF5),
+        iconColor: const Color(0xFF059669),
         categoryLabel: 'Đối tác nhận việc',
       );
     }

@@ -281,7 +281,7 @@ class _RecruitmentShellState extends State<RecruitmentShell>
         if (tab == 1)
           TextButton(
             onPressed: () => openPartnerJobHistory(context, widget.session),
-            style: TextButton.styleFrom(foregroundColor: const Color(0xFF00B14F)),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFF2563EB)),
             child: const Text('Lịch sử'),
           ),
         IconButton(
@@ -502,7 +502,7 @@ class _RecruitmentShellState extends State<RecruitmentShell>
           'Đội ngũ hỗ trợ đối tác đồng hành 24/7 trong suốt quá trình',
         ],
         isFullyActive ? 'Đến mục Công việc ngay' : 'Sẵn sàng kích hoạt',
-        const Color(0xFF16A34A),
+        const Color(0xFF2563EB),
       ),
       _ => (
         'Chi tiết quy trình',
@@ -631,14 +631,14 @@ class _RecruitmentShellState extends State<RecruitmentShell>
                         ),
                         decoration: BoxDecoration(
                           color: isStepDone
-                              ? const Color(0xFFF0FDF4)
+                              ? const Color(0xFFEFF6FF)
                               : isStepCurrent
                               ? const Color(0xFFFEF2F2)
                               : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isStepDone
-                                ? const Color(0xFFBBF7D0)
+                                ? const Color(0xFFBFDBFE)
                                 : isStepCurrent
                                 ? const Color(0xFFFECACA)
                                 : const Color(0xFFE2E8F0),
@@ -654,7 +654,7 @@ class _RecruitmentShellState extends State<RecruitmentShell>
                                   : Icons.lock_outline_rounded,
                               size: 18,
                               color: isStepDone
-                                  ? const Color(0xFF16A34A)
+                                  ? const Color(0xFF2563EB)
                                   : isStepCurrent
                                   ? const Color(0xFFDC2626)
                                   : const Color(0xFF64748B),
@@ -671,7 +671,7 @@ class _RecruitmentShellState extends State<RecruitmentShell>
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   color: isStepDone
-                                      ? const Color(0xFF15803D)
+                                      ? const Color(0xFF1D4ED8)
                                       : isStepCurrent
                                       ? const Color(0xFFB91C1C)
                                       : const Color(0xFF475569),
@@ -722,7 +722,7 @@ class _RecruitmentShellState extends State<RecruitmentShell>
                                   const Icon(
                                     Icons.check_circle_outline_rounded,
                                     size: 16,
-                                    color: Color(0xFF0B9879),
+                                    color: Color(0xFF1D4ED8),
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
@@ -1224,7 +1224,7 @@ class _RecruitmentShellState extends State<RecruitmentShell>
       final (title, message) = recruitmentStatusMessage(app!);
       return Container(
         margin: const EdgeInsets.only(bottom: 6), padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFD1FAE5))),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFDBEAFE))),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
           const SizedBox(height: 8), Text(message),
@@ -2021,11 +2021,11 @@ class _RegistrationState extends State<_Registration> {
         height: 130,
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         decoration: BoxDecoration(
-          color: needsCorrection(sideLabel(side)) ? const Color(0xFFFEF2F2) : isUploaded ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+          color: needsCorrection(sideLabel(side)) ? const Color(0xFFFEF2F2) : isUploaded ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: needsCorrection(sideLabel(side)) ? const Color(0xFFDC2626) : isUploaded
-                ? const Color(0xFF86EFAC)
+                ? const Color(0xFFBFDBFE)
                 : const Color(0xFFCBD5E1),
             width: isUploaded ? 1.5 : 1.0,
           ),
@@ -2055,7 +2055,7 @@ class _RegistrationState extends State<_Registration> {
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 color: isUploaded
-                    ? const Color(0xFF15803D)
+                    ? const Color(0xFF1D4ED8)
                     : const Color(0xFF334155),
               ),
             ),
@@ -2066,7 +2066,7 @@ class _RegistrationState extends State<_Registration> {
                 fontSize: 9.5,
                 fontWeight: FontWeight.w600,
                 color: isUploaded
-                    ? const Color(0xFF16A34A)
+                    ? const Color(0xFF2563EB)
                     : const Color(0xFF94A3B8),
               ),
             ),
@@ -3484,7 +3484,7 @@ class _RegistrationState extends State<_Registration> {
                               margin: const EdgeInsets.only(bottom: 8),
                               child: Material(
                                 color: isSelected
-                                    ? const Color(0xFFF0FDF4)
+                                    ? const Color(0xFFEFF6FF)
                                     : const Color(0xFFFAFAFA),
                                 borderRadius: BorderRadius.circular(12),
                                 child: InkWell(
@@ -3511,7 +3511,7 @@ class _RegistrationState extends State<_Registration> {
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                         color: isSelected
-                                            ? const Color(0xFF22C55E)
+                                            ? const Color(0xFF2563EB)
                                             : const Color(0xFFE2E8F0),
                                         width: 1.2,
                                       ),
@@ -3525,14 +3525,14 @@ class _RegistrationState extends State<_Registration> {
                                           height: 22,
                                           decoration: BoxDecoration(
                                             color: isSelected
-                                                ? const Color(0xFF16A34A)
+                                                ? const Color(0xFF2563EB)
                                                 : Colors.white,
                                             borderRadius: BorderRadius.circular(
                                               6,
                                             ),
                                             border: Border.all(
                                               color: isSelected
-                                                  ? const Color(0xFF16A34A)
+                                                  ? const Color(0xFF2563EB)
                                                   : const Color(0xFFCBD5E1),
                                               width: 1.5,
                                             ),
@@ -3561,7 +3561,7 @@ class _RegistrationState extends State<_Registration> {
                                                       ? FontWeight.w700
                                                       : FontWeight.w600,
                                                   color: isSelected
-                                                      ? const Color(0xFF14532D)
+                                                      ? const Color(0xFF172554)
                                                       : PartnerColors.navy,
                                                 ),
                                                 overflow: TextOverflow.ellipsis,
@@ -3590,7 +3590,7 @@ class _RegistrationState extends State<_Registration> {
                                             vertical: 3,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFDCFCE7),
+                                            color: const Color(0xFFEFF6FF),
                                             borderRadius: BorderRadius.circular(
                                               6,
                                             ),
@@ -3600,7 +3600,7 @@ class _RegistrationState extends State<_Registration> {
                                             style: TextStyle(
                                               fontSize: 10.5,
                                               fontWeight: FontWeight.w700,
-                                              color: Color(0xFF15803D),
+                                              color: Color(0xFF1D4ED8),
                                             ),
                                           ),
                                         ),

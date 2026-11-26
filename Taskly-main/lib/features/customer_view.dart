@@ -74,12 +74,18 @@ class _CustomerViewState extends State<CustomerView> {
         builder: (context) => AlertDialog(
           title: const Text('Đã đạt giới hạn 3 đơn'),
           content: const Text(CustomerController.bookingLimitMessage),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Đã hiểu'))],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Đã hiểu'),
+            ),
+          ],
         ),
       );
       _bookingLimitDialogOpen = false;
     });
   }
+
   @override
   void dispose() {
     c.removeListener(_bookingLimitChanged);
@@ -198,205 +204,244 @@ class _CustomerViewState extends State<CustomerView> {
             page == PageId.create ? c.previousStep() : c.back();
           }
         },
-        child: Scaffold(
-          appBar: AppBar(
-            leading: c.canBack
-                ? IconButton(
-                    tooltip: 'Quay lại',
-                    onPressed: c.busy
-                        ? null
-                        : () {
-                            page == PageId.create ? c.previousStep() : c.back();
-                          },
-                    icon: const Icon(Icons.arrow_back),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            image: page == PageId.services || page == PageId.tasks
+                ? DecorationImage(
+                    image: AssetImage(
+                      page == PageId.services
+                          ? 'assets/images/dichvu.png'
+                          : 'assets/images/hoatdong.png',
+                    ),
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
                   )
-                : (page == PageId.profile
-                      ? Padding(
-                          padding: const EdgeInsets.only(left: 14),
-                          child: Center(
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xFFDCEAFF),
-                                    Color(0xFFF6FAFF),
-                                  ],
+                : null,
+          ),
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            extendBody: shell,
+            appBar: AppBar(
+              backgroundColor: page == PageId.services || page == PageId.tasks
+                  ? Colors.transparent
+                  : null,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              leading: c.canBack
+                  ? IconButton(
+                      tooltip: 'Quay lại',
+                      onPressed: c.busy
+                          ? null
+                          : () {
+                              page == PageId.create
+                                  ? c.previousStep()
+                                  : c.back();
+                            },
+                      icon: const Icon(Icons.arrow_back),
+                    )
+                  : (page == PageId.profile
+                        ? Padding(
+                            padding: const EdgeInsets.only(left: 14),
+                            child: Center(
+                              child: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Color(0xFFECFDF5),
+                                      Color(0xFFF0FDF4),
+                                    ],
+                                  ),
+                                  border: Border.all(
+                                    color: const Color(0xFFA7F3D0),
+                                  ),
                                 ),
-                                border: Border.all(
-                                  color: const Color(0xFFD4E2FF),
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: const Text(
-                                'T',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF245AD3),
+                                alignment: Alignment.center,
+                                child: const Text(
+                                  'T',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF059669),
+                                  ),
                                 ),
                               ),
                             ),
+                          )
+                        : const Padding(
+                            padding: EdgeInsets.all(14),
+                            child: Icon(
+                              Icons.task_alt,
+                              color: AppColors.primary,
+                            ),
+                          )),
+              title: page == PageId.profile
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text(
+                          'Tài khoản',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16.5,
+                            color: Color(0xFF0F172A),
+                            letterSpacing: -0.3,
                           ),
-                        )
-                      : const Padding(
-                          padding: EdgeInsets.all(14),
-                          child: Icon(Icons.task_alt, color: AppColors.primary),
-                        )),
-            title: page == PageId.profile
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Text(
-                        'Tài khoản',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16.5,
-                          color: Color(0xFF0F172A),
-                          letterSpacing: -0.3,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        'TaskLy Customer',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          color: Color(0xFF7C8CA1),
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  )
-                : Text(
-                    titles[page] ?? 'TaskLy',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 19,
-                    ),
-                  ),
-            actions: [
-              if (c.demoMode && widget.onOpenTasker != null)
-                IconButton(
-                  tooltip: 'chuyển Tasker',
-                  onPressed: c.busy ? null : widget.onOpenTasker,
-                  icon: const Icon(Icons.swap_horiz),
-                ),
-              if (shell)
-                IconButton(
-                  tooltip: 'Thông báo',
-                  onPressed: () => c.open(PageId.notifications),
-                  icon: Badge(
-                    isLabelVisible: data.notifications.any((n) => !n.read),
-                    label: Text(''),
-                    child: const Icon(Icons.notifications_none_rounded),
-                  ),
-                ),
-            ],
-          ),
-          body: SafeArea(
-            child: Column(
-              children: [
-                if (c.busy) const LinearProgressIndicator(minHeight: 3),
-                if (c.error != null)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline, color: AppColors.error),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            c.error!,
-                            key: const Key('error-message'),
+                        Text(
+                          'TaskLy Customer',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: Color(0xFF7C8CA1),
+                            fontWeight: FontWeight.w500,
                           ),
-                        ),
-                        IconButton(
-                          tooltip: 'Đóng thông báo lỗi',
-                          onPressed: () {
-                            c.error = null;
-                            c.changed();
-                          },
-                          icon: const Icon(Icons.close),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
+                    )
+                  : Text(
+                      titles[page] ?? 'TaskLy',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 19,
+                      ),
+                    ),
+              actions: [
+                if (c.demoMode && widget.onOpenTasker != null)
+                  IconButton(
+                    tooltip: 'chuyển Tasker',
+                    onPressed: c.busy ? null : widget.onOpenTasker,
+                    icon: const Icon(Icons.swap_horiz),
+                  ),
+                if (shell)
+                  IconButton(
+                    tooltip: 'Thông báo',
+                    onPressed: () => c.open(PageId.notifications),
+                    icon: Badge(
+                      isLabelVisible: data.notifications.any((n) => !n.read),
+                      label: Text(''),
+                      child: const Icon(Icons.notifications_none_rounded),
                     ),
                   ),
-                Expanded(
-                  child: c.data == null
-                      ? Center(
-                          child: c.error == null
-                              ? const CircularProgressIndicator()
-                              : PrimaryButton('Thử lại', c.initialize),
-                        )
-                      : AbsorbPointer(
-                          absorbing: c.busy,
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 640),
-                              child: _shouldPinBottomActions
-                                  ? CustomScrollView(
-                                      key: ValueKey(
-                                        '${page.name}-${c.route.id}-${page == PageId.create ? c.wizardStep : ''}',
-                                      ),
-                                      keyboardDismissBehavior:
-                                          ScrollViewKeyboardDismissBehavior
-                                              .onDrag,
-                                      slivers: [
-                                        SliverPadding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                            20,
-                                            8,
-                                            20,
-                                            24,
-                                          ),
-                                          sliver: SliverFillRemaining(
-                                            hasScrollBody: false,
-                                            child: _buildPinnedScreen(screen()),
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : ListView(
-                                      key: ValueKey(
-                                        '${page.name}-${c.route.id}-${page == PageId.create ? c.wizardStep : ''}',
-                                      ),
-                                      keyboardDismissBehavior:
-                                          ScrollViewKeyboardDismissBehavior
-                                              .onDrag,
-                                      padding: const EdgeInsets.fromLTRB(
-                                        20,
-                                        8,
-                                        20,
-                                        24,
-                                      ),
-                                      children: screen(),
-                                    ),
-                            ),
-                          ),
-                        ),
-                ),
               ],
             ),
+            body: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  if (c.busy) const LinearProgressIndicator(minHeight: 3),
+                  if (c.error != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: AppColors.error,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              c.error!,
+                              key: const Key('error-message'),
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Đóng thông báo lỗi',
+                            onPressed: () {
+                              c.error = null;
+                              c.changed();
+                            },
+                            icon: const Icon(Icons.close),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Expanded(
+                    child: c.data == null
+                        ? Center(
+                            child: c.error == null
+                                ? const CircularProgressIndicator()
+                                : PrimaryButton('Thử lại', c.initialize),
+                          )
+                        : AbsorbPointer(
+                            absorbing: c.busy,
+                            child: Align(
+                              alignment: Alignment.topCenter,
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 640,
+                                ),
+                                child: _shouldPinBottomActions
+                                    ? CustomScrollView(
+                                        key: ValueKey(
+                                          '${page.name}-${c.route.id}-${page == PageId.create ? c.wizardStep : ''}',
+                                        ),
+                                        keyboardDismissBehavior:
+                                            ScrollViewKeyboardDismissBehavior
+                                                .onDrag,
+                                        slivers: [
+                                          SliverPadding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                              20,
+                                              8,
+                                              20,
+                                              24,
+                                            ),
+                                            sliver: SliverFillRemaining(
+                                              hasScrollBody: false,
+                                              child: _buildPinnedScreen(
+                                                screen(),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : ListView(
+                                        key: ValueKey(
+                                          '${page.name}-${c.route.id}-${page == PageId.create ? c.wizardStep : ''}',
+                                        ),
+                                        keyboardDismissBehavior:
+                                            ScrollViewKeyboardDismissBehavior
+                                                .onDrag,
+                                        padding: EdgeInsets.fromLTRB(
+                                          20,
+                                          8,
+                                          20,
+                                          TaskLyBottomNav.contentBottomPadding(
+                                            context,
+                                          ),
+                                        ),
+                                        children: screen(),
+                                      ),
+                              ),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+            bottomNavigationBar: shell
+                ? TaskLyBottomNav(
+                    selected: tabPages.entries
+                        .firstWhere((entry) => entry.value == page)
+                        .key,
+                    onSelected: (i) {
+                      c.root(tabPages[i]!);
+                    },
+                  )
+                : null,
           ),
-          bottomNavigationBar: shell
-              ? TaskLyBottomNav(
-                  selected: tabPages.entries
-                      .firstWhere((entry) => entry.value == page)
-                      .key,
-                  onSelected: (i) {
-                    c.root(tabPages[i]!);
-                  },
-                )
-              : null,
         ),
       );
     },
@@ -721,11 +766,11 @@ class _CustomerViewState extends State<CustomerView> {
                 width: 39,
                 height: 39,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEDF5FF),
+                  color: const Color(0xFFECFDF5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
-                child: Icon(icon, size: 20, color: const Color(0xFF2563EB)),
+                child: Icon(icon, size: 20, color: const Color(0xFF059669)),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -757,7 +802,7 @@ class _CustomerViewState extends State<CustomerView> {
               const Icon(
                 Icons.chevron_right_rounded,
                 size: 20,
-                color: Color(0xFF8BA6CA),
+                color: Color(0xFF94A3B8),
               ),
             ],
           ),

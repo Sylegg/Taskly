@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 
 import '../app/customer_controller.dart';
+import '../auth/api.dart' show ApiFailure;
 import '../data/api_customer_repository.dart';
 import 'customer_view.dart' show CustomerAddressDialog;
 import '../core/theme.dart';
@@ -524,16 +525,16 @@ class _CustomerBookingState extends State<CustomerBooking> {
                               width: 38,
                               height: 38,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFEFF6FF),
+                                color: const Color(0xFFECFDF5),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: const Color(0xFFBFDBFE),
+                                  color: const Color(0xFFA7F3D0),
                                 ),
                               ),
                               child: const Icon(
                                 Icons.assignment_outlined,
                                 size: 20,
-                                color: Color(0xFF2563EB),
+                                color: Color(0xFF059669),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -1052,120 +1053,128 @@ class _CustomerBookingState extends State<CustomerBooking> {
   }
 
   Future<void> confirmQuote() async {
-    if (saving || quote == null || c.repository is! ApiCustomerRepository)
-      return;
-    if (!quote!.expiresAt.isAfter(DateTime.now())) {
-      setState(() => error = 'Báo giá đã hết hạn. Vui lòng lấy báo giá mới.');
+    final selectedQuote = quote;
+    final repo = c.repository;
+    if (saving || selectedQuote == null || repo is! ApiCustomerRepository) {
       return;
     }
-    final repo = c.repository as ApiCustomerRepository;
-    int balance;
+    if (!selectedQuote.expiresAt.isAfter(DateTime.now())) {
+      setState(() {
+        quote = null;
+        error = 'Báo giá đã hết hạn. Vui lòng lấy báo giá mới.';
+      });
+      return;
+    }
     setState(() => saving = true);
     try {
       final result = await repo.session.request('/users/me/refund-balance');
-      balance = (result['amount'] as num).toInt();
+      final balance = (result['amount'] as num).toInt();
       repo.refundBalance = balance;
-    } catch (e) {
-      if (mounted) setState(() => error = e.toString());
-      return;
-    } finally {
-      if (mounted) setState(() => saving = false);
-    }
-    if (!mounted) return;
-    String selected = 'CASH';
-    bool useBalance = false;
-    final balanceToUse = balance < quote!.total ? balance : quote!.total;
-    final method = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, update) => SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Xác nhận giá và thanh toán',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  Text('Tổng tiền: ${quote!.total} đ'),
-                  RadioListTile<String>(
-                    title: const Text('Thanh toán trực tiếp'),
-                    subtitle: const Text(
-                      'Trả tiền sau khi làm xong. Partner xác nhận đã nhận tiền.',
-                    ),
-                    value: 'CASH',
-                    groupValue: selected,
-                    onChanged: (v) => update(() => selected = v!),
-                  ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Sử dụng số dư tài khoản'),
-                    subtitle: Text('Số dư khả dụng: $balance đ'),
-                    value: useBalance,
-                    onChanged: balanceToUse > 0
-                        ? (value) => update(() => useBalance = value)
-                        : null,
-                  ),
-                  if (useBalance) ...[
-                    Text('Trừ từ số dư: $balanceToUse đ'),
-                    Text('Số dư còn lại: ${balance - balanceToUse} đ'),
-                  ],
-                  Text(
-                    'Còn phải trả: ${quote!.total - (useBalance ? balanceToUse : 0)} đ',
-                  ),
-                  RadioListTile<String>(
-                    title: const Text('Ngân hàng (giả lập)'),
-                    subtitle: const Text(
-                      'Bấm nút để giả lập thanh toán thành công.',
-                    ),
-                    value: 'BANK',
-                    groupValue: selected,
-                    onChanged: (v) => update(() => selected = v!),
-                  ),
-                  const Text(
-                    'Đơn sẽ tìm Partner trong 1 tiếng. Nếu không có người nhận, đơn tự hủy và tiền đã thanh toán được hoàn vào số dư trong app. Bạn có thể hủy sau 15 phút, trước khi công việc bắt đầu.',
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () => Navigator.pop(ctx, selected),
-                      child: Text(
-                        selected == 'BANK'
-                            ? 'Thanh toán giả lập và đăng đơn'
-                            : 'Xác nhận và tìm Partner',
+      if (!mounted || quote != selectedQuote) return;
+      String selected = 'CASH';
+      bool useBalance = false;
+      final total = selectedQuote.total;
+      final balanceToUse = balance < total ? balance : total;
+      final method = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (ctx, update) => SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Xác nhận giá và thanh toán',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Text('Tổng tiền: $total đ'),
+                    RadioListTile<String>(
+                      title: const Text('Thanh toán trực tiếp'),
+                      subtitle: const Text(
+                        'Trả tiền sau khi làm xong. Partner xác nhận đã nhận tiền.',
+                      ),
+                      value: 'CASH',
+                      groupValue: selected,
+                      onChanged: (v) => update(() => selected = v!),
+                    ),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Sử dụng số dư tài khoản'),
+                      subtitle: Text('Số dư khả dụng: $balance đ'),
+                      value: useBalance,
+                      onChanged: balanceToUse > 0
+                          ? (value) => update(() => useBalance = value)
+                          : null,
+                    ),
+                    if (useBalance) ...[
+                      Text('Trừ từ số dư: $balanceToUse đ'),
+                      Text('Số dư còn lại: ${balance - balanceToUse} đ'),
+                    ],
+                    Text(
+                      'Còn phải trả: ${total - (useBalance ? balanceToUse : 0)} đ',
+                    ),
+                    RadioListTile<String>(
+                      title: const Text('Ngân hàng (giả lập)'),
+                      subtitle: const Text(
+                        'Bấm nút để giả lập thanh toán thành công.',
+                      ),
+                      value: 'BANK',
+                      groupValue: selected,
+                      onChanged: (v) => update(() => selected = v!),
+                    ),
+                    const Text(
+                      'Bạn có thể hủy khi chưa có Partner nhận đơn. Nếu hết thời gian tìm đối tác, đơn tự hủy và khoản đã thanh toán sẽ được hoàn vào số dư.',
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () => Navigator.pop(ctx, selected),
+                        child: Text(
+                          selected == 'BANK'
+                              ? 'Thanh toán giả lập và đăng đơn'
+                              : 'Xác nhận và tìm Partner',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
-    );
-    if (method == null || !mounted) return;
-    setState(() => saving = true);
-    try {
-      await (c.repository as ApiCustomerRepository).session.request(
+          );
+        },
+      );
+      if (method == null || !mounted || quote != selectedQuote) return;
+      await repo.session.request(
         '/users/me/booking-checkout',
         method: 'POST',
         body: {
-          'quoteId': quote!.id,
+          'quoteId': selectedQuote.id,
           'method': method,
           'balanceAmount': useBalance ? balanceToUse : 0,
         },
       );
-      await c.refresh();
       if (!mounted) return;
       c.root(PageId.tasks);
+      unawaited(c.refresh().catchError((_) {}));
     } catch (e) {
-      if (mounted) setState(() => error = e.toString());
+      if (mounted) {
+        setState(() {
+          if (e is ApiFailure &&
+              const {'QUOTE_EXPIRED', 'QUOTE_CHANGED'}.contains(e.code)) {
+            quote = null;
+          }
+          error = e.toString();
+        });
+      }
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -1678,11 +1687,13 @@ class _CustomerBookingState extends State<CustomerBooking> {
                                                 color: Color(0xFF64748B),
                                               ),
                                               SizedBox(width: 4),
-                                              Text(
-                                                'Đã chọn trước đó • Đã khóa',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Color(0xFF64748B),
+                                              Flexible(
+                                                child: Text(
+                                                  'Đã chọn trước đó • Đã khóa',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Color(0xFF64748B),
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -1847,12 +1858,12 @@ class _CustomerBookingState extends State<CustomerBooking> {
                           Container(
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEFF6FF),
+                              color: const Color(0xFFECFDF5),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(
                               Icons.assignment_rounded,
-                              color: Color(0xFF2563EB),
+                              color: Color(0xFF059669),
                               size: 20,
                             ),
                           ),
@@ -2840,8 +2851,8 @@ class _CustomerBookingState extends State<CustomerBooking> {
         resolvedIconBg = const Color(0xFFECFDF5);
       } else if (title.contains('Thông tin')) {
         resolvedIcon = Icons.assignment_rounded;
-        resolvedIconColor = const Color(0xFF2563EB);
-        resolvedIconBg = const Color(0xFFEFF6FF);
+        resolvedIconColor = const Color(0xFF059669);
+        resolvedIconBg = const Color(0xFFECFDF5);
       } else if (title.contains('Lịch')) {
         resolvedIcon = Icons.calendar_month_rounded;
         resolvedIconColor = const Color(0xFFD97706);
@@ -3290,19 +3301,18 @@ class _CustomerBookingState extends State<CustomerBooking> {
     'Địa chỉ': a.detail,
     'Mô tả vị trí': a.buildingDescription,
     'Tỉnh / thành phố': a.city,
-    'Ghi chú cho Partner': a.note,
     'Người liên hệ': a.contactName,
     'Số điện thoại': a.contactPhone,
     if (a.ward.isNotEmpty) 'Phường / xã': a.ward,
     if (a.district.isNotEmpty) 'Quận / huyện': a.district,
   };
 
-  Future<void> _refreshWorkAreas() async {
-    if (c.repository is! ApiCustomerRepository) return;
+  Future<bool> _refreshWorkAreas() async {
+    final repo = c.repository;
+    if (repo is! ApiCustomerRepository) return true;
     try {
-      final result = await (c.repository as ApiCustomerRepository).session
-          .request('/public/work-areas');
-      if (!mounted) return;
+      final result = await repo.session.request('/public/work-areas');
+      if (!mounted) return false;
       final areas = (result as List).cast<Map>();
       setState(() {
         _areaErrors.clear();
@@ -3318,14 +3328,14 @@ class _CustomerBookingState extends State<CustomerBooking> {
           }
         }
       });
+      return true;
     } catch (_) {
-      /* The next action retries and blocks on failure. */
+      return false;
     }
   }
 
   final Map<String, String> _areaErrors = {};
-  String? addressError(Address a) {
-    if (_areaErrors.containsKey(a.city)) return _areaErrors[a.city];
+  String? addressError(Address a, {bool checkArea = true}) {
     final missing = addressFields(a).entries
         .where((e) => e.value.trim().isEmpty)
         .map((e) => e.key)
@@ -3334,7 +3344,7 @@ class _CustomerBookingState extends State<CustomerBooking> {
     if (!RegExp(r'^0[0-9]{9}$').hasMatch(a.contactPhone.trim())) {
       return 'Số điện thoại liên hệ phải có 10 chữ số và bắt đầu bằng 0.';
     }
-    return null;
+    return checkArea ? _areaErrors[a.city] : null;
   }
 
   Future<void> next() async {
@@ -3379,36 +3389,22 @@ class _CustomerBookingState extends State<CustomerBooking> {
             !draft!.scheduledAt!.isAfter(DateTime.now()))) {
       message = 'Chọn ngày và giờ trong tương lai.';
     }
-    if (step == 3 && c.repository is ApiCustomerRepository) {
-      setState(() => saving = true);
-      try {
-        final result = await (c.repository as ApiCustomerRepository).session
-            .request('/public/work-areas');
-        final areas = (result as List).cast<Map>();
-        _areaErrors.clear();
-        for (final address in c.data!.addresses) {
-          if (!areas.any(
-            (a) =>
-                a['city'].toString().trim().toLowerCase() ==
-                    address.city.trim().toLowerCase() &&
-                a['recruiting'] == true,
-          ))
-            _areaErrors[address.city] =
-                'Khu vực đang bảo trì hoặc chưa được mở. Vui lòng đổi địa chỉ.';
-        }
-      } catch (_) {
-        message = 'Không thể kiểm tra khu vực. Vui lòng thử lại.';
-      }
-      if (!mounted) return;
-      setState(() => saving = false);
-    }
-    if (step == 3 && message == null) {
+    if (step == 3) {
       final addresses = c.data!.addresses.where(
         (a) => a.id == draft!.addressId,
       );
       message = addresses.isEmpty
           ? 'Chọn hoặc thêm địa chỉ của bạn.'
-          : addressError(addresses.first);
+          : addressError(addresses.first, checkArea: false);
+      if (message == null) {
+        setState(() => saving = true);
+        final areasLoaded = await _refreshWorkAreas();
+        if (!mounted) return;
+        message = areasLoaded
+            ? _areaErrors[addresses.first.city]
+            : 'Không thể kiểm tra khu vực. Vui lòng thử lại.';
+        setState(() => saving = false);
+      }
     }
     if (message == null && step == 3) {
       setState(() => saving = true);
@@ -4151,14 +4147,14 @@ class _CustomerBookingState extends State<CustomerBooking> {
                             color: filled
                                 ? const Color(0xFFDCFCE7)
                                 : (isCurrentExpanded
-                                      ? const Color(0xFFEFF6FF)
+                                      ? const Color(0xFFECFDF5)
                                       : Colors.white),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: filled
                                   ? const Color(0xFF86EFAC)
                                   : (isCurrentExpanded
-                                        ? const Color(0xFF93C5FD)
+                                        ? const Color(0xFFA7F3D0)
                                         : const Color(0xFFCBD5E1)),
                             ),
                           ),
@@ -4175,7 +4171,7 @@ class _CustomerBookingState extends State<CustomerBooking> {
                                 color: filled
                                     ? const Color(0xFF16A34A)
                                     : (isCurrentExpanded
-                                          ? const Color(0xFF2563EB)
+                                          ? const Color(0xFF059669)
                                           : const Color(0xFF64748B)),
                               ),
                               const SizedBox(width: 4),
@@ -4187,7 +4183,7 @@ class _CustomerBookingState extends State<CustomerBooking> {
                                   color: filled
                                       ? const Color(0xFF15803D)
                                       : (isCurrentExpanded
-                                            ? const Color(0xFF1D4ED8)
+                                            ? const Color(0xFF047857)
                                             : const Color(0xFF475569)),
                                 ),
                               ),
@@ -4370,7 +4366,7 @@ class _CustomerBookingState extends State<CustomerBooking> {
                                                     vertical: 2,
                                                   ),
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFFEFF6FF),
+                                                color: const Color(0xFFECFDF5),
                                                 borderRadius:
                                                     BorderRadius.circular(10),
                                               ),
@@ -4379,7 +4375,7 @@ class _CustomerBookingState extends State<CustomerBooking> {
                                                 style: TextStyle(
                                                   fontSize: 10.5,
                                                   fontWeight: FontWeight.w700,
-                                                  color: Color(0xFF2563EB),
+                                                  color: Color(0xFF059669),
                                                 ),
                                               ),
                                             )
@@ -5527,9 +5523,9 @@ class _CustomerBookingState extends State<CustomerBooking> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
+                      color: const Color(0xFFECFDF5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                      border: Border.all(color: const Color(0xFFA7F3D0)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -5539,7 +5535,7 @@ class _CustomerBookingState extends State<CustomerBooking> {
                             const Icon(
                               Icons.access_time_rounded,
                               size: 16,
-                              color: Color(0xFF2563EB),
+                              color: Color(0xFF059669),
                             ),
                             const SizedBox(width: 6),
                             Expanded(
@@ -5548,7 +5544,7 @@ class _CustomerBookingState extends State<CustomerBooking> {
                                 style: const TextStyle(
                                   fontSize: 11.5,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF1D4ED8),
+                                  color: Color(0xFF047857),
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -5563,7 +5559,7 @@ class _CustomerBookingState extends State<CustomerBooking> {
                           style: const TextStyle(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF1E3A8A),
+                            color: Color(0xFF064E3B),
                           ),
                         ),
                       ],
@@ -5881,6 +5877,13 @@ class _CustomerBookingState extends State<CustomerBooking> {
                     ],
                   ),
                   const SizedBox(height: 10),
+                  Text(
+                    'Báo giá còn hiệu lực đến ${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(quote!.expiresAt.toLocal()), alwaysUse24HourFormat: true)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF475569),
+                    ),
+                  ),
                 ],
               ),
             ),

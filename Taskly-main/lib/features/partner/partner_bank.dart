@@ -208,7 +208,7 @@ class _PartnerBankState extends State<PartnerBank> {
           ),
           FilledButton(
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF059669),
+              backgroundColor: const Color(0xFF2563EB),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -251,7 +251,7 @@ class _PartnerBankState extends State<PartnerBank> {
           content: Text(
             'Liên kết ngân hàng thành công! Tài khoản đã được khóa bảo mật.',
           ),
-          backgroundColor: Color(0xFF059669),
+          backgroundColor: Color(0xFF2563EB),
         ),
       );
     } catch (e) {
@@ -368,12 +368,12 @@ class _PartnerBankState extends State<PartnerBank> {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF0FDF4),
+                    color: const Color(0xFFEFF6FF),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.email_outlined,
-                    color: Color(0xFF16A34A),
+                    color: Color(0xFF2563EB),
                   ),
                 ),
                 title: const Text(
@@ -467,21 +467,21 @@ class _PartnerBankState extends State<PartnerBank> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFFF0FDF4),
+            color: const Color(0xFFEFF6FF),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFBBF7D0)),
+            border: Border.all(color: const Color(0xFFBFDBFE)),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
+                  color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.verified_rounded,
-                  color: Color(0xFF16A34A),
+                  color: Color(0xFF2563EB),
                   size: 22,
                 ),
               ),
@@ -495,7 +495,7 @@ class _PartnerBankState extends State<PartnerBank> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF166534),
+                        color: Color(0xFF1E40AF),
                       ),
                     ),
                     SizedBox(height: 2),
@@ -503,7 +503,7 @@ class _PartnerBankState extends State<PartnerBank> {
                       'Thu nhập nhận việc & thưởng sẽ tự động chuyển về đây.',
                       style: TextStyle(
                         fontSize: 11.5,
-                        color: Color(0xFF15803D),
+                        color: Color(0xFF1D4ED8),
                       ),
                     ),
                   ],
@@ -608,7 +608,7 @@ class _PartnerBankState extends State<PartnerBank> {
                             child: Icon(
                               Icons.copy_rounded,
                               size: 15,
-                              color: Color(0xFF0F9D7A),
+                              color: Color(0xFF2563EB),
                             ),
                           ),
                         ),
@@ -646,9 +646,9 @@ class _PartnerBankState extends State<PartnerBank> {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFDCFCE7),
+                      color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFF86EFAC)),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
@@ -656,7 +656,7 @@ class _PartnerBankState extends State<PartnerBank> {
                         Icon(
                           Icons.lock_rounded,
                           size: 11,
-                          color: Color(0xFF16A34A),
+                          color: Color(0xFF2563EB),
                         ),
                         SizedBox(width: 4),
                         Text(
@@ -664,7 +664,7 @@ class _PartnerBankState extends State<PartnerBank> {
                           style: TextStyle(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF15803D),
+                            color: Color(0xFF1D4ED8),
                           ),
                         ),
                       ],
@@ -1133,21 +1133,21 @@ class _PartnerBankState extends State<PartnerBank> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
+              color: const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFBBF7D0)),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
             ),
             child: const Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.shield_outlined, color: Color(0xFF16A34A), size: 18),
+                Icon(Icons.shield_outlined, color: Color(0xFF2563EB), size: 18),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Bảo mật an toàn: TaskLy chỉ lưu số tài khoản để chuyển thu nhập cho Đối tác. Tuyệt đối KHÔNG yêu cầu mã PIN, mật khẩu ngân hàng hoặc mã OTP.',
                     style: TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF166534),
+                      color: Color(0xFF1E40AF),
                       height: 1.35,
                     ),
                   ),
@@ -1173,7 +1173,7 @@ class _PartnerBankState extends State<PartnerBank> {
           FilledButton(
             onPressed: _saving ? null : _save,
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF059669),
+              backgroundColor: const Color(0xFF2563EB),
               padding: const EdgeInsets.symmetric(vertical: 15),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

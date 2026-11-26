@@ -80,7 +80,7 @@ class Panel extends StatelessWidget {
         boxShadow: isWhite
             ? const [
                 BoxShadow(
-                  color: Color(0x0A1E40AF),
+                  color: Color(0x0A0F172A),
                   blurRadius: 16,
                   offset: Offset(0, 4),
                 ),

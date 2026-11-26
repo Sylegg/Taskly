@@ -254,7 +254,7 @@ class _PartnerUniformShopState extends State<PartnerUniformShop> {
                       decoration: BoxDecoration(
                         color: isItem
                             ? const Color(0xFFF59E0B)
-                            : const Color(0xFF10B981),
+                            : const Color(0xFF2563EB),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -285,7 +285,7 @@ class _PartnerUniformShopState extends State<PartnerUniformShop> {
                             Text(
                               formatVnd(price),
                               style: const TextStyle(
-                                color: Color(0xFF34D399),
+                                color: Color(0xFF38BDF8),
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -392,7 +392,7 @@ class _PartnerUniformShopState extends State<PartnerUniformShop> {
                   ),
                 ],
               ),
-              backgroundColor: Color(0xFF10B981),
+              backgroundColor: Color(0xFF2563EB),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -884,7 +884,7 @@ class _PartnerUniformShopState extends State<PartnerUniformShop> {
                                                             0xFFFFFBEB,
                                                           )
                                                         : const Color(
-                                                            0xFFF0FDF4,
+                                                            0xFFEFF6FF,
                                                           ),
                                                     borderRadius:
                                                         BorderRadius.circular(
@@ -896,7 +896,7 @@ class _PartnerUniformShopState extends State<PartnerUniformShop> {
                                                               0xFFFDE68A,
                                                             )
                                                           : const Color(
-                                                              0xFFBBF7D0,
+                                                              0xFFBFDBFE,
                                                             ),
                                                     ),
                                                   ),
@@ -910,7 +910,7 @@ class _PartnerUniformShopState extends State<PartnerUniformShop> {
                                                               0xFFB45309,
                                                             )
                                                           : const Color(
-                                                              0xFF15803D,
+                                                              0xFF1D4ED8,
                                                             ),
                                                       fontSize: 10,
                                                       fontWeight:
@@ -976,7 +976,7 @@ class _PartnerUniformShopState extends State<PartnerUniformShop> {
                                               style: const TextStyle(
                                                 fontSize: 15,
                                                 fontWeight: FontWeight.w800,
-                                                color: Color(0xFF0B926B),
+                                                color: Color(0xFF1D4ED8),
                                               ),
                                             ),
                                           ],
@@ -1104,7 +1104,7 @@ class _PartnerUniformShopState extends State<PartnerUniformShop> {
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: isItem
                                               ? const Color(0xFFF59E0B)
-                                              : const Color(0xFF10B981),
+                                              : const Color(0xFF2563EB),
                                           foregroundColor: Colors.white,
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 16,
@@ -1382,7 +1382,7 @@ class _PurchaseModalState extends State<_PurchaseModal> {
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF0B926B),
+                            color: Color(0xFF1D4ED8),
                           ),
                         ),
                       ],
@@ -1457,7 +1457,7 @@ class _PurchaseModalState extends State<_PurchaseModal> {
                                 const Text(
                                   '• ',
                                   style: TextStyle(
-                                    color: Color(0xFF0B926B),
+                                    color: Color(0xFF1D4ED8),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -1686,11 +1686,11 @@ class _PurchaseModalState extends State<_PurchaseModal> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFF0FDF4) : Colors.white,
+          color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF10B981)
+                ? const Color(0xFF2563EB)
                 : const Color(0xFFE2E8F0),
             width: isSelected ? 1.5 : 1,
           ),
@@ -1702,7 +1702,7 @@ class _PurchaseModalState extends State<_PurchaseModal> {
                   ? Icons.radio_button_checked_rounded
                   : Icons.radio_button_off_rounded,
               color: isSelected
-                  ? const Color(0xFF10B981)
+                  ? const Color(0xFF2563EB)
                   : const Color(0xFF94A3B8),
               size: 20,
             ),
@@ -1717,7 +1717,7 @@ class _PurchaseModalState extends State<_PurchaseModal> {
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: isSelected
-                          ? const Color(0xFF065F46)
+                          ? const Color(0xFF1E40AF)
                           : const Color(0xFF1E293B),
                     ),
                   ),
@@ -1958,7 +1958,7 @@ class _OrderHistoryModalState extends State<_OrderHistoryModal> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: isHandedOver
-                                        ? const Color(0xFFD1FAE5)
+                                        ? const Color(0xFFDBEAFE)
                                         : isCancelled
                                         ? const Color(0xFFFEE2E2)
                                         : const Color(0xFFFEF3C7),
@@ -1974,7 +1974,7 @@ class _OrderHistoryModalState extends State<_OrderHistoryModal> {
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
                                       color: isHandedOver
-                                          ? const Color(0xFF047857)
+                                          ? const Color(0xFF1E40AF)
                                           : isCancelled
                                           ? const Color(0xFFB91C1C)
                                           : const Color(0xFFB45309),
@@ -1999,7 +1999,7 @@ class _OrderHistoryModalState extends State<_OrderHistoryModal> {
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF0B926B),
+                                    color: Color(0xFF1D4ED8),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -2008,7 +2008,7 @@ class _OrderHistoryModalState extends State<_OrderHistoryModal> {
                                   style: TextStyle(
                                     fontSize: 11.5,
                                     color: isPaid
-                                        ? const Color(0xFF047857)
+                                        ? const Color(0xFF1E40AF)
                                         : const Color(0xFFD97706),
                                   ),
                                 ),

@@ -232,7 +232,7 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
     if (lower.contains('trên đường') || lower.contains('di chuyển')) {
       return (
         icon: Icons.two_wheeler_rounded,
-        bgColor: const Color(0xFFECFDF5),
+        bgColor: const Color(0xFFEFF6FF),
         iconColor: const Color(0xFF0D9488),
         categoryLabel: 'Đang đến',
       );
@@ -256,8 +256,8 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
     if (lower.contains('hoàn thành') || lower.contains('hoàn tất')) {
       return (
         icon: Icons.task_alt_rounded,
-        bgColor: const Color(0xFFECFDF5),
-        iconColor: const Color(0xFF059669),
+        bgColor: const Color(0xFFEFF6FF),
+        iconColor: const Color(0xFF2563EB),
         categoryLabel: 'Hoàn tất',
       );
     }
@@ -290,8 +290,8 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
     }
     return (
       icon: Icons.receipt_long_rounded,
-      bgColor: const Color(0xFFECFDF5),
-      iconColor: const Color(0xFF059669),
+      bgColor: const Color(0xFFEFF6FF),
+      iconColor: const Color(0xFF2563EB),
       categoryLabel: 'Thông báo',
     );
   }
@@ -376,10 +376,10 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
       body: SafeArea(
         child: _loading
             ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF059669)),
+                child: CircularProgressIndicator(color: Color(0xFF2563EB)),
               )
             : RefreshIndicator(
-                color: const Color(0xFF059669),
+                color: const Color(0xFF2563EB),
                 onRefresh: _handleRefresh,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -407,10 +407,10 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFECFDF5),
+                                color: const Color(0xFFEFF6FF),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: const Color(0xFFA7F3D0),
+                                  color: const Color(0xFFBFDBFE),
                                 ),
                               ),
                               child: Text(
@@ -418,7 +418,7 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
                                 style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF059669),
+                                  color: Color(0xFF2563EB),
                                 ),
                               ),
                             ),
@@ -437,7 +437,7 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
                               icon: const Icon(
                                 Icons.done_all_rounded,
                                 size: 20,
-                                color: Color(0xFF059669),
+                                color: Color(0xFF2563EB),
                               ),
                             ),
                           IconButton(
@@ -455,7 +455,7 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
                                     height: 14,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Color(0xFF059669),
+                                      color: Color(0xFF2563EB),
                                     ),
                                   )
                                 : const Icon(
@@ -585,7 +585,7 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
                                   ),
                                   label: const Text('Xem danh sách công việc'),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF059669),
+                                    backgroundColor: const Color(0xFF2563EB),
                                     foregroundColor: Colors.white,
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
@@ -635,7 +635,7 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                       color: isUnread
-                                          ? const Color(0xFFA7F3D0)
+                                          ? const Color(0xFFBFDBFE)
                                           : const Color(0xFFE2E8F0),
                                       width: isUnread ? 1.4 : 1,
                                     ),
@@ -730,7 +730,7 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
                                                     decoration:
                                                         const BoxDecoration(
                                                           color: Color(
-                                                            0xFF059669,
+                                                            0xFF2563EB,
                                                           ),
                                                           shape:
                                                               BoxShape.circle,
@@ -811,7 +811,7 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
                                                           fontWeight:
                                                               FontWeight.w600,
                                                           color: Color(
-                                                            0xFF059669,
+                                                            0xFF2563EB,
                                                           ),
                                                         ),
                                                       ),
@@ -820,7 +820,7 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
                                                             .chevron_right_rounded,
                                                         size: 15,
                                                         color: Color(
-                                                          0xFF059669,
+                                                          0xFF2563EB,
                                                         ),
                                                       ),
                                                     ],
@@ -860,7 +860,7 @@ class _PartnerNotificationPageState extends State<PartnerNotificationPage> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
           color:
-              isSelected ? const Color(0xFF059669) : const Color(0xFFF1F5F9),
+              isSelected ? const Color(0xFF2563EB) : const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(

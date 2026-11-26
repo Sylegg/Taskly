@@ -58,7 +58,7 @@ void main() {
         addressId: 'address-1',
         scheduledAt: DateTime.now().add(const Duration(days: 1)),
       ).toJson();
-      bool failSave = false;
+      final checkoutRequests = <Map<String, dynamic>>[];
       final session = Session(
         api: Api(
           base: 'http://localhost/api/v1',
@@ -76,26 +76,30 @@ void main() {
               ];
             } else if (request.url.path.endsWith('/booking-quotes')) {
               expect(jsonDecode(request.body)['details']['area'], '75');
-              data = {'id': 'quote-1', 'subtotal': 110000, 'platformFee': 5000,
-                'total': 110000, 'currency': 'VND',
-                'expiresAt': DateTime.now().add(const Duration(minutes: 5)).toUtc().toIso8601String()};
+              data = {
+                'id': 'quote-1',
+                'subtotal': 110000,
+                'platformFee': 5000,
+                'total': 110000,
+                'currency': 'VND',
+                'expiresAt': DateTime.now()
+                    .add(const Duration(minutes: 5))
+                    .toUtc()
+                    .toIso8601String(),
+              };
+            } else if (request.url.path.endsWith('/work-areas')) {
+              data = [
+                {'city': 'HCM', 'recruiting': true},
+              ];
+            } else if (request.url.path.endsWith('/refund-balance')) {
+              data = {'amount': 30000};
+            } else if (request.url.path.endsWith('/booking-checkout')) {
+              checkoutRequests.add(
+                Map<String, dynamic>.from(jsonDecode(request.body)),
+              );
+              data = {'id': 'task-1', 'status': 'POSTED'};
             } else if (request.url.path.endsWith('/booking-draft')) {
               if (request.method == 'PUT') {
-                if (failSave) {
-                  return http.Response(
-                    jsonEncode({
-                      'success': false,
-                      'error': {
-                        'code': 'UNAVAILABLE',
-                        'message': 'Không thể lưu lúc này',
-                      },
-                    }),
-                    503,
-                    headers: {
-                      'content-type': 'application/json; charset=utf-8',
-                    },
-                  );
-                }
                 stored = Map<String, dynamic>.from(jsonDecode(request.body));
               }
               data = stored;
@@ -125,7 +129,17 @@ void main() {
         ),
       ];
       repo.store.addresses = [
-        const Address('address-1', 'Nhà', '123 Nguyễn Huệ', 'Bấm chuông', city: 'HCM', buildingType: 'Nhà riêng', buildingDescription: 'Tầng 1', contactName: 'Customer', contactPhone: '0901234567'),
+        const Address(
+          'address-1',
+          'Nhà',
+          '123 Nguyễn Huệ',
+          'Bấm chuông',
+          city: 'HCM',
+          buildingType: 'Nhà riêng',
+          buildingDescription: 'Tầng 1',
+          contactName: 'Customer',
+          contactPhone: '0901234567',
+        ),
       ];
       final c = CustomerController(repo)..data = repo.store.snapshot();
       c.draft = TaskDraft(
@@ -158,21 +172,45 @@ void main() {
       expect(find.text('Lưu bản nháp'), findsNothing);
       for (var i = 0; i < 3; i++) {
         await tester.ensureVisible(find.text('Tiếp tục'));
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
         await tester.ensureVisible(find.text('Tiếp tục'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Tiếp tục'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Tiếp tục'));
         await tester.pumpAndSettle();
       }
       await tester.ensureVisible(find.text('Lấy báo giá'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Lấy báo giá'));
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(find.text('110.000đ').last, -100,
-        scrollable: find.byType(Scrollable).first);
+      await tester.scrollUntilVisible(
+        find.text('110.000đ').last,
+        -100,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('110.000đ'), findsNWidgets(2));
       expect(find.textContaining('Phí nền tảng'), findsNothing);
       expect(find.textContaining('Báo giá còn hiệu lực'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Xác nhận giá'),
+        160,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Xác nhận giá'));
+      await tester.pumpAndSettle();
+      final useBalance = find.text('Sử dụng số dư tài khoản');
+      await tester.ensureVisible(useBalance);
+      await tester.tap(useBalance);
+      await tester.pumpAndSettle();
+      expect(find.text('Còn phải trả: 80000 đ'), findsOneWidget);
+      final confirmCheckout = find.text('Xác nhận và tìm Partner');
+      await tester.ensureVisible(confirmCheckout);
+      await tester.tap(confirmCheckout);
+      await tester.pumpAndSettle();
+      expect(checkoutRequests, [
+        {'quoteId': 'quote-1', 'method': 'CASH', 'balanceAmount': 30000},
+      ]);
+      expect(c.route.page, PageId.tasks);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
       c.dispose();
@@ -181,128 +219,127 @@ void main() {
     },
   );
 
-  testWidgets(
-    'Customer can select up to 3 services with limit enforcement',
-    (tester) async {
-      final session = Session(
-        api: Api(
-          base: 'http://localhost/api/v1',
-          client: MockClient((request) async {
-            dynamic data;
-            if (request.url.path.endsWith('/booking-schemas')) {
-              data = [
-                {
-                  'key': 'clean',
-                  'version': 1,
-                  'serviceSlugs': ['clean', 'ac', 'sofa', 'fridge'],
-                  'fields': [],
-                },
-              ];
-            } else if (request.url.path.endsWith('/booking-draft')) {
-              data = null;
-            }
-            return http.Response(
-              jsonEncode({'success': true, 'data': data}),
-              200,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            );
-          }),
-        ),
-      );
-      session.access = 'access';
-      session.expires = DateTime.now().add(const Duration(hours: 1));
-      final repo = ApiCustomerRepository(session);
-      repo.store.catalogueOverride = [
-        const Service(
-          's-1',
-          'Dọn nhà theo giờ',
-          'Quét lau sàn',
-          'clean',
-          100000,
-          '',
-          [],
-          slug: 'clean',
-        ),
-        const Service(
-          's-2',
-          'Vệ sinh sofa tại nhà',
-          'Hút bụi sofa',
-          'sofa',
-          150000,
-          '',
-          [],
-          slug: 'sofa',
-        ),
-        const Service(
-          's-3',
-          'Vệ sinh máy lạnh',
-          'Vệ sinh lưới lọc',
-          'ac',
-          200000,
-          '',
-          [],
-          slug: 'ac',
-        ),
-        const Service(
-          's-4',
-          'Kiểm tra tủ lạnh',
-          'Kiểm tra làm lạnh',
-          'fridge',
-          120000,
-          '',
-          [],
-          slug: 'fridge',
-        ),
-      ];
-      final c = CustomerController(repo)..data = repo.store.snapshot();
-      c.open(PageId.create);
+  testWidgets('Customer can select up to 3 services with limit enforcement', (
+    tester,
+  ) async {
+    final session = Session(
+      api: Api(
+        base: 'http://localhost/api/v1',
+        client: MockClient((request) async {
+          dynamic data;
+          if (request.url.path.endsWith('/booking-schemas')) {
+            data = [
+              {
+                'key': 'clean',
+                'version': 1,
+                'serviceSlugs': ['clean', 'ac', 'sofa', 'fridge'],
+                'fields': [],
+              },
+            ];
+          } else if (request.url.path.endsWith('/booking-draft')) {
+            data = null;
+          }
+          return http.Response(
+            jsonEncode({'success': true, 'data': data}),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }),
+      ),
+    );
+    session.access = 'access';
+    session.expires = DateTime.now().add(const Duration(hours: 1));
+    final repo = ApiCustomerRepository(session);
+    repo.store.catalogueOverride = [
+      const Service(
+        's-1',
+        'Dọn nhà theo giờ',
+        'Quét lau sàn',
+        'clean',
+        100000,
+        '',
+        [],
+        slug: 'clean',
+      ),
+      const Service(
+        's-2',
+        'Vệ sinh sofa tại nhà',
+        'Hút bụi sofa',
+        'sofa',
+        150000,
+        '',
+        [],
+        slug: 'sofa',
+      ),
+      const Service(
+        's-3',
+        'Vệ sinh máy lạnh',
+        'Vệ sinh lưới lọc',
+        'ac',
+        200000,
+        '',
+        [],
+        slug: 'ac',
+      ),
+      const Service(
+        's-4',
+        'Kiểm tra tủ lạnh',
+        'Kiểm tra làm lạnh',
+        'fridge',
+        120000,
+        '',
+        [],
+        slug: 'fridge',
+      ),
+    ];
+    final c = CustomerController(repo)..data = repo.store.snapshot();
+    c.open(PageId.create);
 
-      tester.view.physicalSize = const Size(375, 1400);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.physicalSize = const Size(375, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light,
-          home: CustomerBooking(controller: c),
-        ),
-      );
-      await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: CustomerBooking(controller: c),
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      // Select service 1
-      await tester.tap(find.text('Dọn nhà theo giờ'));
-      await tester.pumpAndSettle();
-      expect(find.text('Đã chọn 1/3 dịch vụ'), findsOneWidget);
+    // Select service 1
+    await tester.tap(find.text('Dọn nhà theo giờ'));
+    await tester.pumpAndSettle();
+    expect(find.text('Đã chọn 1/3 dịch vụ'), findsOneWidget);
 
-      // Select service 2
-      await tester.tap(find.text('Vệ sinh sofa tại nhà'));
-      await tester.pumpAndSettle();
-      expect(find.text('Đã chọn 2/3 dịch vụ'), findsOneWidget);
+    // Select service 2
+    await tester.tap(find.text('Vệ sinh sofa tại nhà'));
+    await tester.pumpAndSettle();
+    expect(find.text('Đã chọn 2/3 dịch vụ'), findsOneWidget);
 
-      // Select service 3
-      await tester.tap(find.text('Vệ sinh máy lạnh'));
-      await tester.pumpAndSettle();
-      expect(find.text('Đã chọn 3/3 dịch vụ'), findsOneWidget);
-      expect(find.text('Đạt tối đa 3/3'), findsOneWidget);
+    // Select service 3
+    await tester.tap(find.text('Vệ sinh máy lạnh'));
+    await tester.pumpAndSettle();
+    expect(find.text('Đã chọn 3/3 dịch vụ'), findsOneWidget);
+    expect(find.text('Đạt tối đa 3/3'), findsOneWidget);
 
-      // Try selecting 4th service -> blocked, shows snackbar
-      await tester.tap(find.text('Kiểm tra tủ lạnh'));
-      await tester.pumpAndSettle();
-      expect(find.textContaining('chọn tối đa 3 dịch vụ'), findsOneWidget);
-      expect(find.text('Đã chọn 3/3 dịch vụ'), findsOneWidget);
+    // Try selecting 4th service -> blocked, shows snackbar
+    await tester.tap(find.text('Kiểm tra tủ lạnh'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('chọn tối đa 3 dịch vụ'), findsOneWidget);
+    expect(find.text('Đã chọn 3/3 dịch vụ'), findsOneWidget);
 
-      // Deselect service 2 -> now 2/3
-      await tester.tap(find.text('Vệ sinh sofa tại nhà').last);
-      await tester.pumpAndSettle();
-      expect(find.text('Đã chọn 2/3 dịch vụ'), findsOneWidget);
+    // Deselect service 2 -> now 2/3
+    await tester.tap(find.text('Vệ sinh sofa tại nhà').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Đã chọn 2/3 dịch vụ'), findsOneWidget);
 
-      await tester.pumpWidget(const SizedBox());
-      c.dispose();
-      repo.store.dispose();
-      session.dispose();
-    },
-  );
+    await tester.pumpWidget(const SizedBox());
+    c.dispose();
+    repo.store.dispose();
+    session.dispose();
+  });
 
   testWidgets(
     'Step 2 renders collapsible accordion boxes for 2+ services and reveals form on tap',
@@ -360,8 +397,26 @@ void main() {
       session.expires = DateTime.now().add(const Duration(hours: 1));
       final repo = ApiCustomerRepository(session);
       repo.store.catalogueOverride = [
-        const Service('s-1', 'Dọn nhà theo giờ', 'Quét lau sàn', 'clean', 100000, '', [], slug: 'clean'),
-        const Service('s-2', 'Vệ sinh sofa tại nhà', 'Hút bụi sofa', 'sofa', 150000, '', [], slug: 'sofa'),
+        const Service(
+          's-1',
+          'Dọn nhà theo giờ',
+          'Quét lau sàn',
+          'clean',
+          100000,
+          '',
+          [],
+          slug: 'clean',
+        ),
+        const Service(
+          's-2',
+          'Vệ sinh sofa tại nhà',
+          'Hút bụi sofa',
+          'sofa',
+          150000,
+          '',
+          [],
+          slug: 'sofa',
+        ),
       ];
       final c = CustomerController(repo)..data = repo.store.snapshot();
       c.open(PageId.create);
@@ -413,7 +468,13 @@ void main() {
 
       // Enter value into box 1
       await tester.enterText(find.byType(TextFormField).first, '80');
-      await tester.enterText(find.widgetWithText(TextFormField, 'Mô tả bổ sung cho Dọn nhà theo giờ'), 'Dọn kỹ phòng khách');
+      await tester.enterText(
+        find.widgetWithText(
+          TextFormField,
+          'Mô tả bổ sung cho Dọn nhà theo giờ',
+        ),
+        'Dọn kỹ phòng khách',
+      );
       await tester.pumpAndSettle();
       expect(find.text('Đã điền'), findsWidgets);
 
@@ -423,10 +484,19 @@ void main() {
 
       // Box 2 fields are now visible!
       expect(find.text('Số bộ sofa'), findsOneWidget);
-      expect(find.text('Mô tả bổ sung cho Vệ sinh sofa tại nhà'), findsOneWidget);
+      expect(
+        find.text('Mô tả bổ sung cho Vệ sinh sofa tại nhà'),
+        findsOneWidget,
+      );
 
       // Enter description for service 2
-      await tester.enterText(find.widgetWithText(TextFormField, 'Mô tả bổ sung cho Vệ sinh sofa tại nhà'), 'Sofa nỉ màu xám');
+      await tester.enterText(
+        find.widgetWithText(
+          TextFormField,
+          'Mô tả bổ sung cho Vệ sinh sofa tại nhà',
+        ),
+        'Sofa nỉ màu xám',
+      );
       await tester.pumpAndSettle();
 
       // Tap box 1 again to collapse it
@@ -437,7 +507,10 @@ void main() {
 
       // Box 2 is still visible with its own description
       expect(find.text('Số bộ sofa'), findsOneWidget);
-      expect(find.text('Mô tả bổ sung cho Vệ sinh sofa tại nhà'), findsOneWidget);
+      expect(
+        find.text('Mô tả bổ sung cho Vệ sinh sofa tại nhà'),
+        findsOneWidget,
+      );
       expect(find.text('Sofa nỉ màu xám'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());
@@ -479,7 +552,16 @@ void main() {
       session.expires = DateTime.now().add(const Duration(hours: 1));
       final repo = ApiCustomerRepository(session);
       repo.store.catalogueOverride = [
-        const Service('s-1', 'Dọn nhà theo giờ', 'Quét lau sàn', 'clean', 100000, '', [], slug: 'clean'),
+        const Service(
+          's-1',
+          'Dọn nhà theo giờ',
+          'Quét lau sàn',
+          'clean',
+          100000,
+          '',
+          [],
+          slug: 'clean',
+        ),
       ];
       repo.store.addresses = [
         const Address('a-1', 'Nhà riêng', '123 Nguyễn Trãi', ''),
@@ -546,11 +628,15 @@ void main() {
       final today = DateTime(now.year, now.month, now.day);
       await tester.tap(find.text('Ngày thực hiện'));
       await tester.pumpAndSettle();
-      final dateDialog = tester.widget<DatePickerDialog>(find.byType(DatePickerDialog));
+      final dateDialog = tester.widget<DatePickerDialog>(
+        find.byType(DatePickerDialog),
+      );
       expect(dateDialog.firstDate, today);
       Navigator.of(tester.element(find.byType(DatePickerDialog))).pop(today);
       await tester.pumpAndSettle();
-      final selectors = tester.widgetList<DropdownButton<int>>(find.byType(DropdownButton<int>)).toList();
+      final selectors = tester
+          .widgetList<DropdownButton<int>>(find.byType(DropdownButton<int>))
+          .toList();
       final minimum = now.add(const Duration(minutes: 1));
       for (final item in selectors[0].items!) {
         expect(item.value! >= now.hour, isTrue);
@@ -561,18 +647,36 @@ void main() {
           expect(item.value! >= now.minute, isTrue);
         }
       }
-      for (final preset in ['08:00', '09:00', '10:30', '13:30', '14:00', '15:30', '17:00', '18:00']) {
+      for (final preset in [
+        '08:00',
+        '09:00',
+        '10:30',
+        '13:30',
+        '14:00',
+        '15:30',
+        '17:00',
+        '18:00',
+      ]) {
         final parts = preset.split(':');
-        final time = DateTime(today.year, today.month, today.day, int.parse(parts[0]), int.parse(parts[1]));
+        final time = DateTime(
+          today.year,
+          today.month,
+          today.day,
+          int.parse(parts[0]),
+          int.parse(parts[1]),
+        );
         if (time.isBefore(now)) {
           expect(find.text(preset), findsNothing);
         }
       }
       await tester.tap(find.text('Ngày thực hiện'));
       await tester.pumpAndSettle();
-      Navigator.of(tester.element(find.byType(DatePickerDialog))).pop(today.add(const Duration(days: 1)));
+      Navigator.of(tester.element(find.byType(DatePickerDialog)))
+          .pop(today.add(const Duration(days: 1)));
       await tester.pumpAndSettle();
-      for (final selector in tester.widgetList<DropdownButton<int>>(find.byType(DropdownButton<int>))) {
+      for (final selector in tester.widgetList<DropdownButton<int>>(
+        find.byType(DropdownButton<int>),
+      )) {
         expect(selector.items!.every((item) => item.enabled), isTrue);
       }
 
@@ -599,7 +703,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Địa chỉ'), findsWidgets);
       expect(find.textContaining('Vui lòng bổ sung:'), findsOneWidget);
-
 
       await tester.pumpWidget(const SizedBox());
       c.dispose();
@@ -640,7 +743,16 @@ void main() {
       session.expires = DateTime.now().add(const Duration(hours: 1));
       final repo = ApiCustomerRepository(session);
       repo.store.catalogueOverride = [
-        const Service('s-1', 'Dọn nhà theo giờ', 'Quét lau sàn', 'clean', 100000, '', [], slug: 'clean'),
+        const Service(
+          's-1',
+          'Dọn nhà theo giờ',
+          'Quét lau sàn',
+          'clean',
+          100000,
+          '',
+          [],
+          slug: 'clean',
+        ),
       ];
       repo.store.addresses = [
         const Address(
@@ -726,7 +838,10 @@ void main() {
       expect(find.textContaining('Người liên hệ: vu'), findsOneWidget);
       expect(find.textContaining('0909098678'), findsOneWidget);
       expect(find.textContaining('Mô tả vị trí: Tầng 5'), findsOneWidget);
-      expect(find.textContaining('Ghi chú cho Partner: Gọi trước khi đến'), findsOneWidget);
+      expect(
+        find.textContaining('Ghi chú cho Partner: Gọi trước khi đến'),
+        findsOneWidget,
+      );
       expect(find.text('Sửa địa chỉ'), findsOneWidget);
 
       // Tap top-corner "Đổi địa chỉ" button -> opens bottom sheet modal
@@ -775,6 +890,10 @@ void main() {
                   'fields': [],
                 },
               ];
+            } else if (request.url.path.endsWith('/work-areas')) {
+              data = [
+                {'city': 'TP. Hồ Chí Minh', 'recruiting': true},
+              ];
             } else if (request.url.path.endsWith('/booking-draft')) {
               data = {
                 'serviceId': 's-clean',
@@ -782,7 +901,10 @@ void main() {
                 'schemaKey': 'clean',
                 'details': {'area': '75'},
                 'addressId': 'addr-1',
-                'scheduledAt': DateTime.now().add(const Duration(days: 2)).toUtc().toIso8601String(),
+                'scheduledAt': DateTime.now()
+                    .add(const Duration(days: 2))
+                    .toUtc()
+                    .toIso8601String(),
                 'notes': 'Gọi trước 15p',
               };
             }

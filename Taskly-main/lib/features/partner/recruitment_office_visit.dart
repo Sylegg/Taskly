@@ -83,7 +83,7 @@ class _RecruitmentOfficeVisitState extends State<RecruitmentOfficeVisit> {
               ),
             ],
           ),
-          backgroundColor: Color(0xFF10B981),
+          backgroundColor: Color(0xFF2563EB),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -342,8 +342,8 @@ class _RecruitmentOfficeVisitState extends State<RecruitmentOfficeVisit> {
             title: 'Kiểm tra thông tin gói đồng phục',
             desc: 'Nhân viên sẽ đối chiếu số đo và bàn giao đúng gói trang bị đã đặt.',
             tag: 'Nhận tại quầy',
-            tagColor: const Color(0xFF059669),
-            tagBg: const Color(0xFFECFDF5),
+            tagColor: const Color(0xFF2563EB),
+            tagBg: const Color(0xFFEFF6FF),
           ),
         ],
       ),
@@ -535,21 +535,21 @@ class _RecruitmentOfficeVisitState extends State<RecruitmentOfficeVisit> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFECFDF5),
+                        color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                        border: Border.all(color: const Color(0xFFBFDBFE)),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.headset_mic_rounded, size: 12, color: Color(0xFF059669)),
+                          Icon(Icons.headset_mic_rounded, size: 12, color: Color(0xFF2563EB)),
                           SizedBox(width: 4),
                           Text(
                             'Hotline: 1900 6868',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF047857),
+                              color: Color(0xFF1D4ED8),
                             ),
                           ),
                         ],
@@ -709,7 +709,7 @@ class _RecruitmentOfficeVisitState extends State<RecruitmentOfficeVisit> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: saved ? const Color(0xFFA7F3D0) : const Color(0xFFE2E8F0),
+          color: saved ? const Color(0xFFBFDBFE) : const Color(0xFFE2E8F0),
           width: saved ? 1.5 : 1.0,
         ),
         boxShadow: const [
@@ -727,13 +727,13 @@ class _RecruitmentOfficeVisitState extends State<RecruitmentOfficeVisit> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFFECFDF5),
+                color: const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFA7F3D0)),
+                border: Border.all(color: const Color(0xFFBFDBFE)),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.check_circle_rounded, color: Color(0xFF059669), size: 20),
+                  Icon(Icons.check_circle_rounded, color: Color(0xFF2563EB), size: 20),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -741,7 +741,7 @@ class _RecruitmentOfficeVisitState extends State<RecruitmentOfficeVisit> {
                       style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF065F46),
+                        color: Color(0xFF1E40AF),
                         height: 1.35,
                       ),
                     ),

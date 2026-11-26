@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 import '../auth/api.dart';
 import 'task_chat.dart';
+import 'completion_review.dart';
+import 'partner/partner_payment_confirmation.dart';
 import 'service_unavailable.dart';
 import 'task_arrival_report.dart';
 
@@ -16,6 +18,8 @@ String activityStatus(String value) => switch (value) {
   'ARRIVED' => 'Tasker đã đến',
   'IN_PROGRESS' => 'Đang thực hiện',
   'COMPLETED' => 'Đã hoàn thành',
+  'AWAITING_CUSTOMER_CONFIRMATION' => 'Chờ bạn xác nhận',
+  'AWAITING_PARTNER_PAYMENT' => 'Chờ xác nhận nhận tiền',
   'PAID' => 'Đã thanh toán',
   'CANCELLED' => 'Đã hủy',
   'EXPIRED' => 'Đã hết hạn',
@@ -98,9 +102,9 @@ ActivityStatusConfig getStatusConfig(String status) {
     case 'POSTED':
       return const ActivityStatusConfig(
         label: 'Đã đặt dịch vụ',
-        foreground: Color(0xFF0369A1),
-        background: Color(0xFFF0F9FF),
-        border: Color(0xFFBAE6FD),
+        foreground: Color(0xFF059669),
+        background: Color(0xFFECFDF5),
+        border: Color(0xFFA7F3D0),
         icon: Icons.assignment_turned_in_outlined,
       );
     case 'MATCHING':
@@ -122,17 +126,17 @@ ActivityStatusConfig getStatusConfig(String status) {
     case 'TASKER_ON_THE_WAY':
       return const ActivityStatusConfig(
         label: 'Tasker đang đến',
-        foreground: Color(0xFF0284C7),
-        background: Color(0xFFF0F9FF),
-        border: Color(0xFFBAE6FD),
+        foreground: Color(0xFF0D9488),
+        background: Color(0xFFECFDF5),
+        border: Color(0xFFA7F3D0),
         icon: Icons.directions_bike_outlined,
       );
     case 'ARRIVED':
       return const ActivityStatusConfig(
         label: 'Tasker đã đến',
-        foreground: Color(0xFF4F46E5),
-        background: Color(0xFFEEF2FF),
-        border: Color(0xFFC7D2FE),
+        foreground: Color(0xFF059669),
+        background: Color(0xFFECFDF5),
+        border: Color(0xFFA7F3D0),
         icon: Icons.location_on_outlined,
       );
     case 'IN_PROGRESS':
@@ -142,6 +146,22 @@ ActivityStatusConfig getStatusConfig(String status) {
         background: Color(0xFFF0FDFA),
         border: Color(0xFF99F6E4),
         icon: Icons.handyman_outlined,
+      );
+    case 'AWAITING_PARTNER_PAYMENT':
+      return const ActivityStatusConfig(
+        label: 'Chờ nhận tiền',
+        foreground: Color(0xFF1D4ED8),
+        background: Color(0xFFEFF6FF),
+        border: Color(0xFF93C5FD),
+        icon: Icons.payments_outlined,
+      );
+    case 'AWAITING_CUSTOMER_CONFIRMATION':
+      return const ActivityStatusConfig(
+        label: 'Chờ bạn xác nhận',
+        foreground: Color(0xFF047857),
+        background: Color(0xFFECFDF5),
+        border: Color(0xFF34D399),
+        icon: Icons.notifications_active_outlined,
       );
     case 'COMPLETED':
       return const ActivityStatusConfig(
@@ -178,9 +198,9 @@ ActivityStatusConfig getStatusConfig(String status) {
     case 'REFUNDED':
       return const ActivityStatusConfig(
         label: 'Đã hoàn tiền',
-        foreground: Color(0xFF0284C7),
-        background: Color(0xFFF0F9FF),
-        border: Color(0xFFBAE6FD),
+        foreground: Color(0xFF0D9488),
+        background: Color(0xFFECFDF5),
+        border: Color(0xFFA7F3D0),
         icon: Icons.currency_exchange_rounded,
       );
     default:
@@ -192,6 +212,73 @@ ActivityStatusConfig getStatusConfig(String status) {
         icon: Icons.info_outline,
       );
   }
+}
+
+IconData resolveServiceIcon(String? name) {
+  if (name == null || name.isEmpty) return Icons.receipt_long_outlined;
+  final s = name.toLowerCase();
+  if (s.contains('lạnh') || s.contains('điều hòa') || s.contains('ac')) {
+    return Icons.ac_unit_rounded;
+  }
+  if (s.contains('ủi') || s.contains('quần áo') || s.contains('giặt')) {
+    return Icons.iron_rounded;
+  }
+  if (s.contains('vệ sinh') || s.contains('dọn') || s.contains('sạch')) {
+    return Icons.cleaning_services_rounded;
+  }
+  if (s.contains('điện') || s.contains('đèn')) {
+    return Icons.electric_bolt_rounded;
+  }
+  if (s.contains('nước') || s.contains('ống') || s.contains('rò')) {
+    return Icons.plumbing_rounded;
+  }
+  if (s.contains('khóa') || s.contains('cửa')) {
+    return Icons.lock_open_rounded;
+  }
+  if (s.contains('sơn') || s.contains('nhà')) {
+    return Icons.format_paint_rounded;
+  }
+  if (s.contains('bếp') || s.contains('nấu')) {
+    return Icons.soup_kitchen_rounded;
+  }
+  if (s.contains('xe') || s.contains('rửa')) {
+    return Icons.directions_car_rounded;
+  }
+  return Icons.home_repair_service_rounded;
+}
+
+Widget _buildCardStatusBadge(String status) {
+  final cfg = getStatusConfig(status);
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(
+      color: cfg.background,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: cfg.border, width: 1.2),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x180F172A),
+          blurRadius: 4,
+          offset: Offset(0, 1.5),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(cfg.icon, size: 12, color: cfg.foreground),
+        const SizedBox(width: 4),
+        Text(
+          cfg.label,
+          style: TextStyle(
+            color: cfg.foreground,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 Widget _buildStatusBadge(String status) {
@@ -208,12 +295,14 @@ Widget _buildStatusBadge(String status) {
       children: [
         Icon(cfg.icon, size: 14, color: cfg.foreground),
         const SizedBox(width: 5),
-        Text(
-          cfg.label,
-          style: TextStyle(
-            color: cfg.foreground,
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
+        Flexible(
+          child: Text(
+            cfg.label,
+            style: TextStyle(
+              color: cfg.foreground,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
@@ -275,9 +364,169 @@ class _TaskActivityListState extends State<TaskActivityList> {
   }
 
   late Future<dynamic> _items = _load();
-  Future<dynamic> _load() => widget.session.request(
-    widget.partner ? '/task-activity?partner=true' : '/task-activity',
+  Future<dynamic> _load() =>
+      widget.session.request('/task-activity?partner=${widget.partner}');
+  Future<void> _openTaskDetail(Map task) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TaskActivityDetail(
+          session: widget.session,
+          id: task['id'].toString(),
+          partner: widget.partner,
+        ),
+      ),
+    );
+    if (mounted) {
+      setState(() {
+        _items = _load();
+      });
+    }
+  }
+
+  Widget _detailButton(Map task) => IconButton(
+    key: ValueKey('task-detail-${task['id']}'),
+    tooltip: 'Xem chi tiết',
+    constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+    padding: const EdgeInsets.all(7),
+    style: IconButton.styleFrom(
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      foregroundColor: widget.partner
+          ? const Color(0xFF1E5BF8)
+          : const Color(0xFF059669),
+      backgroundColor: widget.partner
+          ? const Color(0xFFEFF6FF)
+          : const Color(0xFFECFDF5),
+      side: BorderSide(
+        color: widget.partner
+            ? const Color(0xFFBFDBFE)
+            : const Color(0xFFA7F3D0),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ),
+    onPressed: () => _openTaskDetail(task),
+    icon: const Icon(Icons.visibility_outlined, size: 18),
   );
+
+  Widget _chatButton(Map task) => IconButton(
+    tooltip: 'Nhắn tin',
+    constraints: const BoxConstraints.tightFor(width: 38, height: 38),
+    padding: const EdgeInsets.all(7),
+    style: IconButton.styleFrom(
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      foregroundColor: widget.partner
+          ? const Color(0xFF1E5BF8)
+          : const Color(0xFF059669),
+      backgroundColor: widget.partner
+          ? const Color(0xFFEFF6FF)
+          : const Color(0xFFECFDF5),
+      side: BorderSide(
+        color: widget.partner
+            ? const Color(0xFFBFDBFE)
+            : const Color(0xFFA7F3D0),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ),
+    onPressed: () async {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => TaskChatScreen(
+            session: widget.session,
+            taskId: task['id'],
+            partner: widget.partner,
+          ),
+        ),
+      );
+      if (mounted) {
+        setState(() {
+          _items = _load();
+        });
+      }
+    },
+    icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+  );
+
+  Widget _appointmentCard(Map task) {
+    final address = task['address']?.toString().trim() ?? '';
+    final scheduled = _parseDt(task['scheduledAt']);
+    final accent = widget.partner
+        ? const Color(0xFF2563EB)
+        : const Color(0xFF059669);
+    return Container(
+      key: ValueKey('activity-appointment-${task['id']}'),
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.calendar_month_outlined, size: 15, color: accent),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  scheduled == null
+                      ? 'Lịch hẹn chưa được cập nhật'
+                      : 'Lịch hẹn: ${_formatDateTime(task['scheduledAt'])}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    fontWeight: FontWeight.w600,
+                    color: accent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.location_on_outlined,
+                size: 15,
+                color: Color(0xFF64748B),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  address.isEmpty ? 'Chưa có địa chỉ thực hiện' : address,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _reviewCompletion(Map task) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CompletionReviewScreen(
+          session: widget.session,
+          taskId: task['id'].toString(),
+        ),
+      ),
+    );
+    if (mounted) {
+      setState(() {
+        _items = _load();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) => FutureBuilder(
     future: _items,
@@ -307,6 +556,12 @@ class _TaskActivityListState extends State<TaskActivityList> {
                 widget.filter?.call(Map<String, dynamic>.from(task)) ?? true,
           )
           .toList();
+      bool needsAttention(dynamic task) => widget.partner
+          ? needsPartnerPaymentConfirmation(task)
+          : needsCustomerConfirmation(task);
+      final pending = items.where(needsAttention).toList();
+      items.removeWhere(needsAttention);
+      items.insertAll(0, pending);
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -364,228 +619,289 @@ class _TaskActivityListState extends State<TaskActivityList> {
                   ),
                 ),
           for (final task in items)
-            Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-                side: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              color: Colors.white,
-              margin: const EdgeInsets.only(bottom: 12),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(18),
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => TaskActivityDetail(
-                        session: widget.session,
-                        id: task['id'],
-                        partner: widget.partner,
-                      ),
-                    ),
-                  );
-                  if (mounted)
-                    setState(() {
-                      _items = _load();
-                    });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            Builder(
+              builder: (context) {
+                final counterpartName = widget.partner
+                    ? (task['customerName']?.toString() ?? '')
+                    : (task['taskerName']?.toString() ?? '');
+                final status =
+                    !widget.partner && needsCustomerConfirmation(task)
+                    ? 'AWAITING_CUSTOMER_CONFIRMATION'
+                    : widget.partner && needsPartnerPaymentConfirmation(task)
+                    ? 'AWAITING_PARTNER_PAYMENT'
+                    : task['status'] ?? '';
+
+                return Container(
+                  margin: const EdgeInsets.only(top: 8, bottom: 12),
+                  child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: widget.partner
-                                  ? const Color(0xFFEFF6FF)
-                                  : const Color(0xFFECFDF5),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: widget.partner
-                                    ? const Color(0xFFBFDBFE)
-                                    : const Color(0xFFA7F3D0),
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.receipt_long_outlined,
-                              color: widget.partner
-                                  ? const Color(0xFF1E5BF8)
-                                  : const Color(0xFF059669),
-                              size: 19,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  task['serviceName'] ?? 'Dịch vụ',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 15,
-                                    color: Color(0xFF0F172A),
-                                  ),
-                                ),
-                                if (task['scheduledAt'] != null)
-                                  Text(
-                                    'Hẹn: ${_formatDateTime(task['scheduledAt'])}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF64748B),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          _buildStatusBadge(task['status'] ?? ''),
-                        ],
-                      ),
-                      if (!widget.partner &&
-                          [
-                            'POSTED',
-                            'MATCHING',
-                            'TASKER_ON_THE_WAY',
-                          ].contains(task['status']))
-                        TaskArrivalReport(
-                          session: widget.session,
-                          taskId: task['id'].toString(),
-                          scheduledAt: task['scheduledAt']?.toString(),
-                          waitingForTasker: task['taskerId'] == null,
-                        ),
-                      const SizedBox(height: 12),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
+                        key: ValueKey('activity-card-${task['id']}'),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(
+                            widget.partner ? 16 : 22,
+                          ),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x08064E3B),
+                              blurRadius: 18,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
                         ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              task['taskerId'] == null
-                                  ? Icons.person_search_outlined
-                                  : Icons.person_outline_rounded,
-                              size: 16,
-                              color: const Color(0xFF64748B),
+                        child: Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(
+                            widget.partner ? 16 : 22,
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(
+                              widget.partner ? 16 : 22,
                             ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                widget.partner
-                                    ? 'Khách hàng: ${task['customerName'] ?? 'Chưa cập nhật'}'
-                                    : (task['taskerId'] == null
-                                          ? 'Chưa có Tasker nhận việc'
-                                          : 'Tasker: ${task['taskerName'] ?? 'Tasker'}'),
-                                style: const TextStyle(
-                                  fontSize: 12.5,
-                                  color: Color(0xFF475569),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Text(
-                              _formatCurrency(
-                                widget.partner
-                                    ? (task['partnerNetAmount'] ?? 0)
-                                    : (task['budgetAmount'] ?? 0),
-                              ),
-                              style: TextStyle(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w700,
-                                color: widget.partner
-                                    ? const Color(0xFF1E5BF8)
-                                    : const Color(0xFF059669),
-                              ),
-                            ),
-                            if (task['taskerId'] != null || widget.partner) ...[
-                              const SizedBox(width: 8),
-                              InkWell(
-                                onTap: () async {
-                                  await Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => TaskChatScreen(
-                                        session: widget.session,
-                                        taskId: task['id'],
-                                        partner: widget.partner,
-                                        initialTaskerName: task['taskerName'],
-                                        initialCustomerName:
-                                            task['customerName'],
-                                        initialServiceName: task['serviceName'],
-                                      ),
-                                    ),
-                                  );
-                                  if (mounted) {
-                                    setState(() {
-                                      _items = _load();
-                                    });
-                                  }
-                                },
-                                borderRadius: BorderRadius.circular(8),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: widget.partner
-                                        ? const Color(0xFFEFF6FF)
-                                        : const Color(0xFFECFDF5),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: widget.partner
-                                          ? const Color(0xFFBFDBFE)
-                                          : const Color(0xFFA7F3D0),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
+                            onTap: null,
+                            child: Padding(
+                              padding: EdgeInsets.all(widget.partner ? 14 : 18),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // 1. Header row
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Icon(
-                                        Icons.chat_bubble_outline_rounded,
-                                        size: 14,
-                                        color: widget.partner
-                                            ? const Color(0xFF1E5BF8)
-                                            : const Color(0xFF059669),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Chat',
-                                        style: TextStyle(
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.w700,
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: widget.partner
+                                              ? const Color(0xFFEFF6FF)
+                                              : const Color(0xFFECFDF5),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: widget.partner
+                                                ? const Color(0xFFBFDBFE)
+                                                : const Color(0xFFA7F3D0),
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          resolveServiceIcon(
+                                            task['serviceName'],
+                                          ),
                                           color: widget.partner
                                               ? const Color(0xFF1E5BF8)
                                               : const Color(0xFF059669),
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              task['serviceName'] ?? 'Dịch vụ',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 15,
+                                                color: Color(0xFF0F172A),
+                                                height: 1.25,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
+
+                                  _appointmentCard(task),
+
+                                  // 2. Action Area
+                                  if (!widget.partner &&
+                                      [
+                                        'POSTED',
+                                        'MATCHING',
+                                        'TASKER_ON_THE_WAY',
+                                      ].contains(task['status']))
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 10),
+                                      child: TaskArrivalReport(
+                                        session: widget.session,
+                                        taskId: task['id'].toString(),
+                                        scheduledAt: task['scheduledAt']
+                                            ?.toString(),
+                                        waitingForTasker:
+                                            task['taskerId'] == null,
+                                      ),
+                                    ),
+
+                                  // 3. Divider
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                    child: Container(
+                                      height: 1,
+                                      color: const Color(0xFFF1F5F9),
+                                    ),
+                                  ),
+
+                                  // 4. Counterpart & Price row
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 28,
+                                        height: 28,
+                                        decoration: BoxDecoration(
+                                          color: widget.partner
+                                              ? const Color(0xFFEFF6FF)
+                                              : const Color(0xFFF8FAFC),
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: widget.partner
+                                                ? const Color(0xFFDBEAFE)
+                                                : const Color(0xFFE2E8F0),
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: counterpartName.isNotEmpty
+                                              ? Text(
+                                                  counterpartName[0]
+                                                      .toUpperCase(),
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: widget.partner
+                                                        ? const Color(
+                                                            0xFF1E5BF8,
+                                                          )
+                                                        : const Color(
+                                                            0xFF475569,
+                                                          ),
+                                                  ),
+                                                )
+                                              : Icon(
+                                                  Icons.person_outline_rounded,
+                                                  size: 14,
+                                                  color: widget.partner
+                                                      ? const Color(0xFF1E5BF8)
+                                                      : const Color(0xFF64748B),
+                                                ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          widget.partner
+                                              ? (counterpartName.trim().isEmpty
+                                                    ? 'Khách hàng'
+                                                    : 'Khách: $counterpartName')
+                                              : (task['taskerId'] == null
+                                                    ? 'Chưa có Tasker nhận việc'
+                                                    : (counterpartName
+                                                              .trim()
+                                                              .isEmpty
+                                                          ? 'Tasker đã nhận việc'
+                                                          : 'Tasker: $counterpartName')),
+                                          style: TextStyle(
+                                            fontSize: 12.5,
+                                            color:
+                                                counterpartName.isEmpty &&
+                                                    !widget.partner
+                                                ? const Color(0xFF94A3B8)
+                                                : const Color(0xFF1E293B),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Flexible(
+                                        fit: FlexFit.tight,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Text(
+                                              _formatCurrency(
+                                                widget.partner
+                                                    ? (task['partnerNetAmount'] ??
+                                                          0)
+                                                    : (task['budgetAmount'] ??
+                                                          0),
+                                              ),
+                                              style: TextStyle(
+                                                fontSize: 14.5,
+                                                fontWeight: FontWeight.w800,
+                                                color: widget.partner
+                                                    ? const Color(0xFF1E5BF8)
+                                                    : const Color(0xFF059669),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+
+                                  // 5. Action buttons row: Nút to nhất (có chữ) + Chi tiết (icon) + Tin nhắn (icon)
+                                  Row(
+                                    children: [
+                                      if (widget.partner &&
+                                          needsPartnerPaymentConfirmation(
+                                            task,
+                                          )) ...[
+                                        Expanded(
+                                          child: PartnerPaymentConfirmation(
+                                            session: widget.session,
+                                            task: task,
+                                            onConfirmed: _refreshLive,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                      ] else if (!widget.partner &&
+                                          needsCustomerConfirmation(task)) ...[
+                                        Expanded(
+                                          child: CompletionAttention(
+                                            onPressed: () =>
+                                                _reviewCompletion(task),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                      ] else ...[
+                                        const Spacer(),
+                                      ],
+                                      _detailButton(task),
+                                      if (task['taskerId'] != null ||
+                                          widget.partner) ...[
+                                        const SizedBox(width: 8),
+                                        _chatButton(task),
+                                      ],
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ] else ...[
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.chevron_right_rounded,
-                                size: 16,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ],
-                          ],
+                            ),
+                          ),
                         ),
+                      ),
+                      Positioned(
+                        top: -11,
+                        right: 14,
+                        child: _buildCardStatusBadge(status),
                       ),
                     ],
                   ),
-                ),
-              ),
+                );
+              },
             ),
           const SizedBox(height: 20),
         ],
@@ -623,10 +939,18 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
   bool _progressing = false;
 
   Future<void> _progress(String current, String next) async {
+    if (_progressing) return;
     if (next == 'COMPLETED') {
-      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => TaskChatScreen(
-        session: widget.session, taskId: widget.id, partner: true, completionMode: true,
-      )));
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => TaskChatScreen(
+            session: widget.session,
+            taskId: widget.id,
+            partner: true,
+            completionMode: true,
+          ),
+        ),
+      );
       if (mounted) await _load();
       return;
     }
@@ -664,6 +988,7 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
   }
 
   Future<void> _startJob() async {
+    if (_progressing) return;
     setState(() => _progressing = true);
     try {
       await widget.session.request(
@@ -700,12 +1025,26 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
   }
 
   Future<void> _customerDecision(String requestId, String decision) async {
+    if (_progressing) return;
+    if (_actionableEarlyStartRequest?['id']?.toString() != requestId) {
+      await _load();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Đề nghị đã hết hiệu lực. Lịch làm việc đã được cập nhật.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
     setState(() => _progressing = true);
     try {
       await widget.session.request(
         '/customer/bookings/${widget.id}/early-start-requests/$requestId/decision',
         method: 'POST',
-        body: {'decision': decision},
+        body: {'action': decision},
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -724,16 +1063,27 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
       }
       await _load();
     } catch (e) {
+      final stale =
+          e is ApiFailure &&
+          [
+            'EARLY_START_REQUEST_EXPIRED',
+            'STALE_REQUEST',
+            'INVALID_START_STATE',
+          ].contains(e.code);
+      if (stale) await _load();
       if (mounted) {
-        final msg = e is ApiFailure ? e.message : e.toString();
+        final msg = stale
+            ? 'Đề nghị đã hết hiệu lực. Lịch làm việc đã được cập nhật.'
+            : (e is ApiFailure ? e.message : e.toString());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(msg),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: stale
+                ? const Color(0xFF64748B)
+                : const Color(0xFFEF4444),
             behavior: SnackBarBehavior.floating,
           ),
         );
-        setState(() => _error = msg);
       }
     } finally {
       if (mounted) setState(() => _progressing = false);
@@ -755,25 +1105,34 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
     final firstAllowed = earliest.isAfter(currentTime())
         ? earliest
         : currentTime();
-    var selectedStart = DateTime(
+    final nextMinute = DateTime(
       firstAllowed.year,
       firstAllowed.month,
       firstAllowed.day,
       firstAllowed.hour,
       firstAllowed.minute,
     ).add(const Duration(minutes: 1));
+    var selectedStart = nextMinute.isBefore(scheduledDt)
+        ? nextMinute
+        : firstAllowed;
+    DateTime effectiveStart(DateTime value, DateTime now) =>
+        value.isBefore(now) &&
+            now.difference(value) < const Duration(minutes: 1)
+        ? now
+        : value;
     bool validStart(DateTime value) =>
-        !value.isBefore(currentTime()) &&
+        !value.isBefore(currentTime().subtract(const Duration(seconds: 59))) &&
         !value.isBefore(earliest) &&
-        value.isBefore(scheduledDt);
+        value.isBefore(scheduledDt) &&
+        currentTime().isBefore(scheduledDt);
 
-    final reasonCtrl = TextEditingController();
+    var reason = '';
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) {
-          final reqStart = selectedStart;
+          final reqStart = effectiveStart(selectedStart, currentTime());
           final propEnd = reqStart.add(Duration(minutes: durationMinutes));
 
           return AlertDialog(
@@ -857,7 +1216,7 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                         time.minute,
                       );
                       if (!validStart(candidate)) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        ScaffoldMessenger.of(ctx).showSnackBar(
                           const SnackBar(
                             content: Text(
                               'Chọn giờ từ hiện tại, trước lịch hẹn và trong giới hạn làm sớm.',
@@ -918,8 +1277,9 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
                           children: [
                             const Text(
                               'Giờ đề nghị mới:',
@@ -928,22 +1288,20 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                 color: Color(0xFF64748B),
                               ),
                             ),
-                            Flexible(
-                              child: Text(
-                                '${_formatDateTime(reqStart.toIso8601String())} – ${_formatDateTime(propEnd.toIso8601String())}',
-                                textAlign: TextAlign.end,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF0284C7),
-                                ),
+                            Text(
+                              '${_formatDateTime(reqStart.toIso8601String())} – ${_formatDateTime(propEnd.toIso8601String())}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF0284C7),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 6),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
                           children: [
                             const Text(
                               'Thời lượng dịch vụ:',
@@ -963,8 +1321,9 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                           ],
                         ),
                         const SizedBox(height: 6),
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        const Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
                           children: [
                             Text(
                               'Giá dịch vụ:',
@@ -988,7 +1347,7 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                   ),
                   const SizedBox(height: 12),
                   TextField(
-                    controller: reasonCtrl,
+                    onChanged: (value) => reason = value,
                     decoration: InputDecoration(
                       labelText: 'Lý do xin làm sớm (tùy chọn)',
                       labelStyle: const TextStyle(fontSize: 12),
@@ -1006,6 +1365,7 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                       ),
                     ),
                     maxLines: 2,
+                    maxLength: 500,
                   ),
                 ],
               ),
@@ -1030,10 +1390,15 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
       ),
     );
 
-    if (confirmed == true) {
-      final reqStart = selectedStart;
+    if (confirmed == true && mounted) {
+      final reqStart = effectiveStart(selectedStart, currentTime());
       if (!validStart(reqStart)) {
-        reasonCtrl.dispose();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Giờ đề nghị đã qua. Vui lòng chọn lại.'),
+          ),
+        );
+        await _load();
         return;
       }
       setState(() => _progressing = true);
@@ -1043,7 +1408,7 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
           method: 'POST',
           body: {
             'requestedStartAt': reqStart.toUtc().toIso8601String(),
-            'reason': reasonCtrl.text.trim(),
+            'reason': reason.trim(),
           },
         );
         if (mounted) {
@@ -1090,6 +1455,36 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
   }
 
   Timer? _timer;
+  DateTime? _serverTimeAtSync;
+  Duration _elapsedSinceSync = Duration.zero;
+  int _refreshTicks = 0;
+  DateTime get _serverNow =>
+      (_serverTimeAtSync ?? DateTime.now()).add(_elapsedSinceSync);
+
+  Map? get _actionableEarlyStartRequest {
+    final task = _detail?['task'] as Map?;
+    final eligibility = _detail?['earlyStart'] as Map?;
+    final request = eligibility?['activeRequest'] as Map?;
+    if (request == null ||
+        request['status'] != 'PENDING' ||
+        ![
+          'ACCEPTED',
+          'TASKER_ON_THE_WAY',
+          'ARRIVED',
+        ].contains(task?['status']) ||
+        task?['actualStartedAt'] != null)
+      return null;
+    final expiry = _parseDt(request['expiresAt']);
+    final scheduled = _parseDt(
+      eligibility?['scheduledStartAt'] ?? task?['scheduledAt'],
+    );
+    if (expiry == null ||
+        !_serverNow.isBefore(expiry) ||
+        (scheduled != null && !_serverNow.isBefore(scheduled)))
+      return null;
+    return request;
+  }
+
   StreamSubscription<void>? _liveSubscription;
 
   @override
@@ -1100,8 +1495,25 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
     });
     WidgetsBinding.instance.addObserver(this);
     _load();
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final lifecycle = WidgetsBinding.instance.lifecycleState;
+      if (lifecycle != null && lifecycle != AppLifecycleState.resumed) return;
+      final before = _serverNow;
+      _elapsedSinceSync += const Duration(seconds: 1);
+      final eligibility = _detail?['earlyStart'] as Map?;
+      final pending = eligibility?['activeRequest'] as Map?;
+      final deadlines = [
+        pending?['expiresAt'],
+        eligibility?['scheduledStartAt'] ?? _detail?['task']?['scheduledAt'],
+        eligibility?['allowedStartAt'],
+      ].map(_parseDt).whereType<DateTime>();
+      final crossedDeadline = deadlines.any(
+        (at) => before.isBefore(at) && !_serverNow.isBefore(at),
+      );
+      if (pending?['status'] == 'PENDING' || crossedDeadline) setState(() {});
+      if (++_refreshTicks >= 5 || crossedDeadline) {
+        _refreshTicks = 0;
         _load();
       }
     });
@@ -1121,14 +1533,31 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
       );
       final loadedDetail = Map<String, dynamic>.from(d);
       if (!widget.preview) {
-        loadedDetail['earlyStart'] = await widget.session.request(
-          widget.partner
-              ? '/partner/jobs/${widget.id}/start-eligibility'
-              : '/customer/bookings/${widget.id}/start-eligibility',
-        );
+        loadedDetail['latestEarlyStartRequest'] = loadedDetail['earlyStart'];
+        try {
+          loadedDetail['earlyStart'] = await widget.session.request(
+            widget.partner
+                ? '/partner/jobs/${widget.id}/start-eligibility'
+                : '/customer/bookings/${widget.id}/start-eligibility',
+          );
+        } on ApiFailure catch (e) {
+          loadedDetail['earlyStart'] = {'message': e.message};
+        }
       }
       if (mounted) {
         setState(() {
+          final eligibility = loadedDetail['earlyStart'] as Map?;
+          _serverTimeAtSync =
+              _parseDt(eligibility?['serverNow']) ?? DateTime.now();
+          _elapsedSinceSync = Duration.zero;
+          if (eligibility?['taskStatus'] != null) {
+            loadedDetail['task'] = {
+              ...Map<String, dynamic>.from(loadedDetail['task'] as Map),
+              'status': eligibility!['taskStatus'],
+              'checkedInAt': eligibility['checkedInAt'],
+              'actualStartedAt': eligibility['actualStartedAt'],
+            };
+          }
           _detail = loadedDetail;
           _error = null;
         });
@@ -1223,24 +1652,32 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
     ].contains(task?['status']);
 
     final earlyStart = (detail?['earlyStart'] as Map?) ?? {};
-    final activeRequest = earlyStart['activeRequest'] as Map?;
+    final activeRequest = _actionableEarlyStartRequest;
     final canStart = earlyStart['canStart'] == true;
     final canTravel = earlyStart['canTravel'] == true;
     final canCheckIn = earlyStart['canCheckIn'] == true;
     final canRequestEarlyStart = earlyStart['canRequestEarlyStart'] == true;
-    final earlyStartReasonCode = earlyStart['reasonCode']?.toString();
     final earlyStartMessage = earlyStart['message']?.toString();
     final earliestAllowedCheckin = earlyStart['earliestAllowedCheckin'];
+    final checkinWindow = earlyStart['earlyCheckInWindowMinutes'];
     final approvedStartAt = task?['approvedStartAt'];
     final actualStartedAt = task?['actualStartedAt'];
     final checkedInAt = task?['checkedInAt'];
     final verifiedActualEndAt = task?['verifiedActualEndAt'];
     final originalScheduledStartAt = task?['originalScheduledStartAt'];
     final expectedEndAt = task?['expectedEndAt'];
-    final durationMinutes = (task?['durationMinutes'] is num)
-        ? (task!['durationMinutes'] as num).toInt()
-        : 60;
     final scheduledDt = _parseDt(task?['scheduledAt']);
+    final scheduledEnd = _parseDt(task?['originalScheduledEndAt']);
+    final quotedHours = detail?['booking']?['duration'];
+    final durationMinutes =
+        (task?['durationMinutes'] as num?)?.toInt() ??
+        (quotedHours is num ? (quotedHours * 60).round() : null) ??
+        (scheduledEnd != null &&
+                scheduledDt != null &&
+                scheduledEnd.isAfter(scheduledDt)
+            ? scheduledEnd.difference(scheduledDt).inMinutes
+            : 60);
+    final latestEarlyRequest = detail?['latestEarlyStartRequest'] as Map?;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -1446,9 +1883,9 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                               ),
                               child: Column(
                                 children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                                     children: [
                                       const Text(
                                         'Giờ đã đặt:',
@@ -1457,6 +1894,7 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                           color: Color(0xFF64748B),
                                         ),
                                       ),
+                                      const SizedBox(height: 4),
                                       Text(
                                         _formatDateTime(
                                           originalScheduledStartAt ??
@@ -1470,10 +1908,10 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                  const SizedBox(height: 10),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                                     children: [
                                       const Text(
                                         'Đề nghị làm lúc:',
@@ -1483,8 +1921,9 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                           color: Color(0xFFB45309),
                                         ),
                                       ),
+                                      const SizedBox(height: 4),
                                       Text(
-                                        '${_formatDateTime(activeRequest['requestedStartAt'])} – ${_formatDateTime(activeRequest['proposedEndAt'])}',
+                                        '${_formatDateTime(activeRequest['requestedStartAt'])}\nđến ${_formatDateTime(activeRequest['proposedEndAt'])}',
                                         style: const TextStyle(
                                           fontSize: 13.5,
                                           fontWeight: FontWeight.w800,
@@ -1589,6 +2028,7 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                     ),
                                     child: const Text(
                                       'Giữ nguyên giờ đặt',
+                                      textAlign: TextAlign.center,
                                       style: TextStyle(
                                         fontWeight: FontWeight.w700,
                                         fontSize: 13,
@@ -1618,6 +2058,7 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                     ),
                                     child: const Text(
                                       'Đồng ý bắt đầu sớm',
+                                      textAlign: TextAlign.center,
                                       style: TextStyle(
                                         fontWeight: FontWeight.w800,
                                         fontSize: 13,
@@ -1639,25 +2080,25 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                         margin: const EdgeInsets.only(bottom: 14),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
+                          color: const Color(0xFFECFDF5),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                          border: Border.all(color: const Color(0xFFA7F3D0)),
                         ),
                         child: Row(
                           children: [
                             const Icon(
                               Icons.location_on_rounded,
-                              color: Color(0xFF2563EB),
+                              color: Color(0xFF059669),
                               size: 18,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'Đối tác đã đến nơi lúc ${_formatDateTime(checkedInAt)}. Đang chuẩn bị bắt đầu công việc.',
+                                'Đối tác đã đến nơi lúc ${_formatDateTime(checkedInAt)}. ${_serverNow.isBefore(_parseDt(earlyStart['allowedStartAt'] ?? task['scheduledAt']) ?? _serverNow) ? 'Đang chờ đến giờ bắt đầu.' : 'Đã đến giờ làm việc, đối tác có thể bắt đầu công việc.'}',
                                 style: const TextStyle(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF1E40AF),
+                                  color: Color(0xFF047857),
                                 ),
                               ),
                             ),
@@ -1779,7 +2220,12 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                             ],
 
                             // Hành động 1: Tôi đã đến (Check-in)
-                            if (task['status'] == 'TASKER_ON_THE_WAY') ...[
+                            if (task['status'] == 'TASKER_ON_THE_WAY' ||
+                                ([
+                                      'ACCEPTED',
+                                      'ARRIVED',
+                                    ].contains(task['status']) &&
+                                    canCheckIn)) ...[
                               FilledButton.icon(
                                 style: FilledButton.styleFrom(
                                   backgroundColor: canCheckIn
@@ -1806,10 +2252,11 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                 ),
                               ),
                               if (!canCheckIn &&
-                                  earliestAllowedCheckin != null) ...[
+                                  earliestAllowedCheckin != null &&
+                                  checkinWindow != null) ...[
                                 const SizedBox(height: 6),
                                 Text(
-                                  'Bạn có thể check-in từ ${_formatDateTime(earliestAllowedCheckin)} (trước giờ hẹn 15 phút).',
+                                  'Cửa sổ check-in mở từ ${_formatDateTime(earliestAllowedCheckin)} (trước giờ hẹn $checkinWindow phút).',
                                   style: const TextStyle(
                                     fontSize: 11.5,
                                     color: Color(0xFF64748B),
@@ -1821,7 +2268,20 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                             ],
 
                             // Hành động 2: Xin bắt đầu sớm
-                            if (task['status'] == 'ACCEPTED' && !canTravel) ...[
+                            if (!canStart &&
+                                [
+                                  'ACCEPTED',
+                                  'TASKER_ON_THE_WAY',
+                                  'ARRIVED',
+                                ].contains(task['status'])) ...[
+                              if (activeRequest == null &&
+                                  latestEarlyRequest?['status'] == 'REJECTED')
+                                const Text(
+                                  'Khách hàng muốn giữ nguyên giờ hẹn.',
+                                ),
+                              if (activeRequest == null &&
+                                  latestEarlyRequest?['status'] == 'EXPIRED')
+                                const Text('Đề nghị làm sớm đã hết hạn.'),
                               if (activeRequest != null &&
                                   activeRequest['status'] == 'PENDING') ...[
                                 Container(
@@ -1892,7 +2352,7 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                             ],
 
                             // Hành động 3: Bắt đầu công việc
-                            if (task['status'] == 'ARRIVED' && canStart) ...[
+                            if (task['status'] == 'ARRIVED') ...[
                               FilledButton.icon(
                                 style: FilledButton.styleFrom(
                                   backgroundColor: canStart
@@ -1926,11 +2386,8 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                               if (!canStart) ...[
                                 const SizedBox(height: 6),
                                 Text(
-                                  earlyStartReasonCode ==
-                                          'EARLY_START_REQUIRES_APPROVAL'
-                                      ? 'Khách hẹn ${_formatDateTime(task['scheduledAt'])}. Cần khách hàng đồng ý trước khi bắt đầu sớm.'
-                                      : (earlyStartMessage ??
-                                            'Chưa đủ điều kiện bắt đầu.'),
+                                  earlyStartMessage ??
+                                      'Chưa đủ điều kiện bắt đầu.',
                                   style: const TextStyle(
                                     fontSize: 11.5,
                                     color: Color(0xFFD97706),
@@ -1941,9 +2398,11 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                               ],
                             ],
 
-                            if (task['status'] == 'ARRIVED' && !canStart)
+                            if (task['status'] == 'ACCEPTED' &&
+                                !canTravel &&
+                                earlyStartMessage != null)
                               Text(
-                                'Đã check-in. Chờ đến ${_formatDateTime(earlyStart['allowedStartAt'] ?? task['scheduledAt'])} để bắt đầu công việc.',
+                                earlyStartMessage,
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Color(0xFFD97706),
@@ -1996,7 +2455,11 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
@@ -2020,8 +2483,15 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                   ),
                                 ),
                               ),
-                              const Spacer(),
-                              _buildStatusBadge(task['status'] ?? ''),
+                              _buildStatusBadge(
+                                !widget.partner &&
+                                        needsCustomerConfirmation(task)
+                                    ? 'AWAITING_CUSTOMER_CONFIRMATION'
+                                    : widget.partner &&
+                                          needsPartnerPaymentConfirmation(task)
+                                    ? 'AWAITING_PARTNER_PAYMENT'
+                                    : task['status'] ?? '',
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -2032,6 +2502,21 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                               fontWeight: FontWeight.w800,
                               color: Color(0xFF0F172A),
                               height: 1.3,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _formatCurrency(
+                              widget.partner
+                                  ? (task['partnerNetAmount'] ?? 0)
+                                  : (task['budgetAmount'] ?? 0),
+                            ),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: widget.partner
+                                  ? const Color(0xFF1E5BF8)
+                                  : const Color(0xFF059669),
                             ),
                           ),
                         ],
@@ -2155,12 +2640,16 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFE0F2FE),
+                                      color: widget.partner
+                                          ? const Color(0xFFE0F2FE)
+                                          : const Color(0xFFECFDF5),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.calendar_month_rounded,
-                                      color: Color(0xFF0284C7),
+                                      color: widget.partner
+                                          ? const Color(0xFF0284C7)
+                                          : const Color(0xFF059669),
                                       size: 18,
                                     ),
                                   ),
@@ -2184,10 +2673,12 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                             originalScheduledStartAt ??
                                                 task['scheduledAt'],
                                           ),
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w700,
-                                            color: Color(0xFF0284C7),
+                                            color: widget.partner
+                                                ? const Color(0xFF0284C7)
+                                                : const Color(0xFF047857),
                                           ),
                                         ),
                                         if (approvedStartAt != null) ...[
@@ -2198,7 +2689,9 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                               vertical: 3,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFFECFDF5),
+                                              color: widget.partner
+                                                  ? const Color(0xFFEFF6FF)
+                                                  : const Color(0xFFECFDF5),
                                               borderRadius:
                                                   BorderRadius.circular(6),
                                               border: Border.all(
@@ -2251,23 +2744,33 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                                       vertical: 2,
                                                     ),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(
-                                                    0xFFEFF6FF,
-                                                  ),
+                                                  color: widget.partner
+                                                      ? const Color(0xFFEFF6FF)
+                                                      : const Color(0xFFECFDF5),
                                                   borderRadius:
                                                       BorderRadius.circular(6),
                                                   border: Border.all(
-                                                    color: const Color(
-                                                      0xFFBFDBFE,
-                                                    ),
+                                                    color: widget.partner
+                                                        ? const Color(
+                                                            0xFFBFDBFE,
+                                                          )
+                                                        : const Color(
+                                                            0xFFA7F3D0,
+                                                          ),
                                                   ),
                                                 ),
                                                 child: Text(
                                                   'Đã đến: ${_formatDateTime(checkedInAt)}',
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 11,
                                                     fontWeight: FontWeight.w600,
-                                                    color: Color(0xFF1D4ED8),
+                                                    color: widget.partner
+                                                        ? const Color(
+                                                            0xFF1D4ED8,
+                                                          )
+                                                        : const Color(
+                                                            0xFF047857,
+                                                          ),
                                                   ),
                                                 ),
                                               ),
@@ -2347,6 +2850,27 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                         partner: widget.partner,
                         partnerNetAmount: task['partnerNetAmount'] as num?,
                       ),
+                    if (widget.partner && needsPartnerPaymentConfirmation(task))
+                      PartnerPaymentConfirmation(
+                        session: widget.session,
+                        task: task,
+                        onConfirmed: () => _load(),
+                      ),
+                    if (!widget.partner && needsCustomerConfirmation(task))
+                      CompletionAttention(
+                        onPressed: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => CompletionReviewScreen(
+                                session: widget.session,
+                                taskId: widget.id,
+                              ),
+                            ),
+                          );
+                          if (mounted) await _load();
+                        },
+                      ),
+
                     // Payment & Cancellation Policy Card
                     if ((detail['payment'] as Map?)?.isNotEmpty == true)
                       Builder(
@@ -2573,40 +3097,6 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                     ),
                                   ),
                                 ],
-
-                                // Partner Cash Confirmation Button
-                                if (widget.partner &&
-                                    task['status'] == 'COMPLETED' &&
-                                    isCash &&
-                                    pStatus == 'AWAITING_CASH') ...[
-                                  const SizedBox(height: 14),
-                                  FilledButton.icon(
-                                    style: FilledButton.styleFrom(
-                                      backgroundColor: const Color(0xFF059669),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 13,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    onPressed: _progressing
-                                        ? null
-                                        : () => _paymentAction(
-                                            '/partner/jobs/${widget.id}/cash-received',
-                                          ),
-                                    icon: const Icon(
-                                      Icons.check_circle_rounded,
-                                      size: 18,
-                                    ),
-                                    label: const Text(
-                                      'Xác nhận đã nhận tiền trực tiếp',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ],
                             ),
                           );
@@ -2680,7 +3170,9 @@ class _TaskActivityDetailState extends State<TaskActivityDetail>
                                               width: 24,
                                               height: 24,
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFFECFDF5),
+                                                color: widget.partner
+                                                    ? const Color(0xFFEFF6FF)
+                                                    : const Color(0xFFECFDF5),
                                                 shape: BoxShape.circle,
                                                 border: Border.all(
                                                   color: const Color(
@@ -3420,16 +3912,24 @@ class _TaskBookingServicesCardState extends State<TaskBookingServicesCard> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF),
+                    color: widget.partner
+                        ? const Color(0xFFEFF6FF)
+                        : const Color(0xFFECFDF5),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                    border: Border.all(
+                      color: widget.partner
+                          ? const Color(0xFFBFDBFE)
+                          : const Color(0xFFA7F3D0),
+                    ),
                   ),
                   child: Text(
                     '${services.length} dịch vụ',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1D4ED8),
+                      color: widget.partner
+                          ? const Color(0xFF1D4ED8)
+                          : const Color(0xFF047857),
                     ),
                   ),
                 ),
@@ -3482,19 +3982,23 @@ class _TaskBookingServicesCardState extends State<TaskBookingServicesCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: const [
+                    children: [
                       Icon(
                         Icons.touch_app_rounded,
                         size: 14,
-                        color: Color(0xFF0284C7),
+                        color: widget.partner
+                            ? const Color(0xFF0284C7)
+                            : const Color(0xFF059669),
                       ),
-                      SizedBox(width: 5),
+                      const SizedBox(width: 5),
                       Text(
                         'Chạm dịch vụ để cuộn nhanh đến:',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF0284C7),
+                          color: widget.partner
+                              ? const Color(0xFF0284C7)
+                              : const Color(0xFF059669),
                         ),
                       ),
                     ],
@@ -3883,15 +4387,19 @@ class _TaskBookingServicesCardState extends State<TaskBookingServicesCard> {
                                     vertical: 2,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFE0F2FE),
+                                    color: widget.partner
+                                        ? const Color(0xFFE0F2FE)
+                                        : const Color(0xFFECFDF5),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
                                     '#${idx + 1}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 10.5,
                                       fontWeight: FontWeight.w800,
-                                      color: Color(0xFF0284C7),
+                                      color: widget.partner
+                                          ? const Color(0xFF0284C7)
+                                          : const Color(0xFF047857),
                                     ),
                                   ),
                                 ),
@@ -4087,20 +4595,24 @@ class _TaskBookingServicesCardState extends State<TaskBookingServicesCard> {
                               vertical: 3,
                             ),
                             child: Row(
-                              children: const [
+                              children: [
                                 Text(
                                   'Dịch vụ tiếp theo',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFF0284C7),
+                                    color: widget.partner
+                                        ? const Color(0xFF0284C7)
+                                        : const Color(0xFF059669),
                                   ),
                                 ),
-                                SizedBox(width: 3),
+                                const SizedBox(width: 3),
                                 Icon(
                                   Icons.arrow_downward_rounded,
                                   size: 14,
-                                  color: Color(0xFF0284C7),
+                                  color: widget.partner
+                                      ? const Color(0xFF0284C7)
+                                      : const Color(0xFF059669),
                                 ),
                               ],
                             ),

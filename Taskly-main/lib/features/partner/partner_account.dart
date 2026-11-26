@@ -120,7 +120,7 @@ class _PartnerAccountState extends State<PartnerAccount> {
                     if (notice != null)
                       Text(
                         notice!,
-                        style: const TextStyle(color: Colors.green),
+                        style: const TextStyle(color: Color(0xFF2563EB)),
                       ),
                     Container(
                       padding: const EdgeInsets.all(18),
@@ -439,15 +439,15 @@ class _PartnerAccountState extends State<PartnerAccount> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFE5FAF1),
+                color: const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFC9EEE0)),
+                border: Border.all(color: const Color(0xFFBFDBFE)),
               ),
               child: Row(
                 children: [
                   const Icon(
                     Icons.check_circle_rounded,
-                    color: Color(0xFF0B926B),
+                    color: Color(0xFF1D4ED8),
                     size: 18,
                   ),
                   const SizedBox(width: 8),
@@ -455,7 +455,7 @@ class _PartnerAccountState extends State<PartnerAccount> {
                     child: Text(
                       notice!,
                       style: const TextStyle(
-                        color: Color(0xFF0B926B),
+                        color: Color(0xFF1D4ED8),
                         fontWeight: FontWeight.w700,
                         fontSize: 12.5,
                       ),
@@ -553,18 +553,18 @@ class _PartnerAccountState extends State<PartnerAccount> {
             child: Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFF0FDF4), Color(0xFFF8FAFC)],
+                  colors: [Color(0xFFEFF6FF), Color(0xFFF8FAFC)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: const Color(0xFF86EFAC).withValues(alpha: 0.7),
+                  color: const Color(0xFFBFDBFE).withValues(alpha: 0.7),
                   width: 1.2,
                 ),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x0A059669),
+                    color: Color(0x0A2563EB),
                     blurRadius: 10,
                     offset: Offset(0, 3),
                   ),
@@ -588,7 +588,7 @@ class _PartnerAccountState extends State<PartnerAccount> {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981)
+                            color: const Color(0xFF2563EB)
                                 .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -621,7 +621,7 @@ class _PartnerAccountState extends State<PartnerAccount> {
                                       vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981),
+                                      color: const Color(0xFF2563EB),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: const Text(
@@ -651,7 +651,7 @@ class _PartnerAccountState extends State<PartnerAccount> {
                         const Icon(
                           Icons.arrow_forward_ios_rounded,
                           size: 16,
-                          color: Color(0xFF10B981),
+                          color: Color(0xFF2563EB),
                         ),
                       ],
                     ),

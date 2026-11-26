@@ -126,12 +126,12 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
             width: 60,
             height: 60,
             decoration: const BoxDecoration(
-              color: Color(0xFFECFDF5),
+              color: Color(0xFFEFF6FF),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.verified_rounded,
-              color: Color(0xFF10B981),
+              color: Color(0xFF2563EB),
               size: 36,
             ),
           ),
@@ -229,11 +229,11 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: isDone ? const Color(0xFFECFDF5) : PartnerColors.softBlue,
+              color: isDone ? const Color(0xFFEFF6FF) : PartnerColors.softBlue,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isDone
-                    ? const Color(0xFFA7F3D0)
+                    ? const Color(0xFFBFDBFE)
                     : PartnerColors.softBlueBorder,
               ),
             ),
@@ -246,7 +246,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
                       : Icons.verified_user_rounded,
                   size: 14,
                   color: isDone
-                      ? const Color(0xFF10B981)
+                      ? const Color(0xFF2563EB)
                       : PartnerColors.primary,
                 ),
                 const SizedBox(width: 4),
@@ -256,7 +256,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: isDone
-                        ? const Color(0xFF059669)
+                        ? const Color(0xFF2563EB)
                         : PartnerColors.primaryDark,
                   ),
                 ),
@@ -370,7 +370,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
                 decoration: BoxDecoration(
                   gradient: isDone
                       ? const LinearGradient(
-                          colors: [Color(0xFF10B981), Color(0xFF059669)],
+                          colors: [Color(0xFF2563EB), Color(0xFF2563EB)],
                         )
                       : PartnerColors.luxuryBlueGradient,
                   borderRadius: BorderRadius.circular(12),
@@ -404,7 +404,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
                       style: TextStyle(
                         fontSize: 12,
                         color: isDone
-                            ? const Color(0xFF059669)
+                            ? const Color(0xFF2563EB)
                             : const Color(0xFF64748B),
                         fontWeight: FontWeight.w500,
                       ),
@@ -418,7 +418,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isDone ? const Color(0xFFECFDF5) : const Color(0xFFEFF6FF),
+              color: isDone ? const Color(0xFFEFF6FF) : const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -429,7 +429,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
                       : Icons.touch_app_rounded,
                   size: 16,
                   color: isDone
-                      ? const Color(0xFF059669)
+                      ? const Color(0xFF2563EB)
                       : PartnerColors.primary,
                 ),
                 const SizedBox(width: 8),
@@ -442,7 +442,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: isDone
-                          ? const Color(0xFF047857)
+                          ? const Color(0xFF1D4ED8)
                           : PartnerColors.primaryDark,
                     ),
                   ),
@@ -555,7 +555,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
                   docKey: 'PARTNER_SAFETY',
                   title:
                       'Chính sách an toàn & bảo vệ tài sản khách hàng (v1.8)',
-                  badgeColor: const Color(0xFF10B981),
+                  badgeColor: const Color(0xFF2563EB),
                   icon: Icons.security_rounded,
                   clauses: const [
                     'Điều 2.1 - An toàn lao động: Tuân thủ đầy đủ quy định an toàn về điện, nước, hóa chất tẩy rửa và trang bị bảo hộ cần thiết trong suốt quá trình thao tác.',
@@ -727,11 +727,11 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDone ? const Color(0xFFECFDF5) : const Color(0xFFEFF6FF),
+        color: isDone ? const Color(0xFFEFF6FF) : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDone
-              ? const Color(0xFFA7F3D0)
+              ? const Color(0xFFBFDBFE)
               : PartnerColors.softBlueBorder,
           width: 1.5,
         ),
@@ -752,7 +752,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
                 isDone
                     ? Icons.verified_rounded
                     : Icons.check_circle_outline_rounded,
-                color: isDone ? const Color(0xFF059669) : PartnerColors.primary,
+                color: isDone ? const Color(0xFF2563EB) : PartnerColors.primary,
                 size: 22,
               ),
               const SizedBox(width: 8),
@@ -766,7 +766,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.3,
                     color: isDone
-                        ? const Color(0xFF065F46)
+                        ? const Color(0xFF1E40AF)
                         : PartnerColors.primaryDark,
                   ),
                 ),
@@ -781,7 +781,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF047857),
+                color: Color(0xFF1D4ED8),
                 height: 1.4,
               ),
             ),
@@ -820,7 +820,7 @@ class _RecruitmentAgreementsState extends State<RecruitmentAgreements> {
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
               ),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF10B981),
+                backgroundColor: const Color(0xFF2563EB),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),

@@ -29,6 +29,14 @@ void main() {
                     status = body['status'];
                     writes++;
                     data = {'status': status};
+                  } else if (request.url.path.endsWith('/start-eligibility')) {
+                    data = {
+                      'canTravel': status == 'ACCEPTED',
+                      'canCheckIn': status == 'TASKER_ON_THE_WAY',
+                      'taskStatus': status,
+                    };
+                  } else if (request.url.path.endsWith('/live-sync')) {
+                    data = {'revision': 1};
                   } else {
                     expect(request.url.path, '/api/v1/task-activity/task-demo');
                     data = {
@@ -68,8 +76,8 @@ void main() {
       await tester.tap(find.text('Bắt đầu di chuyển'));
       await tester.pumpAndSettle();
       expect(writes, 1);
-      expect(find.text('Tôi đã đến'), findsOneWidget);
-      expect(find.text('Chat với khách hàng'), findsOneWidget);
+      expect(find.text('Đến nơi'), findsOneWidget);
+      expect(find.byTooltip('Chat với khách hàng'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
       session.dispose();
     },
@@ -160,6 +168,12 @@ void main() {
                 } else if (path.endsWith('/task-activity')) {
                   expect(request.url.queryParameters['partner'], 'true');
                   data = [];
+                } else if (path.endsWith('/partner/bank-account')) {
+                  data = {'accountNumber': '123456789'};
+                } else if (path.endsWith('/partner/wallet')) {
+                  data = {'balance': 300000, 'serviceIncome': 0};
+                } else if (path.endsWith('/start-eligibility')) {
+                  data = {'canTravel': true, 'taskStatus': 'ACCEPTED'};
                 } else if (path.endsWith('/task-activity/job-real')) {
                   data = {
                     'task': {
@@ -237,7 +251,9 @@ void main() {
                     return http.Response(
                       jsonEncode({'success': true, 'data': data}),
                       200,
-                      headers: {'content-type': 'application/json; charset=utf-8'},
+                      headers: {
+                        'content-type': 'application/json; charset=utf-8',
+                      },
                     );
                   }),
                 ),
@@ -255,13 +271,16 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('Mở thêm lịch rảnh'), findsNothing);
         expect(find.byTooltip('Cập nhật lịch rảnh'), findsNothing);
-        expect(find.text('Thử quét lại'), findsOneWidget);
+        expect(find.text('Đang quét công việc theo bán kính'), findsOneWidget);
         expect(tester.takeException(), isNull);
 
         // Switch to Tab 1 (Đang làm)
         await tester.tap(find.text('Đang làm').last);
         await tester.pumpAndSettle();
-        expect(find.text('Bạn chưa có công việc nào đang thực hiện'), findsOneWidget);
+        expect(
+          find.text('Bạn chưa có công việc nào đang thực hiện'),
+          findsOneWidget,
+        );
         expect(tester.takeException(), isNull);
 
         // Switch to Tab 2 (Đã xong)
@@ -275,4 +294,3 @@ void main() {
     );
   }
 }
-

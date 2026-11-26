@@ -641,7 +641,7 @@ class _PartnerHelpCenterState extends State<PartnerHelpCenter>
         'emoji': '💵',
         'title': 'Khách không chịu thanh toán tiền mặt',
         'tag': 'Thu nhập',
-        'tagColor': const Color(0xFF059669),
+        'tagColor': const Color(0xFF2563EB),
         'guide': '1. Tuyệt đối không cãi vã hoặc to tiếng với khách hàng.\n2. Hướng dẫn khách bấm chuyển sang thanh toán QR hoặc Chuyển khoản ví TaskLy.\n3. Nếu khách cố tình quỵt tiền, bấm báo cáo ngay, TaskLy sẽ đền bù 100% tiền công sau khi xác minh.',
         'actionLabel': 'Báo sự cố thanh toán',
       },
@@ -1180,12 +1180,12 @@ class _PartnerHelpCenterState extends State<PartnerHelpCenter>
           final isProcessing = t['status'] == 'PROCESSING';
 
           Color badgeBg = isResolved
-              ? const Color(0xFFE5FAF1)
+              ? const Color(0xFFEFF6FF)
               : isProcessing
               ? const Color(0xFFFEF3C7)
               : const Color(0xFFEFF6FF);
           Color badgeFg = isResolved
-              ? const Color(0xFF0B926B)
+              ? const Color(0xFF1D4ED8)
               : isProcessing
               ? const Color(0xFFD97706)
               : const Color(0xFF2563EB);

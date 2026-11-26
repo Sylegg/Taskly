@@ -11,8 +11,7 @@ import 'package:flutter/material.dart';
 
 import '../../auth/api.dart';
 import '../task_activity.dart';
-
-const _endedJobStatuses = {'COMPLETED', 'PAID', 'CANCELLED', 'REFUNDED', 'EXPIRED'};
+import 'partner_payment_confirmation.dart';
 
 Future<void> openPartnerJobHistory(BuildContext context, Session session) =>
     Navigator.of(context).push<void>(MaterialPageRoute(
@@ -22,7 +21,7 @@ Future<void> openPartnerJobHistory(BuildContext context, Session session) =>
           padding: const EdgeInsets.all(18),
           child: TaskActivityList(
             session: session, partner: true, showHeading: false,
-            filter: (task) => _endedJobStatuses.contains(task['status']),
+            filter: isPartnerHistoryTask,
             emptyWidget: const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(child: Text('Chưa có lịch sử nhận việc.')),
@@ -77,7 +76,7 @@ class _PartnerInboxState extends State<PartnerInbox> {
           session: widget.session,
           partner: true,
           showHeading: false,
-          filter: (task) => !_endedJobStatuses.contains(task['status']),
+          filter: (task) => !isPartnerHistoryTask(task),
           emptyWidget: const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: Text('Bạn chưa có công việc đang xử lý.')),

@@ -1,5 +1,7 @@
 export 'popular_services_card.dart';
 
+import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -9,13 +11,14 @@ import '../../core/theme.dart';
 import '../../domain/models.dart';
 import '../../shared/service_symbol.dart';
 import '../../shared/category_symbol.dart';
+import 'assistant_chat.dart';
 
 abstract final class HomeColors {
   static const emerald = Color(0xFF0F9D7A);
   static const dark = Color(0xFF087A60);
   static const soft = Color(0xFFDDF5EE);
   static const mint = Color(0xFFB9EFE3);
-  static const background = Color(0xFFF7FBF9);
+  static const background = Color(0xFFF2F9F6);
   static const ink = Color(0xFF0F172A);
   static const muted = Color(0xFF667085);
   static const border = Color(0xFFDDE7E4);
@@ -137,46 +140,492 @@ class SectionHeader extends StatelessWidget {
   );
 }
 
-/// Native vector artwork: no borrowed mascot or raster dependencies.
-class TaskLyRobot extends StatelessWidget {
-  const TaskLyRobot({super.key, this.size = 90});
+enum RobotTask { sweeping, mopping, repairing }
+
+enum RobotEyeMood { normal, happy, wink, blink }
+
+/// Hyperactive Spatial 4D Chore Robot:
+/// Performs Sweeping (Quét nhà), Mopping (Lau nhà), and Repairing (Sửa chữa),
+/// 10 seconds per task with moving tools, dynamic water/dust/spark particles,
+/// and speech bubble that moves along with the robot.
+class TaskLyRobot extends StatefulWidget {
+  const TaskLyRobot({
+    super.key,
+    this.size = 82,
+    this.showBubble = true,
+    this.stageHeight,
+  });
+
   final double size;
+  final bool showBubble;
+  final double? stageHeight;
+
   @override
-  Widget build(BuildContext context) => Semantics(
-    label: 'Trợ lý robot TaskLy',
-    image: true,
-    child: TweenAnimationBuilder<double>(
-      tween: Tween(begin: 4, end: 0),
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : const Duration(milliseconds: 800),
-      curve: Curves.easeOutSine,
-      builder: (_, offset, child) =>
-          Transform.translate(offset: Offset(0, offset), child: child),
-      child: CustomPaint(
-        size: Size(size, size * 1.1),
-        painter: _RobotPainter(),
-      ),
-    ),
-  );
+  State<TaskLyRobot> createState() => _TaskLyRobotState();
+}
+
+class _TaskLyRobotState extends State<TaskLyRobot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _routineController;
+  Timer? _blinkTimer;
+  Timer? _wanderTimer;
+  bool _isBlinking = false;
+  Offset _eyeOffset = Offset.zero;
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 30-second continuous routine: 10s Sweeping, 10s Mopping, 10s Repairing
+    _routineController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 30000),
+    )..repeat();
+
+    // Curious eye glances
+    _wanderTimer = Timer.periodic(const Duration(milliseconds: 1600), (_) {
+      if (mounted) {
+        final r = math.Random();
+        setState(() {
+          _eyeOffset = Offset(
+            (r.nextDouble() - 0.5) * 4.5,
+            (r.nextDouble() - 0.5) * 3.5,
+          );
+        });
+      }
+    });
+
+    // Natural blinking
+    _blinkTimer = Timer.periodic(const Duration(milliseconds: 3400), (_) {
+      if (mounted) {
+        setState(() => _isBlinking = true);
+        Future.delayed(const Duration(milliseconds: 160), () {
+          if (mounted) setState(() => _isBlinking = false);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _routineController.dispose();
+    _wanderTimer?.cancel();
+    _blinkTimer?.cancel();
+    super.dispose();
+  }
+
+  void _handleTapRobot() {
+    setState(() => _isPressed = true);
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (mounted) {
+        setState(() => _isPressed = false);
+        openTaskLyAssistant(context);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _routineController,
+      builder: (context, _) {
+        final totalProgress = _routineController.value;
+
+        // 3 Chore animations: 10 seconds each
+        final RobotTask task;
+        final double taskProgress;
+        final String speechText;
+
+        if (totalProgress < 0.3333) {
+          task = RobotTask.sweeping;
+          taskProgress = totalProgress / 0.3333;
+          speechText = taskProgress < 0.5
+              ? 'Đang quét sạch bóng bụi bẩn cho nhà tinh tươm nè! 🧹✨'
+              : 'Quét nhà sạch sẽ đón tài lộc vào nhà bạn ơi! 🏡';
+        } else if (totalProgress < 0.6666) {
+          task = RobotTask.mopping;
+          taskProgress = (totalProgress - 0.3333) / 0.3333;
+          speechText = taskProgress < 0.5
+              ? 'Lau sàn thơm mát bóng loáng cùng TaskLy nha! 🫧'
+              : 'Nhà sạch mát rượi, thảnh thơi tận hưởng thôi nè! 🥰';
+        } else {
+          task = RobotTask.repairing;
+          taskProgress = (totalProgress - 0.6666) / 0.3334;
+          speechText = taskProgress < 0.5
+              ? 'Đang bảo trì điện nước & máy lạnh chuẩn 5 sao! 🔧⚡'
+              : 'Cần sửa gì cứ gọi TaskLy, thợ tới ngay 30 phút! 🛠️';
+        }
+
+        // Dynamic Movement Math based on current task
+        double dx = 0.0;
+        double dy = 0.0;
+        double jumpAltitude = 0.0;
+        double facing = 1.0;
+        double tiltAngle = 0.0;
+        double scaleX = 1.0;
+        double scaleY = 1.0;
+        double thrusterFlame = 0.0;
+        double radarPulse = 0.0;
+        RobotEyeMood eyeMood = _isBlinking
+            ? RobotEyeMood.blink
+            : RobotEyeMood.normal;
+
+        switch (task) {
+          case RobotTask.sweeping:
+            if (taskProgress < 0.45) {
+              final p = taskProgress / 0.45;
+              dx = 28.0 - 58.0 * p; // Walks left
+              final hop = math.sin(p * math.pi * 8).abs();
+              dy = -hop * 4.0;
+              facing = -1.0;
+              tiltAngle = -0.12;
+            } else if (taskProgress < 0.55) {
+              dx = -30.0;
+              dy = 0.0;
+              facing = 1.0;
+              tiltAngle = 0.0;
+            } else if (taskProgress < 0.92) {
+              final p = (taskProgress - 0.55) / 0.37;
+              dx = -30.0 + 58.0 * p; // Walks right
+              final hop = math.sin(p * math.pi * 7).abs();
+              dy = -hop * 4.0;
+              facing = 1.0;
+              tiltAngle = 0.12;
+            } else {
+              dx = 28.0;
+              dy = -math.sin((taskProgress - 0.92) / 0.08 * math.pi) * 8.0;
+              facing = 1.0;
+              eyeMood = RobotEyeMood.happy;
+            }
+            break;
+
+          case RobotTask.mopping:
+            if (taskProgress < 0.45) {
+              final p = taskProgress / 0.45;
+              dx = 28.0 - 64.0 * p; // Glides left
+              dy = -math.sin(p * math.pi * 4).abs() * 2.5;
+              facing = -1.0;
+              tiltAngle = -0.16;
+            } else if (taskProgress < 0.55) {
+              final p = (taskProgress - 0.45) / 0.10;
+              dx = -36.0 + math.sin(p * math.pi * 4) * 6.0;
+              dy = 0.0;
+              facing = -1.0;
+              tiltAngle = -0.10;
+            } else if (taskProgress < 0.92) {
+              final p = (taskProgress - 0.55) / 0.37;
+              dx = -36.0 + 64.0 * p; // Glides right
+              dy = -math.sin(p * math.pi * 4).abs() * 2.5;
+              facing = 1.0;
+              tiltAngle = 0.16;
+            } else {
+              dx = 28.0;
+              dy = -math.sin((taskProgress - 0.92) / 0.08 * math.pi) * 10.0;
+              facing = 1.0;
+              eyeMood = RobotEyeMood.wink;
+            }
+            break;
+
+          case RobotTask.repairing:
+            if (taskProgress < 0.20) {
+              final p = taskProgress / 0.20;
+              jumpAltitude = 26.0 * p;
+              dy = -jumpAltitude;
+              dx = 28.0 - 52.0 * p;
+              thrusterFlame = 0.65;
+              facing = -1.0;
+              tiltAngle = -0.08;
+            } else if (taskProgress < 0.75) {
+              final p = (taskProgress - 0.20) / 0.55;
+              jumpAltitude = 26.0 + math.sin(p * math.pi * 6) * 4.0;
+              dy = -jumpAltitude;
+              dx = -24.0 + math.sin(p * math.pi * 2) * 5.0;
+              thrusterFlame = 0.55 + math.sin(p * math.pi * 6).abs() * 0.3;
+              facing = -1.0;
+              tiltAngle = math.sin(p * math.pi * 8) * 0.10;
+              radarPulse = (p * 4.0) % 1.0;
+              eyeMood = (p * 4 % 1.0 > 0.5)
+                  ? RobotEyeMood.happy
+                  : RobotEyeMood.normal;
+            } else if (taskProgress < 0.88) {
+              final p = (taskProgress - 0.75) / 0.13;
+              jumpAltitude = 26.0 + 16.0 * math.sin(p * math.pi);
+              dy = -jumpAltitude;
+              tiltAngle = p * 2.0 * math.pi;
+              thrusterFlame = 0.90;
+              eyeMood = RobotEyeMood.happy;
+            } else {
+              final p = (taskProgress - 0.88) / 0.12;
+              jumpAltitude = 26.0 * (1.0 - p);
+              dy = -jumpAltitude;
+              dx = -24.0 + 52.0 * p;
+              thrusterFlame = 0.40 * (1.0 - p);
+              facing = 1.0;
+              eyeMood = RobotEyeMood.happy;
+            }
+            break;
+        }
+
+        // 3D Floor Shadow (tracks dx)
+        final shadowWidget = Transform.translate(
+          offset: Offset(dx, 0),
+          child: Transform.scale(
+            scale:
+                (1.0 - (jumpAltitude / 50.0).clamp(0.0, 0.65)) *
+                (_isPressed ? 0.88 : 1.0),
+            child: Opacity(
+              opacity: (0.34 - (jumpAltitude / 80.0)).clamp(0.08, 0.34),
+              child: Container(
+                width: widget.size * 0.60,
+                height: 6.5,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF022C22),
+                  borderRadius: BorderRadius.all(Radius.elliptical(48, 8)),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // Entire Robot + Following Text Bubble Unit
+        final robotWithBubble = Transform.translate(
+          offset: Offset(dx, dy),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.showBubble) ...[
+                // Speech bubble that moves along with the robot
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 160),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.96),
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(
+                      color: const Color(0xFFD1FAE5),
+                      width: 1.2,
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x28022C22),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 320),
+                    transitionBuilder: (child, anim) => FadeTransition(
+                      opacity: anim,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.15),
+                          end: Offset.zero,
+                        ).animate(anim),
+                        child: child,
+                      ),
+                    ),
+                    child: Text(
+                      speechText,
+                      key: ValueKey<String>(speechText),
+                      style: const TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF064E3B),
+                        height: 1.25,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+                CustomPaint(
+                  size: const Size(10, 5),
+                  painter: _BubbleTailPainter(),
+                ),
+                const SizedBox(height: 1),
+              ],
+              // Robot Body with Tool & Effects
+              Transform.rotate(
+                angle: tiltAngle,
+                child: Transform.scale(
+                  scaleX: scaleX * facing * (_isPressed ? 0.92 : 1.0),
+                  scaleY: scaleY * (_isPressed ? 0.92 : 1.0),
+                  child: CustomPaint(
+                    size: Size(widget.size, widget.size * 1.1),
+                    painter: _RobotPainter(
+                      eyeOffset: _eyeOffset,
+                      eyeMood: eyeMood,
+                      task: task,
+                      toolPhase: taskProgress,
+                      thrusterFlame: thrusterFlame,
+                      radarPulse: radarPulse,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+
+        return GestureDetector(
+          onTap: _handleTapRobot,
+          behavior: HitTestBehavior.opaque,
+          child: SizedBox(
+            width: double.infinity,
+            height: widget.stageHeight ?? 165,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Floor Shadow
+                Positioned(
+                  bottom: 2,
+                  left: 0,
+                  right: 0,
+                  child: Center(child: shadowWidget),
+                ),
+                // Robot + Bubble that moves along with it
+                Positioned(
+                  bottom: 6,
+                  left: 0,
+                  right: 0,
+                  child: Center(child: robotWithBubble),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BubbleTailPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()
+      ..color = Colors.white.withValues(alpha: 0.96)
+      ..style = PaintingStyle.fill;
+    final path = Path();
+    path.moveTo(0, 0);
+    path.lineTo(size.width / 2, size.height);
+    path.lineTo(size.width, 0);
+    path.close();
+    canvas.drawPath(path, p);
+
+    final borderPaint = Paint()
+      ..color = const Color(0xFFD1FAE5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawLine(
+      Offset(0, 0),
+      Offset(size.width / 2, size.height),
+      borderPaint,
+    );
+    canvas.drawLine(
+      Offset(size.width / 2, size.height),
+      Offset(size.width, 0),
+      borderPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _RobotPainter extends CustomPainter {
+  const _RobotPainter({
+    this.eyeOffset = Offset.zero,
+    this.eyeMood = RobotEyeMood.normal,
+    this.task = RobotTask.sweeping,
+    this.toolPhase = 0.0,
+    this.thrusterFlame = 0.0,
+    this.radarPulse = 0.0,
+  });
+
+  final Offset eyeOffset;
+  final RobotEyeMood eyeMood;
+  final RobotTask task;
+  final double toolPhase;
+  final double thrusterFlame;
+  final double radarPulse;
+
   @override
   void paint(Canvas canvas, Size size) {
     canvas.save();
     canvas.scale(size.width / 100, size.height / 110);
     final p = Paint();
-    canvas.drawOval(
-      const Rect.fromLTWH(20, 96, 60, 7),
-      p..color = const Color(0x13087A60),
-    );
+
+    // 1. Radar Pulse Waves radiating from Antenna tip
+    if (radarPulse > 0.05) {
+      final ringPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..color = const Color(0xFF34D399)
+            .withValues(alpha: (1.0 - radarPulse) * 0.75);
+      final r1 = 8.0 + radarPulse * 16.0;
+      canvas.drawCircle(const Offset(50, 12), r1, ringPaint);
+      if (radarPulse > 0.35) {
+        final r2 = 4.0 + (radarPulse - 0.35) * 18.0;
+        ringPaint.color = const Color(0xFF10B981)
+            .withValues(alpha: (1.0 - radarPulse) * 0.5);
+        canvas.drawCircle(const Offset(50, 12), r2, ringPaint);
+      }
+    }
+
+    // 2. Dual Ion Plasma Thruster Flames
+    if (thrusterFlame > 0.05) {
+      final flameH = thrusterFlame * 22.0;
+      final thrusterPaint = Paint()..style = PaintingStyle.fill;
+
+      for (final tx in [42.0, 58.0]) {
+        final outerPath = Path()
+          ..moveTo(tx - 4.5, 96)
+          ..quadraticBezierTo(tx - 3.5, 96 + flameH * 0.6, tx, 96 + flameH)
+          ..quadraticBezierTo(tx + 3.5, 96 + flameH * 0.6, tx + 4.5, 96)
+          ..close();
+        thrusterPaint.shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            const Color(0xFF34D399).withValues(alpha: 0.9),
+            const Color(0xFF10B981).withValues(alpha: 0.7),
+            const Color(0x00059669),
+          ],
+        ).createShader(Rect.fromLTWH(tx - 5, 96, 10, flameH));
+        canvas.drawPath(outerPath, thrusterPaint);
+
+        final innerPath = Path()
+          ..moveTo(tx - 2.0, 96)
+          ..quadraticBezierTo(
+            tx - 1.5,
+            96 + flameH * 0.5,
+            tx,
+            96 + flameH * 0.75,
+          )
+          ..quadraticBezierTo(tx + 1.5, 96 + flameH * 0.5, tx + 2.0, 96)
+          ..close();
+        thrusterPaint.shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.white, Color(0xFFE6FFFA), Color(0x00A7F3D0)],
+        ).createShader(Rect.fromLTWH(tx - 2, 96, 4, flameH * 0.75));
+        canvas.drawPath(innerPath, thrusterPaint);
+      }
+    }
+
+    // 3. Robot Body & Legs
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         const Rect.fromLTWH(29, 68, 43, 29),
         const Radius.circular(15),
       ),
-      p..color = Colors.white,
+      p..color = const Color(0xFFF8FAFC),
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -185,22 +634,37 @@ class _RobotPainter extends CustomPainter {
       ),
       p..color = HomeColors.soft,
     );
-    canvas.drawCircle(const Offset(50, 82), 3, p..color = HomeColors.emerald);
+    canvas.drawCircle(
+      const Offset(50, 82),
+      3,
+      p..color = const Color(0xFF10B981),
+    );
+    canvas.drawCircle(const Offset(49, 81), 1, p..color = Colors.white);
+
+    // 4. Antenna stem & Glowing tip
     canvas.drawLine(
       const Offset(50, 25),
       const Offset(50, 14),
       p
-        ..color = HomeColors.dark
+        ..color = const Color(0xFF064E3B)
         ..strokeWidth = 3
         ..strokeCap = StrokeCap.round,
     );
-    canvas.drawCircle(const Offset(50, 12), 5, p..color = HomeColors.emerald);
+    canvas.drawCircle(
+      const Offset(50, 12),
+      5,
+      p..color = const Color(0xFF34D399),
+    );
+    canvas.drawCircle(const Offset(49, 10), 1.5, p..color = Colors.white);
+
+    // 5. Side Ears
+    p.color = const Color(0xFF059669);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         const Rect.fromLTWH(11, 37, 12, 20),
         const Radius.circular(6),
       ),
-      p..color = HomeColors.emerald,
+      p,
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -209,55 +673,367 @@ class _RobotPainter extends CustomPainter {
       ),
       p,
     );
+
+    // 6. Pearlescent Helmet (Thân trắng sứ)
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         const Rect.fromLTWH(18, 25, 64, 47),
         const Radius.circular(19),
       ),
-      p..color = Colors.white,
+      p..color = const Color(0xFFF8FAFC),
     );
+
+    // 7. Emerald Glass Visor Screen (#042F2E)
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         const Rect.fromLTWH(26, 34, 48, 29),
         const Radius.circular(12),
       ),
-      p..color = HomeColors.dark,
+      p..color = const Color(0xFF042F2E),
     );
+
+    // Visor Glare
+    final glarePaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0x55FFFFFF), Color(0x00FFFFFF)],
+      ).createShader(const Rect.fromLTWH(26, 34, 48, 10));
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        const Rect.fromLTWH(36, 43, 5, 9),
-        const Radius.circular(3),
+        const Rect.fromLTWH(26, 34, 48, 10),
+        const Radius.circular(10),
       ),
-      p..color = HomeColors.mint,
+      glarePaint,
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(59, 43, 5, 9),
-        const Radius.circular(3),
-      ),
-      p,
-    );
-    canvas.drawArc(
-      const Rect.fromLTWH(45, 47, 11, 9),
-      .2,
-      2.7,
-      false,
-      p
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
-    );
-    p.style = PaintingStyle.fill;
-    canvas.drawCircle(const Offset(80, 14), 3, p..color = Colors.white);
+
+    // 8. Dynamic Eye Expressions
+    p.color = const Color(0xFF34D399);
+
+    switch (eyeMood) {
+      case RobotEyeMood.happy:
+        p.style = PaintingStyle.stroke;
+        p.strokeWidth = 2.4;
+        p.strokeCap = StrokeCap.round;
+        canvas.drawArc(
+          const Rect.fromLTWH(34, 41, 10, 8),
+          math.pi * 0.15,
+          math.pi * 0.70,
+          false,
+          p,
+        );
+        canvas.drawArc(
+          const Rect.fromLTWH(57, 41, 10, 8),
+          math.pi * 0.15,
+          math.pi * 0.70,
+          false,
+          p,
+        );
+        break;
+
+      case RobotEyeMood.wink:
+        p.style = PaintingStyle.stroke;
+        p.strokeWidth = 2.4;
+        p.strokeCap = StrokeCap.round;
+        canvas.drawArc(
+          const Rect.fromLTWH(34, 41, 10, 8),
+          math.pi * 0.15,
+          math.pi * 0.70,
+          false,
+          p,
+        );
+        canvas.drawLine(const Offset(58, 47), const Offset(66, 47), p);
+        break;
+
+      case RobotEyeMood.blink:
+        p.style = PaintingStyle.fill;
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(36, 47, 6, 2),
+            const Radius.circular(1),
+          ),
+          p,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(59, 47, 6, 2),
+            const Radius.circular(1),
+          ),
+          p,
+        );
+        break;
+
+      case RobotEyeMood.normal:
+        p.style = PaintingStyle.fill;
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(36 + eyeOffset.dx, 43 + eyeOffset.dy, 5.5, 9),
+            const Radius.circular(3),
+          ),
+          p,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(59 + eyeOffset.dx, 43 + eyeOffset.dy, 5.5, 9),
+            const Radius.circular(3),
+          ),
+          p,
+        );
+        canvas.drawCircle(
+          Offset(37 + eyeOffset.dx, 44 + eyeOffset.dy),
+          1.2,
+          p..color = Colors.white,
+        );
+        canvas.drawCircle(Offset(60 + eyeOffset.dx, 44 + eyeOffset.dy), 1.2, p);
+        break;
+    }
+
+    // 9. Cute Smile
+    p.color = const Color(0xFF34D399);
+    p.style = PaintingStyle.stroke;
+    p.strokeWidth = 2.2;
+    p.strokeCap = StrokeCap.round;
+    if (eyeMood == RobotEyeMood.happy) {
+      canvas.drawArc(const Rect.fromLTWH(44, 46, 13, 11), 0.1, 2.9, false, p);
+    } else {
+      canvas.drawArc(const Rect.fromLTWH(45, 47, 11, 9), 0.2, 2.7, false, p);
+    }
+
+    // 10. CHORE TOOLS & DYNAMIC WORK PARTICLES
+    switch (task) {
+      case RobotTask.sweeping:
+        _drawSweepingTool(canvas, toolPhase);
+        break;
+      case RobotTask.mopping:
+        _drawMoppingTool(canvas, toolPhase);
+        break;
+      case RobotTask.repairing:
+        _drawRepairingTool(canvas, toolPhase);
+        break;
+    }
+
+    canvas.restore();
+  }
+
+  void _drawSweepingTool(Canvas canvas, double phase) {
+    final broomSweep = math.sin(phase * 24.0) * 0.35;
+    canvas.save();
+    canvas.translate(72, 75);
+    canvas.rotate(broomSweep);
+
+    // Handle
+    final polePaint = Paint()
+      ..color = const Color(0xFFD97706)
+      ..strokeWidth = 3.5
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(const Offset(0, 0), const Offset(14, 26), polePaint);
+
+    // Connector
     canvas.drawCircle(
-      const Offset(10, 72),
-      3,
-      p..color = HomeColors.emerald.withValues(alpha: .25),
+      const Offset(14, 26),
+      3.5,
+      Paint()..color = const Color(0xFF059669),
     );
+
+    // Straw Bristles
+    final bristlePath = Path()
+      ..moveTo(14, 26)
+      ..lineTo(6, 38)
+      ..quadraticBezierTo(18, 42, 28, 36)
+      ..close();
+    canvas.drawPath(bristlePath, Paint()..color = const Color(0xFFFDE68A));
+
+    final bristleLinePaint = Paint()
+      ..color = const Color(0xFFD97706)
+      ..strokeWidth = 1.2;
+    canvas.drawLine(
+      const Offset(14, 26),
+      const Offset(9, 39),
+      bristleLinePaint,
+    );
+    canvas.drawLine(
+      const Offset(14, 26),
+      const Offset(16, 41),
+      bristleLinePaint,
+    );
+    canvas.drawLine(
+      const Offset(14, 26),
+      const Offset(23, 38),
+      bristleLinePaint,
+    );
+
+    canvas.restore();
+
+    // Swept dust specks & sparkles
+    final dustPhase = phase * 16.0;
+    for (int i = 0; i < 3; i++) {
+      final dustX = 82.0 + 8.0 * math.cos(dustPhase + i * 2.0);
+      final dustY = 104.0 + 3.0 * math.sin(dustPhase + i * 2.0);
+      canvas.drawCircle(
+        Offset(dustX, dustY),
+        2.2,
+        Paint()..color = const Color(0xFFFDE68A).withValues(alpha: 0.75),
+      );
+    }
+  }
+
+  void _drawMoppingTool(Canvas canvas, double phase) {
+    final mopGlide = math.sin(phase * 16.0) * 0.20;
+    canvas.save();
+    canvas.translate(72, 72);
+    canvas.rotate(mopGlide);
+
+    // Pole
+    final mopPolePaint = Paint()
+      ..color = const Color(0xFF6EE7B7)
+      ..strokeWidth = 3.5
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(const Offset(0, 0), const Offset(16, 28), mopPolePaint);
+
+    // Swivel joint
+    canvas.drawCircle(
+      const Offset(16, 28),
+      3.5,
+      Paint()..color = const Color(0xFF065F46),
+    );
+
+    // Pad
+    final mopHeadRect = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(4, 28, 24, 7),
+      const Radius.circular(3),
+    );
+    canvas.drawRRect(mopHeadRect, Paint()..color = Colors.white);
+    canvas.drawRRect(
+      mopHeadRect,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = const Color(0xFF10B981),
+    );
+
+    canvas.restore();
+
+    // Water glossy trail
+    final waterPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          const Color(0xFF34D399).withValues(alpha: 0.50),
+          const Color(0xFF10B981).withValues(alpha: 0.0),
+        ],
+      ).createShader(const Rect.fromLTWH(60, 102, 38, 6));
+    canvas.drawOval(const Rect.fromLTWH(60, 102, 38, 6), waterPaint);
+
+    // Water bubbles 🫧
+    final bubbleT = phase * 12.0;
+    for (int i = 0; i < 4; i++) {
+      final bProgress = (bubbleT + i * 0.25) % 1.0;
+      final bx =
+          76.0 + (i - 1.5) * 8.0 + math.sin(bProgress * math.pi * 2) * 4.0;
+      final by = 104.0 - bProgress * 26.0;
+      final bRadius = 2.5 + (i % 2) * 1.5;
+      final bubbleAlpha = (1.0 - bProgress).clamp(0.0, 1.0);
+
+      final bPaint = Paint()
+        ..color = const Color(0xFF6EE7B7).withValues(alpha: bubbleAlpha * 0.6)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2;
+      canvas.drawCircle(Offset(bx, by), bRadius, bPaint);
+      canvas.drawCircle(
+        Offset(bx - bRadius * 0.35, by - bRadius * 0.35),
+        bRadius * 0.35,
+        Paint()..color = Colors.white.withValues(alpha: bubbleAlpha * 0.8),
+      );
+    }
+  }
+
+  void _drawRepairingTool(Canvas canvas, double phase) {
+    final wrenchTurn = math.sin(phase * 20.0) * 0.45;
+    canvas.save();
+    canvas.translate(72, 62);
+    canvas.rotate(-0.35 + wrenchTurn);
+
+    // Handle
+    final wrenchPaint = Paint()
+      ..color = const Color(0xFFCBD5E1)
+      ..strokeWidth = 4.5
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(const Offset(0, 0), const Offset(18, -12), wrenchPaint);
+
+    // Brand accent stripe
+    final gripPaint = Paint()
+      ..color = const Color(0xFF10B981)
+      ..strokeWidth = 5.0
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(const Offset(4, -3), const Offset(10, -7), gripPaint);
+
+    // Jaw
+    final jawPath = Path()
+      ..moveTo(16, -16)
+      ..lineTo(24, -20)
+      ..lineTo(26, -15)
+      ..lineTo(21, -11)
+      ..lineTo(25, -7)
+      ..lineTo(20, -4)
+      ..close();
+    canvas.drawPath(jawPath, Paint()..color = const Color(0xFFE2E8F0));
+    canvas.drawPath(
+      jawPath,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2
+        ..color = const Color(0xFF065F46),
+    );
+
+    canvas.restore();
+
+    // Electric sparks ⚡
+    final sparkPhase = (phase * 20.0) % 1.0;
+    if (sparkPhase > 0.35) {
+      final sparkPaint = Paint()
+        ..color = const Color(0xFFFBBF24)
+        ..strokeWidth = 2.0
+        ..strokeCap = StrokeCap.round;
+      final sparkPath = Path()
+        ..moveTo(94, 46)
+        ..lineTo(98, 42)
+        ..lineTo(96, 44)
+        ..lineTo(102, 38);
+      canvas.drawPath(sparkPath, sparkPaint);
+
+      final sparkPaint2 = Paint()
+        ..color = const Color(0xFF34D399)
+        ..strokeWidth = 1.5;
+      final sparkPath2 = Path()
+        ..moveTo(90, 52)
+        ..lineTo(95, 54)
+        ..lineTo(93, 56)
+        ..lineTo(97, 60);
+      canvas.drawPath(sparkPath2, sparkPaint2);
+    }
+
+    // Rotating tech gear ⚙️
+    final gearAngle = phase * 8.0 * math.pi;
+    canvas.save();
+    canvas.translate(92, 34);
+    canvas.rotate(gearAngle);
+    final gearPaint = Paint()
+      ..color = const Color(0xFF34D399).withValues(alpha: 0.65)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8;
+    canvas.drawCircle(Offset.zero, 5.0, gearPaint);
+    for (int g = 0; g < 6; g++) {
+      final ga = g * (math.pi / 3);
+      canvas.drawLine(
+        Offset(math.cos(ga) * 5, math.sin(ga) * 5),
+        Offset(math.cos(ga) * 7.5, math.sin(ga) * 7.5),
+        gearPaint..strokeWidth = 2.0,
+      );
+    }
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _RobotPainter oldDelegate) => true;
 }
 
 class AddressSelector extends StatelessWidget {
@@ -276,7 +1052,7 @@ class AddressSelector extends StatelessWidget {
           const Icon(
             Icons.location_on_outlined,
             size: 16,
-            color: Color(0xFF00A77C),
+            color: Color(0xFF059669),
           ),
           const SizedBox(width: 4),
           Flexible(
@@ -286,7 +1062,7 @@ class AddressSelector extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12,
-                color: Color(0xFF43516B),
+                color: Color(0xFF475569),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -394,14 +1170,14 @@ class _TaskLyHomeHeaderState extends State<TaskLyHomeHeader> {
                       const TextSpan(
                         text: 'Xin chào, ',
                         style: TextStyle(
-                          color: Color(0xFF71829C),
+                          color: Color(0xFF062E22),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       TextSpan(
                         text: widget.name,
                         style: const TextStyle(
-                          color: Color(0xFF121B30),
+                          color: Color(0xFF062E22),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -424,14 +1200,14 @@ class _TaskLyHomeHeaderState extends State<TaskLyHomeHeader> {
               setState(() => _expanded = !_expanded);
             },
             style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFF4F7FA),
+              backgroundColor: Colors.transparent,
               minimumSize: const Size(38, 38),
               padding: const EdgeInsets.all(9),
             ),
             icon: const Icon(
               Icons.search_rounded,
-              size: 21,
-              color: Color(0xFF182238),
+              size: 20,
+              color: Color(0xFF059669),
             ),
           ),
           const SizedBox(width: 8),
@@ -439,18 +1215,18 @@ class _TaskLyHomeHeaderState extends State<TaskLyHomeHeader> {
             tooltip: 'Thông báo',
             onPressed: widget.onNotifications,
             style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFF4F7FA),
+              backgroundColor: Colors.transparent,
               minimumSize: const Size(38, 38),
               padding: const EdgeInsets.all(9),
             ),
             icon: Badge(
               isLabelVisible: widget.unread,
               smallSize: 8,
-              backgroundColor: const Color(0xFF00B884),
+              backgroundColor: const Color(0xFF10B981),
               child: const Icon(
                 Icons.notifications_none_rounded,
-                size: 21,
-                color: Color(0xFF182238),
+                size: 20,
+                color: Color(0xFF059669),
               ),
             ),
           ),
@@ -552,7 +1328,7 @@ class Store3DIcon extends StatelessWidget {
       width: size * 0.95,
       height: size * 0.95,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           colors: [Color(0xFF0F9D7A), Color(0xFF087A60)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1812,7 +2588,7 @@ class ArcDomePainter extends CustomPainter {
 
     // White curved dome at bottom, raised higher so it doesn't obscure the category folders
     final domePath = Path();
-    domePath.moveTo(0, size.height);
+    domePath.moveTo(0, size.height + 60);
     domePath.lineTo(0, size.height * 0.44);
     domePath.quadraticBezierTo(
       size.width * 0.5,
@@ -1820,15 +2596,27 @@ class ArcDomePainter extends CustomPainter {
       size.width,
       size.height * 0.44,
     );
-    domePath.lineTo(size.width, size.height);
+    domePath.lineTo(size.width, size.height + 60);
     domePath.close();
 
-    // Soft drop shadow behind dome
-    canvas.drawShadow(domePath, const Color(0x35087A60), 16, false);
+    // Fill curved dome with rgba(255, 255, 255, 0.92)
+    final domePaint = Paint()..color = const Color(0xEBFFFFFF);
+    canvas.drawPath(domePath, domePaint);
 
-    // Fill white dome completely to the bottom edge
-    final whitePaint = Paint()..color = Colors.white;
-    canvas.drawPath(domePath, whitePaint);
+    // Glowing top rim light (#FFFFFF)
+    final topRimPath = Path();
+    topRimPath.moveTo(0, size.height * 0.44);
+    topRimPath.quadraticBezierTo(
+      size.width * 0.5,
+      size.height * 0.15,
+      size.width,
+      size.height * 0.44,
+    );
+    final rimPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..color = Colors.white;
+    canvas.drawPath(topRimPath, rimPaint);
   }
 
   @override
@@ -1840,31 +2628,82 @@ class CategoryBadge extends StatelessWidget {
   const CategoryBadge({super.key, required this.child, this.selected = false});
   final Widget child;
   final bool selected;
+
   @override
-  Widget build(BuildContext context) => Container(
-    width: selected ? 64 : 42,
-    height: selected ? 64 : 42,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFFFDEEA), Color(0xFFFFF2F6)],
+  Widget build(BuildContext context) {
+    if (selected) {
+      return Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          // Vòng sáng lan tỏa rgba(16, 185, 129, 0.25)
+          Container(
+            width: 76,
+            height: 76,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0x4010B981), // rgba(16, 185, 129, 0.25)
+            ),
+          ),
+          Container(
+            width: 66,
+            height: 66,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF10B981), Color(0xFF059669)],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x4010B981),
+                  blurRadius: 16,
+                  spreadRadius: 2,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(
+              child: ColorFiltered(
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+                child: child,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: const Color(0xFFECFDF5),
+        border: Border.all(color: const Color(0xFFA7F3D0), width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14059669),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
       ),
-      border: Border.all(
-        color: const Color(0xFFF7BBD1),
-        width: selected ? 2 : 1,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xFFE76D9A).withValues(alpha: selected ? .23 : .1),
-          blurRadius: 12,
-          offset: const Offset(0, 4),
+      child: Center(
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.mode(
+            Color(0xFF059669),
+            BlendMode.srcIn,
+          ),
+          child: child,
         ),
-      ],
-    ),
-    child: Center(child: child),
-  );
+      ),
+    );
+  }
 }
 
 class ArcServiceCarouselItem {
@@ -2008,7 +2847,6 @@ class _ArcServiceCarouselState extends State<ArcServiceCarousel> {
     _initialPage = itemsCount > 0
         ? (_kLoopFactor ~/ 2) * itemsCount + initialOffset
         : 0;
-    // Five services fit across the arc, with the selected item emphasized.
     _pageController = PageController(
       viewportFraction: 0.20,
       initialPage: _initialPage,
@@ -2075,6 +2913,7 @@ class _ArcServiceCarouselState extends State<ArcServiceCarousel> {
                   page = _pageController.page ?? _initialPage.toDouble();
                 }
                 return PageView.builder(
+                  clipBehavior: Clip.none,
                   controller: _pageController,
                   physics: const BouncingScrollPhysics(),
                   itemCount: totalCount,
@@ -2123,15 +2962,20 @@ class _ArcServiceCarouselState extends State<ArcServiceCarousel> {
                                       height: 72,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Colors.white,
-                                        boxShadow: [
+                                        gradient: const LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            Color(0xFF10B981),
+                                            Color(0xFF059669),
+                                          ],
+                                        ),
+                                        boxShadow: const [
                                           BoxShadow(
-                                            color: const Color(
-                                              0xFF0F9D7A,
-                                            ).withValues(alpha: 0.28 * factor),
+                                            color: Color(0x4010B981),
                                             blurRadius: 16,
-                                            spreadRadius: 1,
-                                            offset: const Offset(0, 4),
+                                            spreadRadius: 2,
+                                            offset: Offset(0, 4),
                                           ),
                                         ],
                                         border: Border.all(
@@ -2140,11 +2984,17 @@ class _ArcServiceCarouselState extends State<ArcServiceCarousel> {
                                         ),
                                       ),
                                       child: Center(
-                                        child: ServiceIcon(
-                                          key: ValueKey('home-service-$i'),
-                                          index: i,
-                                          size: 34,
-                                          customIcon: item.icon,
+                                        child: ColorFiltered(
+                                          colorFilter: const ColorFilter.mode(
+                                            Colors.white,
+                                            BlendMode.srcIn,
+                                          ),
+                                          child: ServiceIcon(
+                                            key: ValueKey('home-service-$i'),
+                                            index: i,
+                                            size: 34,
+                                            customIcon: item.icon,
+                                          ),
                                         ),
                                       ),
                                     )
@@ -2153,26 +3003,32 @@ class _ArcServiceCarouselState extends State<ArcServiceCarousel> {
                                       width: 44,
                                       height: 44,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFF0FDF8),
+                                        color: const Color(0xFFECFDF5),
                                         borderRadius: BorderRadius.circular(15),
                                         border: Border.all(
-                                          color: const Color(0xFFD1FAE5),
+                                          color: const Color(0xFFA7F3D0),
                                           width: 1.2,
                                         ),
                                         boxShadow: const [
                                           BoxShadow(
-                                            color: Color(0x10087A60),
+                                            color: Color(0x10059669),
                                             blurRadius: 6,
                                             offset: Offset(0, 2),
                                           ),
                                         ],
                                       ),
                                       child: Center(
-                                        child: ServiceIcon(
-                                          key: ValueKey('home-service-$i'),
-                                          index: i,
-                                          size: 30,
-                                          customIcon: item.icon,
+                                        child: ColorFiltered(
+                                          colorFilter: const ColorFilter.mode(
+                                            Color(0xFF059669),
+                                            BlendMode.srcIn,
+                                          ),
+                                          child: ServiceIcon(
+                                            key: ValueKey('home-service-$i'),
+                                            index: i,
+                                            size: 30,
+                                            customIcon: item.icon,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -2210,35 +3066,38 @@ class _ArcServiceCarouselState extends State<ArcServiceCarousel> {
               },
             ),
           ),
-          if (widget.categories != null)
-            Positioned(
-              bottom: 6,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: OutlinedButton.icon(
-                  key: const ValueKey('home-all-categories'),
-                  onPressed: widget.onAllServices,
-                  icon: const Icon(Icons.folder_open_rounded, size: 16),
-                  label: const Text('Danh mục'),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFF2F6),
-                    foregroundColor: const Color(0xFFCA497A),
-                    side: const BorderSide(color: Color(0xFFF7BBD1)),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    minimumSize: const Size(108, 36),
-                    textStyle: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    shape: const StadiumBorder(),
+          Positioned(
+            bottom: 6,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: OutlinedButton.icon(
+                key: const ValueKey('home-all-categories'),
+                onPressed: widget.onAllServices,
+                icon: const Icon(
+                  Icons.folder_open_rounded,
+                  size: 16,
+                  color: Color(0xFF047857),
+                ),
+                label: const Text('Danh mục'),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF0FDF4),
+                  foregroundColor: const Color(0xFF047857),
+                  side: const BorderSide(color: Color(0xFF6EE7B7)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
+                  minimumSize: const Size(108, 36),
+                  textStyle: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  shape: const StadiumBorder(),
                 ),
               ),
             ),
+          ),
         ],
       ),
     );
@@ -2909,7 +3768,7 @@ class TaskLyAssistantCard extends StatelessWidget {
             ],
           ),
         ),
-        const TaskLyRobot(size: 65),
+        const SizedBox(width: 78, child: TaskLyRobot(size: 65)),
       ],
     ),
   );
@@ -3231,6 +4090,10 @@ class RewardsProgressCard extends StatelessWidget {
 }
 
 class TaskLyBottomNav extends StatelessWidget {
+  /// Scroll clearance for the floating bar, its margin and system gesture area.
+  static double contentBottomPadding(BuildContext context) =>
+      66 + 12 + MediaQuery.viewPaddingOf(context).bottom + 24;
+
   const TaskLyBottomNav({
     super.key,
     required this.selected,
@@ -3246,10 +4109,12 @@ class TaskLyBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor =
-        isDark ? const Color(0xFF00E5A3) : const Color(0xFF0F9D7A);
-    final inactiveColor =
-        isDark ? Colors.white.withValues(alpha: 0.72) : const Color(0xFF64748B);
+    final activeColor = isDark
+        ? const Color(0xFF00E5A3)
+        : const Color(0xFF009B72);
+    final inactiveColor = isDark
+        ? Colors.white.withValues(alpha: 0.72)
+        : const Color(0xFF64748B);
 
     final isServiceActive = selected == 0;
     final isActivityActive = selected == 1;
@@ -3274,19 +4139,21 @@ class TaskLyBottomNav extends StatelessWidget {
             decoration: BoxDecoration(
               color: isDark
                   ? const Color(0xFF0F172A).withValues(alpha: 0.85)
-                  : Colors.white.withValues(alpha: 0.94),
+                  : Colors.white.withValues(
+                      alpha: 0.88,
+                    ), // rgba(255, 255, 255, 0.88)
               borderRadius: BorderRadius.circular(38),
               border: Border.all(
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.16)
-                    : Colors.white.withValues(alpha: 0.95),
+                    : const Color(0xFFE2E8F0),
                 width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
                   color: isDark
                       ? Colors.black.withValues(alpha: 0.45)
-                      : const Color(0x12000000),
+                      : const Color(0x08000000),
                   blurRadius: 28,
                   offset: const Offset(0, 8),
                   spreadRadius: 0,
@@ -3294,7 +4161,7 @@ class TaskLyBottomNav extends StatelessWidget {
                 BoxShadow(
                   color: isDark
                       ? const Color(0x3300E5A3)
-                      : const Color(0x1A087A60),
+                      : const Color(0x08059669),
                   blurRadius: 18,
                   offset: const Offset(0, 4),
                   spreadRadius: 0,
@@ -3311,7 +4178,10 @@ class TaskLyBottomNav extends StatelessWidget {
                     // Fluid sliding capsule highlight
                     Positioned.fill(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 5,
+                        ),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             final tabWidth = constraints.maxWidth / 4;
@@ -3327,30 +4197,23 @@ class TaskLyBottomNav extends StatelessWidget {
                                     height: constraints.maxHeight - 4,
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: isDark
-                                              ? [
-                                                  const Color(0xFF00E5A3).withValues(alpha: 0.22),
-                                                  const Color(0xFF00E5A3).withValues(alpha: 0.08),
-                                                ]
-                                              : [
-                                                  const Color(0xFFECFDF5),
-                                                  const Color(0xFFD1FAE5),
-                                                ],
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                        ),
+                                        color: isDark
+                                            ? const Color(0xFF00E5A3)
+                                                  .withValues(alpha: 0.15)
+                                            : const Color(0xFFDDF8EF),
                                         borderRadius: BorderRadius.circular(22),
                                         border: Border.all(
                                           color: isDark
-                                              ? const Color(0xFF00E5A3).withValues(alpha: 0.35)
-                                              : const Color(0xFFA7F3D0),
+                                              ? const Color(0xFF00E5A3)
+                                                    .withValues(alpha: 0.35)
+                                              : const Color(0xFF6EE7B7),
                                           width: 1.0,
                                         ),
                                         boxShadow: [
                                           BoxShadow(
                                             color: isDark
-                                                ? const Color(0xFF00E5A3).withValues(alpha: 0.18)
+                                                ? const Color(0xFF00E5A3)
+                                                      .withValues(alpha: 0.18)
                                                 : const Color(0x14059669),
                                             blurRadius: 10,
                                             offset: const Offset(0, 3),
@@ -3369,7 +4232,10 @@ class TaskLyBottomNav extends StatelessWidget {
                     // Interactive items row
                     Positioned.fill(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 5,
+                        ),
                         child: Row(
                           children: [
                             // Chức năng 1: Dịch vụ (key: customer-nav-0)
@@ -3580,4 +4446,309 @@ class HomeSkeleton extends StatelessWidget {
       ],
     ),
   );
+}
+
+class ShimmerCtaButton extends StatefulWidget {
+  const ShimmerCtaButton({
+    super.key,
+    required this.onPressed,
+    required this.label,
+  });
+
+  final VoidCallback onPressed;
+  final String label;
+
+  @override
+  State<ShimmerCtaButton> createState() => _ShimmerCtaButtonState();
+}
+
+class _ShimmerCtaButtonState extends State<ShimmerCtaButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final val = _controller.value;
+        return GestureDetector(
+          onTapDown: (_) => setState(() => _isPressed = true),
+          onTapUp: (_) => setState(() => _isPressed = false),
+          onTapCancel: () => setState(() => _isPressed = false),
+          onTap: widget.onPressed,
+          child: AnimatedScale(
+            scale: _isPressed ? 0.94 : 1.0,
+            duration: const Duration(milliseconds: 120),
+            curve: Curves.easeOutCubic,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white, width: 2.0),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x40022C22), // rgba(2, 44, 34, 0.25)
+                    blurRadius: 18,
+                    spreadRadius: 1,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Stack(
+                  children: [
+                    // Base Pure White Surface
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 11,
+                      ),
+                      decoration: const BoxDecoration(color: Colors.white),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [Color(0xFF34D399), Color(0xFF009B72)],
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.bolt_rounded,
+                              size: 13,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              widget.label,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF064E3B),
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 15,
+                            color: Color(0xFF064E3B),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Multi-layer Holographic Shimmer Gleam
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment(-2.5 + 5.0 * val, -0.4),
+                              end: Alignment(-1.5 + 5.0 * val, 0.4),
+                              colors: [
+                                Colors.white.withValues(alpha: 0.0),
+                                Colors.white.withValues(alpha: 0.55),
+                                Colors.white.withValues(alpha: 0.0),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class HomePolaroidBanner extends StatelessWidget {
+  const HomePolaroidBanner({super.key, this.onTap});
+
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(
+              begin: Alignment(-1.0, -0.6),
+              end: Alignment(1.0, 0.6),
+              colors: [Color(0xFFDDF8EF), Color(0xFFA7F3D0), Color(0xFF6EE7B7)],
+              stops: [0.0, 0.5, 1.0],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF009B72).withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -20,
+                top: -20,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.25),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              _buildBadge('SẠCH'),
+                              _buildBadge('THẢNH THƠI'),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Không gian sạch thơm,\ntrọn vẹn an tâm!',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF064E3B),
+                              height: 1.25,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Dịch vụ chuẩn 5 sao cùng TaskLy',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF047857),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Transform.rotate(
+                      angle: 0.04,
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(6, 6, 6, 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x26064E3B), // rgba(6, 78, 59, 0.15)
+                              blurRadius: 12,
+                              spreadRadius: 1,
+                              offset: Offset(2, 6),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 78,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(6),
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFF10B981),
+                                    Color(0xFF009B72),
+                                  ],
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.cleaning_services_rounded,
+                                color: Colors.white,
+                                size: 34,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'TaskLy Life ✨',
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF064E3B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFF047857),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          color: Colors.white,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
 }

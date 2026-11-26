@@ -121,7 +121,7 @@ class _RecruitmentUniformState extends State<RecruitmentUniform> {
                 Expanded(child: Text('Đã cập nhật đơn đồng phục thành công!')),
               ],
             ),
-            backgroundColor: Color(0xFF10B981),
+            backgroundColor: Color(0xFF2563EB),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -558,9 +558,9 @@ class _RecruitmentUniformState extends State<RecruitmentUniform> {
             statusColor = const Color(0xFF64748B);
           } else if (isPaid) {
             statusLabel = o['payment_status'] == 'WAIVED' ? 'Được hỗ trợ (0 đ)' : 'Đã thanh toán';
-            statusBg = const Color(0xFFECFDF5);
-            statusBorder = const Color(0xFFA7F3D0);
-            statusColor = const Color(0xFF059669);
+            statusBg = const Color(0xFFEFF6FF);
+            statusBorder = const Color(0xFFBFDBFE);
+            statusColor = const Color(0xFF2563EB);
           } else if (o['payment_status'] == 'FAILED') {
             statusLabel = 'Thanh toán lỗi';
             statusBg = const Color(0xFFFEF2F2);
@@ -586,7 +586,7 @@ class _RecruitmentUniformState extends State<RecruitmentUniform> {
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
                 color: isPaid
-                    ? const Color(0xFFA7F3D0)
+                    ? const Color(0xFFBFDBFE)
                     : const Color(0xFFE2E8F0),
                 width: isPaid ? 1.5 : 1.0,
               ),
@@ -609,15 +609,15 @@ class _RecruitmentUniformState extends State<RecruitmentUniform> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: isPaid ? const Color(0xFFECFDF5) : const Color(0xFFEFF6FF),
+                        color: isPaid ? const Color(0xFFEFF6FF) : const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isPaid ? const Color(0xFFA7F3D0) : const Color(0xFFBFDBFE),
+                          color: isPaid ? const Color(0xFFBFDBFE) : const Color(0xFFBFDBFE),
                         ),
                       ),
                       child: Icon(
                         Icons.checkroom_rounded,
-                        color: isPaid ? const Color(0xFF059669) : const Color(0xFF2563EB),
+                        color: isPaid ? const Color(0xFF2563EB) : const Color(0xFF2563EB),
                         size: 22,
                       ),
                     ),
@@ -722,21 +722,21 @@ class _RecruitmentUniformState extends State<RecruitmentUniform> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFECFDF5),
+                          color: const Color(0xFFEFF6FF),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: const Color(0xFFA7F3D0)),
+                          border: Border.all(color: const Color(0xFFBFDBFE)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.payments_outlined, size: 13, color: Color(0xFF059669)),
+                            const Icon(Icons.payments_outlined, size: 13, color: Color(0xFF2563EB)),
                             const SizedBox(width: 4),
                             Text(
                               priceText,
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF047857),
+                                color: Color(0xFF1D4ED8),
                               ),
                             ),
                           ],
@@ -841,8 +841,8 @@ class _RecruitmentUniformState extends State<RecruitmentUniform> {
                                   body: {'result': 'SUCCESS'},
                                 ),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF059669),
-                            side: const BorderSide(color: Color(0xFF10B981)),
+                            foregroundColor: const Color(0xFF2563EB),
+                            side: const BorderSide(color: Color(0xFF2563EB)),
                             visualDensity: VisualDensity.compact,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -986,7 +986,7 @@ class _RecruitmentUniformState extends State<RecruitmentUniform> {
                               'Được TaskLy hỗ trợ 100% chi phí',
                               style: TextStyle(
                                 fontSize: 11.5,
-                                color: Color(0xFF059669),
+                                color: Color(0xFF2563EB),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

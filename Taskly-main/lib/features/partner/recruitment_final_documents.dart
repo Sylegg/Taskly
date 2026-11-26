@@ -188,7 +188,7 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
               ),
             ],
           ),
-          backgroundColor: Color(0xFF10B981),
+          backgroundColor: Color(0xFF2563EB),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -482,16 +482,16 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0FDF4),
+        color: const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFBBF7D0)),
+        border: Border.all(color: const Color(0xFFBFDBFE)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(
             Icons.task_alt_rounded,
-            color: Color(0xFF16A34A),
+            color: Color(0xFF2563EB),
             size: 22,
           ),
           const SizedBox(width: 10),
@@ -504,7 +504,7 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF15803D),
+                    color: Color(0xFF1D4ED8),
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -512,7 +512,7 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
                   'Thời gian gửi: $time. Bạn có thể chọn tải lại ảnh mới nếu cần cập nhật.',
                   style: const TextStyle(
                     fontSize: 12.5,
-                    color: Color(0xFF166534),
+                    color: Color(0xFF1E40AF),
                     height: 1.35,
                   ),
                 ),
@@ -728,7 +728,7 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: hasImage ? const Color(0xFF10B981) : const Color(0xFFE2E8F0),
+          color: hasImage ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
           width: hasImage ? 1.5 : 1,
         ),
         boxShadow: const [
@@ -749,14 +749,14 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: hasImage
-                      ? const Color(0xFFECFDF5)
+                      ? const Color(0xFFEFF6FF)
                       : PartnerColors.softBlue,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   hasImage ? Icons.check_circle_rounded : Icons.badge_rounded,
                   color: hasImage
-                      ? const Color(0xFF10B981)
+                      ? const Color(0xFF2563EB)
                       : PartnerColors.primary,
                   size: 22,
                 ),
@@ -788,12 +788,12 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: hasImage
-                      ? const Color(0xFFECFDF5)
+                      ? const Color(0xFFEFF6FF)
                       : const Color(0xFFFEF2F2),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: hasImage
-                        ? const Color(0xFFA7F3D0)
+                        ? const Color(0xFFBFDBFE)
                         : const Color(0xFFFECACA),
                   ),
                 ),
@@ -803,7 +803,7 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
                     fontSize: 10.5,
                     fontWeight: FontWeight.w800,
                     color: hasImage
-                        ? const Color(0xFF059669)
+                        ? const Color(0xFF2563EB)
                         : const Color(0xFFDC2626),
                   ),
                 ),
@@ -847,7 +847,7 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
                           Icon(
                             Icons.check_circle_rounded,
                             size: 14,
-                            color: Color(0xFF34D399),
+                            color: Color(0xFF38BDF8),
                           ),
                           SizedBox(width: 6),
                           Expanded(
@@ -1018,7 +1018,7 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: hasImage ? const Color(0xFF10B981) : const Color(0xFFE2E8F0),
+          color: hasImage ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0),
           width: hasImage ? 1.5 : 1,
         ),
         boxShadow: const [
@@ -1039,7 +1039,7 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: hasImage
-                      ? const Color(0xFFECFDF5)
+                      ? const Color(0xFFEFF6FF)
                       : PartnerColors.softBlue,
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -1048,7 +1048,7 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
                       ? Icons.check_circle_rounded
                       : Icons.description_rounded,
                   color: hasImage
-                      ? const Color(0xFF10B981)
+                      ? const Color(0xFF2563EB)
                       : PartnerColors.primary,
                   size: 22,
                 ),
@@ -1080,12 +1080,12 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: hasImage
-                      ? const Color(0xFFECFDF5)
+                      ? const Color(0xFFEFF6FF)
                       : const Color(0xFFFEF2F2),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: hasImage
-                        ? const Color(0xFFA7F3D0)
+                        ? const Color(0xFFBFDBFE)
                         : const Color(0xFFFECACA),
                   ),
                 ),
@@ -1095,7 +1095,7 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
                     fontSize: 10.5,
                     fontWeight: FontWeight.w800,
                     color: hasImage
-                        ? const Color(0xFF059669)
+                        ? const Color(0xFF2563EB)
                         : const Color(0xFFDC2626),
                   ),
                 ),
@@ -1141,7 +1141,7 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
                             Icon(
                               Icons.check_circle_rounded,
                               size: 14,
-                              color: Color(0xFF34D399),
+                              color: Color(0xFF38BDF8),
                             ),
                             SizedBox(width: 6),
                             Expanded(
@@ -1279,12 +1279,12 @@ class _FinalDocumentsState extends State<RecruitmentFinalDocuments> {
     return Container(
       decoration: BoxDecoration(
         color: hasAgreedPolicy
-            ? const Color(0xFFF0FDF4)
+            ? const Color(0xFFEFF6FF)
             : const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: hasAgreedPolicy
-              ? const Color(0xFF86EFAC)
+              ? const Color(0xFFBFDBFE)
               : const Color(0xFFE2E8F0),
           width: 1.2,
         ),

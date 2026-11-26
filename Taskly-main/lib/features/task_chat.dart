@@ -256,12 +256,23 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
       setState(() => _sending = true);
       _requestId ??= _uuid();
       try {
-        await _photoWrites;
+        await _photoWrites.catchError((_) {});
         await widget.session.request('/partner/jobs/${widget.taskId}/complete', method: 'POST',
           body: {'images': _completionPhotos, 'confirmedAllAreas': true, 'requestId': _requestId});
-        if (mounted) setState(() => _arrived = true);
-        final draft = await _photoDraftFile();
-        if (await draft.exists()) await draft.delete();
+        if (mounted) {
+          setState(() => _arrived = true);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Đã gửi ảnh hoàn thành để khách hàng xác nhận.'),
+          ));
+        }
+        try {
+          final draft = await _photoDraftFile();
+          if (await draft.exists()) await draft.delete();
+        } on FileSystemException {
+          // The server has already accepted the photos.
+        } on MissingPlatformDirectoryException {
+          // The server has already accepted the photos.
+        }
         await _load(silent: true);
         _scrollToBottom();
       } catch (e) {
@@ -619,7 +630,7 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
                         children: [
                           Flexible(
                             child: Text(
-                              chatTitle,
+                              titleName,
                               style: const TextStyle(
                                 fontSize: 15.5,
                                 fontWeight: FontWeight.w700,
@@ -633,7 +644,7 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
                         ],
                       ),
                       Text(
-                        '$serviceName • #${widget.taskId.substring(0, min(8, widget.taskId.length)).toUpperCase()}',
+                        '${widget.partner ? 'Khách hàng' : 'Tasker Đối tác'} • $serviceName • #${widget.taskId.substring(0, min(8, widget.taskId.length)).toUpperCase()}',
                         style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -723,9 +734,12 @@ class _TaskChatScreenState extends State<TaskChatScreen> {
                   children: const [
                     Icon(Icons.lock_outline_rounded, size: 12, color: Color(0xFF94A3B8)),
                     SizedBox(width: 6),
-                    Text(
-                      'Tin nhắn được bảo mật phục vụ công việc trên TaskLy',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    Flexible(
+                      child: Text(
+                        'Tin nhắn được bảo mật phục vụ công việc trên TaskLy',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                      ),
                     ),
                   ],
                 ),

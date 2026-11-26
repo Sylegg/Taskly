@@ -131,7 +131,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                   deposit
                                       ? Icons.add_circle_outline_rounded
                                       : Icons.arrow_downward_rounded,
-                                  color: const Color(0xFF059669),
+                                  color: const Color(0xFF2563EB),
                                 ),
                                 title: Text(deposit ? 'Nạp tiền' : 'Rút tiền'),
                                 subtitle: Text(
@@ -464,9 +464,9 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0x2210B981),
+                                color: const Color(0x222563EB),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: const Color(0x6610B981)),
+                                border: Border.all(color: const Color(0x662563EB)),
                               ),
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -474,7 +474,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                   Icon(
                                     Icons.verified_rounded,
                                     size: 12,
-                                    color: Color(0xFF34D399),
+                                    color: Color(0xFF38BDF8),
                                   ),
                                   SizedBox(width: 4),
                                   Text(
@@ -482,7 +482,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                     style: TextStyle(
                                       fontSize: 10.5,
                                       fontWeight: FontWeight.w700,
-                                      color: Color(0xFF34D399),
+                                      color: Color(0xFF38BDF8),
                                     ),
                                   ),
                                 ],
@@ -770,16 +770,16 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                   Container(
                     padding: const EdgeInsets.all(11),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECFDF5),
+                      color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
                     ),
                     child: const Row(
                       children: [
                         Icon(
                           Icons.bolt_rounded,
                           size: 18,
-                          color: Color(0xFF059669),
+                          color: Color(0xFF2563EB),
                         ),
                         SizedBox(width: 8),
                         Expanded(
@@ -787,7 +787,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                             'Hệ thống tự động cộng tiền vào ví trong vòng 1-3 phút sau khi giao dịch chuyển khoản thành công.',
                             style: TextStyle(
                               fontSize: 11.5,
-                              color: Color(0xFF065F46),
+                              color: Color(0xFF1E40AF),
                               height: 1.35,
                             ),
                           ),
@@ -998,14 +998,14 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFECFDF5),
+                            color: const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xFFA7F3D0)),
+                            border: Border.all(color: const Color(0xFFBFDBFE)),
                           ),
                           alignment: Alignment.center,
                           child: const Icon(
                             Icons.account_balance_rounded,
-                            color: Color(0xFF059669),
+                            color: Color(0xFF2563EB),
                             size: 22,
                           ),
                         ),
@@ -1054,7 +1054,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                           end: Alignment.bottomRight,
                           colors: [
                             Color(0xFF0F172A),
-                            Color(0xFF065F46),
+                            Color(0xFF1E40AF),
                           ],
                         ),
                         boxShadow: const [
@@ -1095,7 +1095,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                     Icon(
                                       Icons.check_circle_outline_rounded,
                                       size: 13,
-                                      color: Color(0xFF6EE7B7),
+                                      color: Color(0xFF60A5FA),
                                     ),
                                     SizedBox(width: 4),
                                     Text(
@@ -1103,7 +1103,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                       style: TextStyle(
                                         fontSize: 10.5,
                                         fontWeight: FontWeight.w700,
-                                        color: Color(0xFF6EE7B7),
+                                        color: Color(0xFF60A5FA),
                                       ),
                                     ),
                                   ],
@@ -1117,7 +1117,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF6EE7B7),
+                              color: Color(0xFF60A5FA),
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -1165,7 +1165,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                     const Icon(
                                       Icons.percent_rounded,
                                       size: 14,
-                                      color: Color(0xFF34D399),
+                                      color: Color(0xFF38BDF8),
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -1173,7 +1173,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                       style: const TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w700,
-                                        color: Color(0xFF34D399),
+                                        color: Color(0xFF38BDF8),
                                       ),
                                     ),
                                   ],
@@ -1234,7 +1234,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                         vertical: 1.5,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFECFDF5),
+                                        color: const Color(0xFFEFF6FF),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: const Text(
@@ -1242,7 +1242,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                         style: TextStyle(
                                           fontSize: 9.5,
                                           fontWeight: FontWeight.w700,
-                                          color: Color(0xFF059669),
+                                          color: Color(0xFF2563EB),
                                         ),
                                       ),
                                     ),
@@ -1297,7 +1297,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                               padding: EdgeInsets.zero,
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              foregroundColor: const Color(0xFF059669),
+                              foregroundColor: const Color(0xFF2563EB),
                             ),
                             icon: const Icon(Icons.flash_on_rounded, size: 14),
                             label: const Text(
@@ -1319,7 +1319,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                         hintText: 'Nhập số tiền muốn rút về',
                         prefixIcon: const Icon(
                           Icons.payments_outlined,
-                          color: Color(0xFF059669),
+                          color: Color(0xFF2563EB),
                         ),
                         suffixText: 'đ',
                         suffixStyle: const TextStyle(
@@ -1344,7 +1344,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: const BorderSide(
-                            color: Color(0xFF059669),
+                            color: Color(0xFF2563EB),
                             width: 2,
                           ),
                         ),
@@ -1385,12 +1385,12 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(0xFFECFDF5)
+                                  ? const Color(0xFFEFF6FF)
                                   : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: isSelected
-                                    ? const Color(0xFF059669)
+                                    ? const Color(0xFF2563EB)
                                     : const Color(0xFFE2E8F0),
                                 width: isSelected ? 1.5 : 1,
                               ),
@@ -1403,7 +1403,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                     ? FontWeight.w800
                                     : FontWeight.w600,
                                 color: isSelected
-                                    ? const Color(0xFF059669)
+                                    ? const Color(0xFF2563EB)
                                     : const Color(0xFF334155),
                               ),
                             ),
@@ -1462,7 +1462,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w700,
                                   color: feeAmount == 0
-                                      ? const Color(0xFF059669)
+                                      ? const Color(0xFF2563EB)
                                       : Colors.red,
                                 ),
                               ),
@@ -1491,7 +1491,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                                 style: const TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w900,
-                                  color: Color(0xFF059669),
+                                  color: Color(0xFF2563EB),
                                 ),
                               ),
                             ],
@@ -1553,7 +1553,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                       height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF059669),
+                          backgroundColor: const Color(0xFF2563EB),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
@@ -1664,7 +1664,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
               end: Alignment(0.9, 0.9),
               colors: [
                 Color(0xFF0F172A), // Midnight Slate
-                Color(0xFF065F46), // Emerald Green
+                Color(0xFF1E40AF), // Emerald Green
               ],
             ),
             boxShadow: const [
@@ -1687,7 +1687,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                       const Icon(
                         Icons.account_balance_wallet_outlined,
                         size: 20,
-                        color: Color(0xFF6EE7B7),
+                        color: Color(0xFF60A5FA),
                       ),
                       const SizedBox(width: 8),
                       const Expanded(
@@ -1703,7 +1703,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                       TextButton.icon(
                         onPressed: _showWalletHistory,
                         style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFF6EE7B7),
+                          foregroundColor: const Color(0xFF60A5FA),
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                         ),
                         icon: const Icon(Icons.history_rounded, size: 18),
@@ -1720,7 +1720,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                   Text(
                     _walletLoading ? 'Đang tải…' : _formatMoney(balance),
                     style: const TextStyle(
-                      color: Color(0xFF6EE7B7),
+                      color: Color(0xFF60A5FA),
                       fontSize: 30,
                       fontWeight: FontWeight.w800,
                     ),
@@ -1760,7 +1760,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                           icon: const Icon(
                             Icons.add_circle_outline_rounded,
                             size: 18,
-                            color: Color(0xFF34D399),
+                            color: Color(0xFF38BDF8),
                           ),
                           label: const Text(
                             'Nạp tiền',
@@ -1775,7 +1775,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                       Expanded(
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF10B981),
+                            backgroundColor: const Color(0xFF2563EB),
                             foregroundColor: Colors.white,
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 11),
@@ -1815,16 +1815,16 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
           trailing: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: const Color(0xFFECFDF5),
+              color: const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFA7F3D0)),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
             ),
             child: const Text(
               'Mốc đang áp dụng',
               style: TextStyle(
                 fontSize: 10.5,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF059669),
+                color: Color(0xFF2563EB),
               ),
             ),
           ),
@@ -1931,7 +1931,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFECFDF5),
+                    color: const Color(0xFFEFF6FF),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -1939,7 +1939,7 @@ class _PartnerBenefitsState extends State<PartnerBenefits> {
                     style: const TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF059669),
+                      color: Color(0xFF2563EB),
                     ),
                   ),
                 ),

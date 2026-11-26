@@ -862,16 +862,16 @@ extension _AccountScreens on _CustomerViewState {
                               vertical: 4.5,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE7EFFF),
+                              color: const Color(0xFFECFDF5),
                               borderRadius: BorderRadius.circular(99),
                               border: Border.all(
-                                color: const Color(0xFFD4E2FF),
+                                color: const Color(0xFFA7F3D0),
                               ),
                             ),
                             child: const Text(
                               'Khách hàng TaskLy',
                               style: TextStyle(
-                                color: Color(0xFF2456C0),
+                                color: Color(0xFF047857),
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -1030,7 +1030,7 @@ extension _AccountScreens on _CustomerViewState {
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
               backgroundColor: Colors.white,
-              side: const BorderSide(color: Color(0xFFD7E3F3)),
+              side: const BorderSide(color: Color(0xFFA7F3D0)),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -1041,7 +1041,7 @@ extension _AccountScreens on _CustomerViewState {
                 Icon(
                   Icons.lock_outline_rounded,
                   size: 20,
-                  color: Color(0xFF2D5CBD),
+                  color: Color(0xFF059669),
                 ),
                 SizedBox(width: 8),
                 Text(
@@ -1049,7 +1049,7 @@ extension _AccountScreens on _CustomerViewState {
                   style: TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF2D5CBD),
+                    color: Color(0xFF059669),
                   ),
                 ),
               ],

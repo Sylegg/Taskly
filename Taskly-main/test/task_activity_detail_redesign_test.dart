@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -10,49 +11,60 @@ void main() {
   testWidgets(
     'TaskActivityDetail formats dates accurately and displays modern card layout',
     (tester) async {
-      final session = Session(
-        api: Api(
-          base: 'http://test/api/v1',
-          client: MockClient((request) async {
-            final data = {
-              'task': {
-                'id': '604efaa7-1111-2222-3333-444455556666',
-                'serviceName': 'Kiểm tra sự cố máy lạnh, Tổng vệ sinh nhà ở',
-                'status': 'POSTED',
-                'address': '123 Nguyen Trai',
-                'scheduledAt': '2026-10-13T08:30:00Z',
-                'taskerId': null,
-                'taskerName': null,
-                'budgetAmount': 350000,
-                'platformFee': 35000,
-                'partnerNetAmount': 315000,
-              },
-              'events': [
-                {
-                  'status': 'POSTED',
-                  'at': '2026-10-13T01:34:06.494995Z',
-                  'reason': 'Đã xác nhận giá; đã thanh toán ngân hàng giả lập',
-                },
-              ],
-              'messages': [],
-              'payment': {
-                'method': 'MOCK_BANK',
-                'status': 'PAID',
-                'amount': 350000,
-                'cancel_after': DateTime.now().toUtc().add(const Duration(minutes: 15)).toIso8601String(),
-                'match_deadline': DateTime.now().toUtc().add(const Duration(hours: 1)).toIso8601String(),
-              },
-            };
-            return http.Response(
-              jsonEncode({'success': true, 'data': data}),
-              200,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            );
-          }),
-        ),
-      )
-        ..access = 'test-token'
-        ..expires = DateTime.now().add(const Duration(hours: 1));
+      final session =
+          Session(
+              api: Api(
+                base: 'http://test/api/v1',
+                client: MockClient((request) async {
+                  final data = {
+                    'task': {
+                      'id': '604efaa7-1111-2222-3333-444455556666',
+                      'serviceName':
+                          'Kiểm tra sự cố máy lạnh, Tổng vệ sinh nhà ở',
+                      'status': 'POSTED',
+                      'address': '123 Nguyen Trai',
+                      'scheduledAt': '2026-10-13T08:30:00Z',
+                      'taskerId': null,
+                      'taskerName': null,
+                      'budgetAmount': 350000,
+                      'platformFee': 35000,
+                      'partnerNetAmount': 315000,
+                    },
+                    'events': [
+                      {
+                        'status': 'POSTED',
+                        'at': '2026-10-13T01:34:06.494995Z',
+                        'reason':
+                            'Đã xác nhận giá; đã thanh toán ngân hàng giả lập',
+                      },
+                    ],
+                    'messages': [],
+                    'payment': {
+                      'method': 'MOCK_BANK',
+                      'status': 'PAID',
+                      'amount': 350000,
+                      'cancel_after': DateTime.now()
+                          .toUtc()
+                          .add(const Duration(minutes: 15))
+                          .toIso8601String(),
+                      'match_deadline': DateTime.now()
+                          .toUtc()
+                          .add(const Duration(hours: 1))
+                          .toIso8601String(),
+                    },
+                  };
+                  return http.Response(
+                    jsonEncode({'success': true, 'data': data}),
+                    200,
+                    headers: {
+                      'content-type': 'application/json; charset=utf-8',
+                    },
+                  );
+                }),
+              ),
+            )
+            ..access = 'test-token'
+            ..expires = DateTime.now().add(const Duration(hours: 1));
 
       await tester.pumpWidget(
         MaterialApp(
@@ -68,7 +80,10 @@ void main() {
       // 1. Title and Header Card
       expect(find.text('Hoạt động công việc'), findsOneWidget);
       expect(find.text('#604EFAA7'), findsOneWidget);
-      expect(find.text('Kiểm tra sự cố máy lạnh, Tổng vệ sinh nhà ở'), findsOneWidget);
+      expect(
+        find.text('Kiểm tra sự cố máy lạnh, Tổng vệ sinh nhà ở'),
+        findsOneWidget,
+      );
       expect(find.text('Đã đặt dịch vụ'), findsWidgets);
       expect(find.text('350.000 đ'), findsWidgets);
 
@@ -81,100 +96,115 @@ void main() {
       expect(find.text('Chuyển khoản / Ngân hàng'), findsOneWidget);
       expect(find.text('Đã thanh toán ngân hàng giả lập.'), findsOneWidget);
       expect(find.textContaining('.484'), findsNothing); // Raw ms eliminated!
-      expect(find.textContaining('Thời gian khóa hủy đơn'), findsOneWidget);
-      expect(find.textContaining('Có thể hủy từ'), findsOneWidget);
+      expect(
+        find.textContaining('Có thể hủy ngay khi chưa có Tasker nhận việc.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Có thể hủy từ'), findsNothing);
 
       // 4. Stepper & Formatted timeline event
       expect(find.text('Tiến trình công việc'), findsOneWidget);
-      expect(find.text('Đã xác nhận giá; đã thanh toán ngân hàng giả lập'), findsOneWidget);
+      expect(
+        find.text('Đã xác nhận giá; đã thanh toán ngân hàng giả lập'),
+        findsOneWidget,
+      );
 
       // 5. Friendly Tasker search empty state
       expect(find.text('Hệ thống đang kết nối Tasker'), findsOneWidget);
-      expect(find.text('Chat sẽ xuất hiện khi công việc đã có Tasker.'), findsOneWidget);
-
-      await tester.pumpWidget(const SizedBox());
-      session.dispose();
-    },
-  );
-
-  testWidgets(
-    'TaskActivityDetail handles cancellation flow when unlocked',
-    (tester) async {
-      var cancelRequested = false;
-      final session = Session(
-        api: Api(
-          base: 'http://test/api/v1',
-          client: MockClient((request) async {
-            if (request.url.path.endsWith('/cancel')) {
-              cancelRequested = true;
-              return http.Response(
-                jsonEncode({'success': true, 'data': {}}),
-                200,
-                headers: {'content-type': 'application/json; charset=utf-8'},
-              );
-            }
-            final data = {
-              'task': {
-                'id': '604efaa7-1111-2222-3333-444455556666',
-                'serviceName': 'Tổng vệ sinh nhà ở',
-                'status': 'POSTED',
-                'address': '456 Le Loi',
-                'taskerId': null,
-                'taskerName': null,
-                'budgetAmount': 200000,
-              },
-              'events': [],
-              'messages': [],
-              'payment': {
-                'method': 'MOCK_BANK',
-                'status': 'PAID',
-                'amount': 200000,
-                // cancel_after is in the past -> cancellation is unlocked!
-                'cancel_after': DateTime.now().subtract(const Duration(minutes: 5)).toIso8601String(),
-                'match_deadline': DateTime.now().add(const Duration(hours: 1)).toIso8601String(),
-              },
-            };
-            return http.Response(
-              jsonEncode({'success': true, 'data': data}),
-              200,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            );
-          }),
-        ),
-      )
-        ..access = 'test-token'
-        ..expires = DateTime.now().add(const Duration(hours: 1));
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: TaskActivityDetail(
-            session: session,
-            id: '604efaa7-1111-2222-3333-444455556666',
-            partner: false,
-          ),
-        ),
+      expect(
+        find.text('Chat sẽ xuất hiện khi công việc đã có Tasker.'),
+        findsOneWidget,
       );
-      await tester.pumpAndSettle();
-
-      // Button is enabled and says "Hủy đơn và hoàn tiền đã thanh toán"
-      expect(find.text('Hủy đơn và hoàn tiền đã thanh toán'), findsOneWidget);
-      await tester.ensureVisible(find.text('Hủy đơn và hoàn tiền đã thanh toán'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Hủy đơn và hoàn tiền đã thanh toán'));
-      await tester.pumpAndSettle();
-
-      // Confirmation dialog pops up
-      expect(find.text('Xác nhận hủy đơn?'), findsOneWidget);
-      expect(find.text('Xác nhận hủy'), findsOneWidget);
-
-      await tester.tap(find.text('Xác nhận hủy'));
-      await tester.pumpAndSettle();
-      expect(cancelRequested, isTrue);
 
       await tester.pumpWidget(const SizedBox());
       session.dispose();
     },
   );
+
+  testWidgets('TaskActivityDetail handles cancellation flow when unlocked', (
+    tester,
+  ) async {
+    var cancelRequested = false;
+    final session =
+        Session(
+            api: Api(
+              base: 'http://test/api/v1',
+              client: MockClient((request) async {
+                if (request.url.path.endsWith('/cancel')) {
+                  cancelRequested = true;
+                  return http.Response(
+                    jsonEncode({'success': true, 'data': {}}),
+                    200,
+                    headers: {
+                      'content-type': 'application/json; charset=utf-8',
+                    },
+                  );
+                }
+                final data = {
+                  'task': {
+                    'id': '604efaa7-1111-2222-3333-444455556666',
+                    'serviceName': 'Tổng vệ sinh nhà ở',
+                    'status': 'POSTED',
+                    'address': '456 Le Loi',
+                    'taskerId': null,
+                    'taskerName': null,
+                    'budgetAmount': 200000,
+                  },
+                  'events': [],
+                  'messages': [],
+                  'payment': {
+                    'method': 'MOCK_BANK',
+                    'status': 'PAID',
+                    'amount': 200000,
+                    // cancel_after is in the past -> cancellation is unlocked!
+                    'cancel_after': DateTime.now()
+                        .subtract(const Duration(minutes: 5))
+                        .toIso8601String(),
+                    'match_deadline': DateTime.now()
+                        .add(const Duration(hours: 1))
+                        .toIso8601String(),
+                  },
+                };
+                return http.Response(
+                  jsonEncode({'success': true, 'data': data}),
+                  200,
+                  headers: {'content-type': 'application/json; charset=utf-8'},
+                );
+              }),
+            ),
+          )
+          ..access = 'test-token'
+          ..expires = DateTime.now().add(const Duration(hours: 1));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TaskActivityDetail(
+          session: session,
+          id: '604efaa7-1111-2222-3333-444455556666',
+          partner: false,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Button is enabled and says "Hủy đơn và hoàn tiền đã thanh toán"
+    expect(find.text('Hủy đơn và hoàn tiền đã thanh toán'), findsOneWidget);
+    await tester.ensureVisible(find.text('Hủy đơn và hoàn tiền đã thanh toán'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hủy đơn và hoàn tiền đã thanh toán'));
+    await tester.pumpAndSettle();
+
+    // Confirmation dialog pops up
+    expect(find.text('Xác nhận hủy đơn?'), findsOneWidget);
+    expect(find.text('Xác nhận hủy'), findsOneWidget);
+
+    await tester.tap(find.text('Xác nhận hủy'));
+    await tester.pumpAndSettle();
+    expect(cancelRequested, isTrue);
+
+    await tester.pumpWidget(const SizedBox());
+    session.dispose();
+  });
 
   testWidgets(
     'TaskBookingServicesCard renders modern multi-service layout with tap-to-scroll navigation',
@@ -273,5 +303,3 @@ void main() {
     },
   );
 }
-
-

@@ -360,7 +360,7 @@ class _RecruitmentAcademyState extends State<RecruitmentAcademy> {
                     minHeight: 7,
                     backgroundColor: Colors.white.withValues(alpha: 0.25),
                     valueColor: const AlwaysStoppedAnimation<Color>(
-                      Color(0xFF34D399),
+                      Color(0xFF38BDF8),
                     ),
                   ),
                 ),
@@ -388,8 +388,8 @@ class _RecruitmentAcademyState extends State<RecruitmentAcademy> {
     IconData statusIcon = Icons.lock_outline_rounded;
 
     if (isDone) {
-      badgeColor = const Color(0xFF059669);
-      badgeBg = const Color(0xFFECFDF5);
+      badgeColor = const Color(0xFF2563EB);
+      badgeBg = const Color(0xFFEFF6FF);
       statusLabel = 'Đã hoàn thành';
       statusIcon = Icons.check_circle_rounded;
     } else if (isInProgress) {
@@ -411,7 +411,7 @@ class _RecruitmentAcademyState extends State<RecruitmentAcademy> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDone
-              ? const Color(0xFFA7F3D0)
+              ? const Color(0xFFBFDBFE)
               : const Color(0xFFE2E8F0),
           width: isDone ? 1.4 : 1,
         ),
@@ -544,7 +544,7 @@ class _RecruitmentAcademyState extends State<RecruitmentAcademy> {
                     minHeight: 5,
                     backgroundColor: const Color(0xFFF1F5F9),
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isDone ? const Color(0xFF10B981) : PartnerColors.primary,
+                      isDone ? const Color(0xFF2563EB) : PartnerColors.primary,
                     ),
                   ),
                 ),
@@ -680,7 +680,7 @@ class _LessonState extends State<_Lesson> {
                 Text('Chúc mừng! Bạn đã hoàn thành bài học.'),
               ],
             ),
-            backgroundColor: Color(0xFF10B981),
+            backgroundColor: Color(0xFF2563EB),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -959,7 +959,7 @@ class _LessonState extends State<_Lesson> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFECFDF5),
+                          color: const Color(0xFFEFF6FF),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Text(
@@ -967,7 +967,7 @@ class _LessonState extends State<_Lesson> {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF059669),
+                            color: Color(0xFF2563EB),
                           ),
                         ),
                       ),
