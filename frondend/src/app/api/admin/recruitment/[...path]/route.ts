@@ -6,6 +6,31 @@ async function proxy(request: NextRequest, context: Context) {
   const {path} = await context.params;
   const route = path.join('/');
   if(route==='services'&&request.method==='GET'){const session=await adminSession(true);return NextResponse.json({data:await callBackend('/public/services','GET',undefined,session.access)});}
+  if (request.method === 'POST' && /^kyc\/assisted\/[0-9a-f-]{36}\/(?:submit|[0-9a-f-]{36}\/approve)$/.test(route)) {
+   requireSameOrigin(request);
+   const session = await adminSession(true);
+   if (!session.user.permissions.includes('KYC_REVIEW')) throw new ApiError('Bạn không có quyền xác minh CCCD.', 403);
+   const target = '/admin/verifications/' + route.slice(4);
+   if (route.endsWith('/approve')) {
+    return NextResponse.json({data:await callBackend(target + request.nextUrl.search, 'POST', undefined, session.access)});
+   }
+   const form = await request.formData().catch(() => null);
+   if (!form) throw new ApiError('Không thể đọc ảnh CCCD.', 400);
+   const upload = new FormData();
+   for (const field of ['verificationId', 'version', 'legalName', 'documentNumber', 'ownerAuthorized']) {
+    const value = form.get(field);
+    if (typeof value === 'string') upload.set(field, value);
+   }
+   for (const side of ['front', 'back']) {
+    const file = form.get(side);
+    if (file === null || file instanceof File && !file.size && !file.name) continue;
+    if (!(file instanceof File) || !file.size || file.size > 4 * 1024 * 1024 || !['image/jpeg', 'image/png'].includes(file.type)) {
+     throw new ApiError('Mỗi mặt CCCD cần là ảnh JPG hoặc PNG không quá 4 MB.', 400);
+    }
+    upload.set(side, file);
+   }
+   return NextResponse.json({data:await callBackend(target, 'POST', upload, session.access)});
+  }
   if (request.method === 'POST' && /^kyc\/[0-9a-f-]{36}\/documents\/(FRONT|BACK|SELFIE)$/.test(route)) {
    requireSameOrigin(request);
    const session = await adminSession(true);

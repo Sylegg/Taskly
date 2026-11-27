@@ -67,6 +67,7 @@ public class IdentityVerification {
     public UUID getId() { return id; }
     public UserAccount getUser() { return user; }
     public VerificationStatus getStatus() { return status; }
+    public long getVersion() { return version; }
     public String getLegalName() { return legalName; }
     public String getDocumentType() { return documentType; }
     public String getDocumentNumberMasked() { return documentNumberMasked; }
@@ -74,7 +75,8 @@ public class IdentityVerification {
     public String getDecisionReason() { return decisionReason; }
 
     public void updateDraft(String legalName, String documentType, String maskedNumber, Instant now) {
-        if (status != VerificationStatus.DRAFT && status != VerificationStatus.SUBMITTED) {
+        if (status != VerificationStatus.DRAFT && status != VerificationStatus.SUBMITTED
+                && status != VerificationStatus.UNDER_REVIEW) {
             throw new IllegalStateException("Verification is not editable");
         }
         this.legalName = legalName;
@@ -85,6 +87,20 @@ public class IdentityVerification {
 
     public void submit(Instant now) {
         require(VerificationStatus.DRAFT);
+        recordSubmission(now);
+    }
+
+    public void resubmitAfterAdminUpdate(Instant now) {
+        if (status != VerificationStatus.SUBMITTED && status != VerificationStatus.UNDER_REVIEW) {
+            throw new IllegalStateException("Verification is not reviewable");
+        }
+        decisionReason = null;
+        recordSubmission(now);
+    }
+
+    public void touch(Instant now) { updatedAt = now; }
+
+    private void recordSubmission(Instant now) {
         consentAcceptedAt = now;
         submittedAt = now;
         transition(VerificationStatus.SUBMITTED, now);

@@ -10,6 +10,7 @@ import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import io.minio.Http.Method;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -23,11 +24,14 @@ import javax.imageio.ImageIO;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class PrivateObjectStorageService {
     private static final Set<String> ALLOWED_TYPES = Set.of("image/jpeg", "image/png");
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PrivateObjectStorageService.class);
     private final MinioClient minio;
     private final StorageProperties properties;
     private final StoredObjectRepository objects;
@@ -68,6 +72,20 @@ public class PrivateObjectStorageService {
             }
         } catch (Exception failure) {
             throw new DomainException("STORAGE_UNAVAILABLE", "Không thể lưu tệp lúc này. Vui lòng thử lại.", HttpStatus.SERVICE_UNAVAILABLE);
+        }
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status != STATUS_ROLLED_BACK) return;
+                    try {
+                        if (!localDirectory.isBlank()) java.nio.file.Files.deleteIfExists(localPath(objectKey));
+                        else minio.removeObject(RemoveObjectArgs.builder().bucket(properties.privateBucket()).object(objectKey).build());
+                    } catch (Exception failure) {
+                        log.warn("Could not remove rolled back KYC upload", failure);
+                    }
+                }
+            });
         }
         StoredObject stored = new StoredObject(
                 owner, "KYC_" + side, properties.privateBucket(), objectKey,

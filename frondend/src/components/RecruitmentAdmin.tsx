@@ -1111,7 +1111,11 @@ export default function RecruitmentAdmin({
             </button>
           </div>
 
-          {dossier && <RecruitmentDossier dossier={dossier} finalImages={finalImages} canReadIdentity={can('KYC_REVIEW')} onIdentityApproved={async () => { await openReview(review); }} />}
+          {dossier && <RecruitmentDossier dossier={dossier} finalImages={finalImages} canReadIdentity={can('KYC_REVIEW')} onIdentityChanged={async () => {
+            const detail: Dossier = await api('applications/' + review.id + '/dossier');
+            setDossier(detail);
+            setReview(detail.application);
+          }} />}
           {review.status === 'REJECTED' && can('RECRUITMENT_PRELIMINARY') && can('RECRUITMENT_RECEPTION') && <div className="review-decision-card"><strong>Tiếp nhận Partner tại văn phòng</strong><p>Khi Partner đã đến văn phòng, mở lại hồ sơ để đối chiếu và xét duyệt lại. Hồ sơ vẫn cần đáp ứng đủ điều kiện trước khi duyệt chính thức.</p><label>Lý do tiếp nhận lại<textarea value={officeNotes} maxLength={1000} onChange={event => setOfficeNotes(event.target.value)} placeholder="Ghi kết quả tiếp nhận và lý do xét duyệt lại hồ sơ" /></label><button className="btn btn-primary" disabled={busy || !officeNotes.trim()} onClick={() => void officeAction(`applications/${review.id}/reopen-at-office`, { version: review.version, requestId: crypto.randomUUID(), reason: officeNotes.trim() })}>Partner đã đến văn phòng · Mở lại xét duyệt</button></div>}
           {review.status === 'APPROVED' && <div className="review-decision-card"><button className="btn btn-primary" disabled>Duyệt chính thức</button><p>Đang chờ Partner bổ sung ảnh chân dung và hợp đồng đã ký ở chặng 4. Khi Partner gửi hồ sơ, nút duyệt sẽ được mở để Admin kiểm duyệt và kích hoạt tài khoản.</p></div>}
           {dossier?.application.eligibility.preliminary_approved && !['REJECTED', 'SUSPENDED', 'ACTIVE', 'APPROVED'].includes(review.status) && (() => {

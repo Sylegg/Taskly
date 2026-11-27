@@ -6,6 +6,7 @@ import com.taskly.verification.entity.DocumentSide;
 import com.taskly.verification.entity.VerificationStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -36,6 +37,27 @@ public class AdminVerificationController {
     public record OfficeDraftRequest(@NotBlank @Size(max = 160) String legalName,
                                      @NotBlank @Pattern(regexp = "[0-9]{12}") String documentNumber,
                                      @AssertTrue boolean consentRecorded) {}
+
+    @PostMapping(value = "/assisted/{partnerId}/submit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    ApiResponse<VerificationDtos.VerificationResponse> assistedSubmit(
+            @AuthenticationPrincipal Jwt jwt, @PathVariable UUID partnerId,
+            @RequestParam(required = false) UUID verificationId,
+            @RequestParam(defaultValue = "-1") @Min(-1) long version,
+            @RequestParam @NotBlank @Size(min = 2, max = 160) String legalName,
+            @RequestParam @Pattern(regexp = "[0-9]{12}") String documentNumber,
+            @RequestParam boolean ownerAuthorized,
+            @RequestPart(value = "front", required = false) MultipartFile front,
+            @RequestPart(value = "back", required = false) MultipartFile back) {
+        return ApiResponse.success(service.submitAssisted(userId(jwt), partnerId, verificationId, version,
+                legalName, documentNumber, ownerAuthorized, front, back));
+    }
+
+    @PostMapping("/assisted/{partnerId}/{verificationId}/approve")
+    ApiResponse<VerificationDtos.VerificationResponse> assistedApprove(
+            @AuthenticationPrincipal Jwt jwt, @PathVariable UUID partnerId, @PathVariable UUID verificationId,
+            @RequestParam @Min(0) long version) {
+        return ApiResponse.success(service.approveAssisted(userId(jwt), partnerId, verificationId, version));
+    }
 
     @PostMapping("/office/{applicationId}/draft")
     ApiResponse<VerificationDtos.VerificationResponse> officeDraft(

@@ -27,6 +27,28 @@ void main() {
     }, identity: identity);
     expect(missing[1], ['Đã lưu 2/3 ảnh. Cần bổ sung: ảnh chân dung.']);
   });
+  test('approved CCCD satisfies identity without a selfie', () {
+    final missing = onboardingMissing({
+      'fullName': 'Partner',
+      'contactPhone': '0909876902',
+      'areaIds': ['area'],
+      'serviceIds': ['service'],
+      'eligibility': {
+        'registration_complete': true,
+        'registration_submitted': true,
+        'identity_approved': true,
+        'identity_complete': false,
+      },
+    }, identity: {
+      'status': 'APPROVED',
+      'documentNumber': '001095012345',
+      'documents': [
+        {'side': 'FRONT', 'scanStatus': 'CLEAN'},
+        {'side': 'BACK', 'scanStatus': 'CLEAN'},
+      ],
+    });
+    expect(missing[1], isEmpty);
+  });
   test('stages unlock only when all preceding stages are green', () {
     final missing = {
       for (var step = 1; step <= 8; step++) step: <String>['Required'],

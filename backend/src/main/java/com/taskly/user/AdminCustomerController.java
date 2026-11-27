@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,13 +65,13 @@ public class AdminCustomerController {
     @PatchMapping("/{id}/details/batch") @Transactional
     public ApiResponse<Map<String,Object>> editBatch(@PathVariable UUID id,@Valid @RequestBody PartnerBatch batch,@org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt){
         for(var edit:batch.edits())editDetails(id,edit,jwt);
-        return details(id);
+        return details(id, false);
     }
     public record PartnerEdit(@NotBlank String section, UUID recordId, @NotNull Map<String,Object> values) {}
     @PatchMapping("/{id}/details") @Transactional
     public ApiResponse<Map<String,Object>> editDetails(@PathVariable UUID id,@Valid @RequestBody PartnerEdit edit,@org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
         requireCustomer(id);
-        var before=details(id).data();
+        var before=details(id, false).data();
         String section=edit.section(); var v=edit.values();
         if(section.equals("profile")) {
             String name=editText(v,"full_name",160,true),phone=editText(v,"phone",32,true),email=editText(v,"email",254,true);
@@ -105,7 +106,7 @@ public class AdminCustomerController {
             db.update("DELETE FROM partner_availability WHERE application_id=?",app);db.update("INSERT INTO partner_availability(application_id,starts_at,ends_at) VALUES(?,?,?)",app,start,end);
             db.update("UPDATE partner_applications SET skills_configured=true,areas_configured=true,availability_configured=true,updated_at=CURRENT_TIMESTAMP,version=version+1 WHERE id=?",app);
         } else throw badEdit();
-        var result=details(id);var json=new tools.jackson.databind.ObjectMapper();
+        var result=details(id, false);var json=new tools.jackson.databind.ObjectMapper();
         db.update("INSERT INTO audit_logs(id,actor_id,actor_type,action,entity_type,entity_id,old_value_summary,new_value_summary,created_at) VALUES(?,?,'ADMIN',?,'Partner',?,?,?,CURRENT_TIMESTAMP)",UUID.randomUUID(),UUID.fromString(jwt.getSubject()),"EDIT_PARTNER_"+section.toUpperCase(),id,json.writeValueAsString(before),json.writeValueAsString(result.data()));
         return result;
     }
@@ -116,6 +117,9 @@ public class AdminCustomerController {
     private DomainException badEdit(){return new DomainException("INVALID_PARTNER_EDIT","Thông tin chỉnh sửa không hợp lệ.",HttpStatus.BAD_REQUEST);}
     @GetMapping("/{id}/details")
     public ApiResponse<Map<String,Object>> details(@PathVariable UUID id) {
+        return details(id, true);
+    }
+    private ApiResponse<Map<String,Object>> details(UUID id, boolean includeStandaloneIdentity) {
         var users=db.queryForList("SELECT u.id,u.email,u.phone,u.status,u.created_at,p.full_name,p.language,to_char(p.admin_profile_date,'YYYY-MM-DD') AS profile_date,COALESCE(p.partner_avatar,(SELECT f.portrait FROM partner_final_documents f JOIN partner_applications a ON a.id=f.application_id WHERE a.user_id=u.id)) AS avatar FROM users u LEFT JOIN user_profiles p ON p.user_id=u.id WHERE u.id=?",id);
         if(users.isEmpty())throw new DomainException("USER_NOT_FOUND","Không tìm thấy tài khoản.",HttpStatus.NOT_FOUND);
         var result=new java.util.LinkedHashMap<String,Object>();
@@ -126,6 +130,12 @@ public class AdminCustomerController {
         var applications=db.queryForList("SELECT id FROM partner_applications WHERE user_id=?",UUID.class,id);
         result.put("workOptions",Map.of("areas",db.queryForList("SELECT id,name,city FROM recruitment_areas ORDER BY city,name"),"services",db.queryForList("SELECT id,name FROM services WHERE deleted_at IS NULL AND active=true ORDER BY name")));
         result.put("dossier",applications.isEmpty()?null:dossiers.detail(applications.getFirst(),true,true));
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (includeStandaloneIdentity && applications.isEmpty() && auth != null
+                && auth.getAuthorities().stream().anyMatch(authority -> "KYC_REVIEW".equals(authority.getAuthority()))) {
+            result.put("identities", dossiers.identityRecords(id));
+            result.put("documents", dossiers.identityDocuments(id));
+        }
         return ApiResponse.success(result);
     }
     @GetMapping("/{id}/customer-details")

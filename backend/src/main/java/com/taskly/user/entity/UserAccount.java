@@ -101,6 +101,7 @@ public class UserAccount {
     public UserStatus getStatus() { return status; }
     public UserMode getActiveMode() { return activeMode; }
     public Instant getLockedUntil() { return lockedUntil; }
+    public boolean hasUsedPartnerApp() { return usedPartner; }
     public Set<Role> getRoles() { return Set.copyOf(roles); }
 
     public void verifyEmail(Instant now) {

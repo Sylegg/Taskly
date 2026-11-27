@@ -31,9 +31,9 @@ Map<int, List<String>> onboardingMissing(
     'registration_complete',
     'Thông tin cá nhân và hồ sơ chưa hoàn tất. Vui lòng kiểm tra và bổ sung hồ sơ.',
   );
-  if (identity == null) {
+  if (flags['identity_approved'] != true && identity == null) {
     require(1, 'identity_complete', 'Chưa lưu đủ số CCCD và ảnh định danh.');
-  } else {
+  } else if (flags['identity_approved'] != true && identity != null) {
     if (!RegExp(r'^\d{12}$')
         .hasMatch((identity['documentNumber'] ?? '').toString())) {
       missing[1]!.add('Chưa lưu số CCCD hợp lệ.');
@@ -53,8 +53,7 @@ Map<int, List<String>> onboardingMissing(
         'Đã lưu ${sides.length}/3 ảnh. Cần bổ sung: ${absent.join(', ')}.',
       );
     }
-    if (application['eligibility']?['identity_complete'] != true &&
-        missing[1]!.isEmpty) {
+    if (flags['identity_complete'] != true && missing[1]!.isEmpty) {
       missing[1]!.add(
         'Thông tin định danh chưa hợp lệ. Vui lòng kiểm tra hồ sơ.',
       );
