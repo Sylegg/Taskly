@@ -50,8 +50,18 @@
 .admin-inline-form{display:grid;gap:6px;min-width:0}
 .admin-inline-form input{width:100%;min-width:0;padding:7px 8px;border:1px solid #cbd5e1;border-radius:8px}
 .admin-inline-form small[role=alert]{color:#b91c1c}
-.admin-kyc-actions{display:grid;gap:10px;margin:12px 0}
-.admin-kyc-actions form{display:grid;gap:8px;border:1px solid #e2e8f0;border-radius:12px;padding:12px}
+.admin-kyc-actions{display:grid;gap:10px;margin:10px 0 14px}
+.admin-kyc-row{display:flex;align-items:center;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;color:#64748b}
+.admin-kyc-row strong{font-weight:650;color:#0f172a}
+.admin-kyc-actions form{display:grid;gap:10px;border:1px solid #e2e8f0;border-radius:12px;padding:12px;background:#f8fafc}
 .admin-kyc-actions .btn{justify-self:start}
-.admin-kyc-sides{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
-.admin-kyc-side{display:grid;gap:7px;border:1px solid #e2e8f0;border-radius:10px;padding:9px}
+.admin-kyc-sides{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:8px}
+.admin-kyc-actions .field{min-width:0;font-size:11px;color:#334155}
+.admin-kyc-actions .field input{background:white}
+.admin-kyc-actions small{color:#64748b}
+.admin-kyc-consent{display:flex;align-items:flex-start;gap:6px;font-size:12px}
+.admin-kyc-consent input{accent-color:#047857}
+.admin-kyc-photo-links{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.admin-kyc-approve,.admin-kyc-row .admin-kyc-approved{color:#047857;display:inline-flex;align-items:center;gap:6px}
+.admin-kyc-approve{background:#ecfdf5;border-color:#a7f3d0}
+.admin-kyc-error{margin:0;color:#b91c1c}

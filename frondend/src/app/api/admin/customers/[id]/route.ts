@@ -20,8 +20,10 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { access } = await adminSession(); const { id } = await context.params;
+    const { access, user } = await adminSession(); const { id } = await context.params;
     if (!/^[0-9a-f-]{36}$/i.test(id)) throw new ApiError('Mã tài khoản không hợp lệ.', 400);
-    return NextResponse.json({ success: true, data: await callBackend('/admin/customers/' + id + (request.nextUrl.searchParams.get('app') === 'customer' ? '/customer-details' : '/details'), 'GET', undefined, access) });
+    const isCustomer = request.nextUrl.searchParams.get('app') === 'customer';
+    const data = await callBackend('/admin/customers/' + id + (isCustomer ? '/customer-details' : '/details'), 'GET', undefined, access);
+    return NextResponse.json({ success: true, data: isCustomer ? data : { ...data, canReviewIdentity: user.permissions.includes('KYC_REVIEW') } });
   } catch (error) { return failure(error); }
 }

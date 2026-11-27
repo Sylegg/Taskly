@@ -1,6 +1,7 @@
 package com.taskly.verification;
 
 import com.taskly.common.exception.DomainException;
+import com.taskly.storage.entity.FileScanStatus;
 import com.taskly.storage.PrivateObjectStorageService;
 import com.taskly.storage.StorageProperties;
 import com.taskly.storage.entity.StoredObject;
@@ -21,6 +22,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -127,6 +129,91 @@ public class VerificationService {
                 "Đã đối chiếu CCCD gốc và phê duyệt cùng chủ hồ sơ tại văn phòng.");
     }
 
+    @Transactional
+    public VerificationDtos.VerificationResponse submitAssisted(
+            UUID actorId, UUID partnerId, UUID verificationId, long version, String legalName,
+            String documentNumber, boolean ownerAuthorized, MultipartFile front, MultipartFile back) {
+        if (!ownerAuthorized || legalName == null || legalName.trim().length() < 2 || legalName.trim().length() > 160
+                || documentNumber == null || !documentNumber.matches("[0-9]{12}")) {
+            throw new DomainException("KYC_INCOMPLETE", "Cần họ tên, 12 chữ số trên CCCD và sự đồng ý của đối tác.",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        UserAccount owner = lockPartner(partnerId);
+        UserAccount actor = requireUser(actorId);
+        var latest = currentAssistedRecord(partnerId, verificationId, version);
+        boolean newDraft = latest == null || EnumSet.of(VerificationStatus.REJECTED, VerificationStatus.EXPIRED)
+                .contains(latest.getStatus());
+        if (!newDraft && latest.getStatus() != VerificationStatus.DRAFT && !pendingNationalId(latest)) {
+            throw conflict("KYC_NOT_EDITABLE", "Hồ sơ định danh hiện tại chưa thể bổ sung CCCD.");
+        }
+        var verification = newDraft ? startDraft(owner, actor, "Admin tạo hồ sơ CCCD cho đối tác") : latest;
+        boolean reusePhotos = "NATIONAL_ID".equals(verification.getDocumentType())
+                && (verification.getDocumentNumber() == null || verification.getDocumentNumber().equals(documentNumber));
+        if (front == null && (!reusePhotos || !hasCleanSide(verification.getId(), DocumentSide.FRONT))
+                || back == null && (!reusePhotos || !hasCleanSide(verification.getId(), DocumentSide.BACK))) {
+            throw new DomainException("KYC_SCAN_REQUIRED", "Chọn ảnh cho cả hai mặt CCCD còn thiếu hoặc cần thay.",
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        if (front != null) storeDocument(verification, DocumentSide.FRONT, front);
+        if (back != null) storeDocument(verification, DocumentSide.BACK, back);
+        requireCleanIdentitySides(verification.getId());
+
+        Instant now = clock.instant();
+        var before = verification.getStatus();
+        verification.setDocumentNumber(documentNumber);
+        verification.updateDraft(legalName.trim(), "NATIONAL_ID", mask(documentNumber), now);
+        if (before == VerificationStatus.DRAFT) verification.submit(now);
+        else verification.resubmitAfterAdminUpdate(now);
+        taskerProfiles.findById(partnerId).orElseGet(() -> taskerProfiles.save(new TaskerProfile(owner, now)))
+                .updateKyc(VerificationStatus.SUBMITTED, now);
+        history.save(new VerificationHistory(verification, before, VerificationStatus.SUBMITTED, actor,
+                "Admin gửi hai mặt CCCD sau khi đối chiếu giấy tờ gốc và ghi nhận sự đồng ý của đối tác", now));
+        return response(verification);
+    }
+
+    @Transactional
+    public VerificationDtos.VerificationResponse approveAssisted(
+            UUID actorId, UUID partnerId, UUID verificationId, long version) {
+        lockPartner(partnerId);
+        var verification = currentAssistedRecord(partnerId, verificationId, version);
+        if (verification == null || !pendingNationalId(verification)
+                || verification.getDocumentNumber() == null || !verification.getDocumentNumber().matches("[0-9]{12}")
+                || verification.getLegalName() == null || verification.getLegalName().trim().length() < 2) {
+            throw conflict("KYC_NOT_EDITABLE", "Cần gửi hồ sơ CCCD đầy đủ trước khi phê duyệt.");
+        }
+        return applyDecision(requireUser(actorId), verification, VerificationStatus.APPROVED,
+                "Đã đối chiếu CCCD gốc và phê duyệt.");
+    }
+
+    private UserAccount lockPartner(UUID partnerId) {
+        var owner = requireUser(partnerId);
+        var application = recruitment.verificationApplication(partnerId);
+        if (application == null && !owner.hasUsedPartnerApp()
+                && owner.getRoles().stream().noneMatch(role -> role.getKey().equals("TASKER"))) {
+            throw notFound("PARTNER_NOT_FOUND", "Không tìm thấy đối tác.");
+        }
+        return owner;
+    }
+
+    private IdentityVerification currentAssistedRecord(UUID partnerId, UUID verificationId, long version) {
+        var latest = verifications.findFirstByUserIdOrderByCreatedAtDesc(partnerId).orElse(null);
+        if (!Objects.equals(verificationId, latest == null ? null : latest.getId())
+                || version != (latest == null ? -1 : latest.getVersion())) {
+            throw conflict("KYC_CHANGED", "Hồ sơ CCCD đã thay đổi. Vui lòng tải lại hồ sơ.");
+        }
+        return latest;
+    }
+
+    private boolean pendingNationalId(IdentityVerification verification) {
+        return "NATIONAL_ID".equals(verification.getDocumentType())
+                && EnumSet.of(VerificationStatus.SUBMITTED, VerificationStatus.UNDER_REVIEW).contains(verification.getStatus());
+    }
+
+    private boolean hasCleanSide(UUID verificationId, DocumentSide side) {
+        return documents.findByVerificationIdAndSide(verificationId, side)
+                .filter(document -> document.getStoredObject().getScanStatus() == FileScanStatus.CLEAN).isPresent();
+    }
+
     @Transactional(readOnly = true)
     public VerificationDtos.VerificationResponse current(UUID userId) {
         return verifications.findFirstByUserIdOrderByCreatedAtDesc(userId)
@@ -168,14 +255,19 @@ public class VerificationService {
     public VerificationDtos.VerificationResponse upload(
             UUID userId, UUID verificationId, DocumentSide side, MultipartFile file) {
         IdentityVerification verification = requireOwnedDraft(userId, verificationId);
-        StoredObject object = storage.uploadKycImage(verification.getUser(), side.name(), file);
-        documents.findByVerificationIdAndSide(verificationId, side)
-                .ifPresentOrElse(
-                        existing -> existing.replace(object, clock.instant()),
-                        () -> documents.save(new VerificationDocument(verification, object, side, clock.instant())));
+        storeDocument(verification, side, file);
+        verification.touch(clock.instant());
         history.save(new VerificationHistory(verification, verification.getStatus(), verification.getStatus(),
                 verification.getUser(), "Bổ sung ảnh " + side, clock.instant()));
         return response(verification);
+    }
+
+    private void storeDocument(IdentityVerification verification, DocumentSide side, MultipartFile file) {
+        StoredObject object = storage.uploadKycImage(verification.getUser(), side.name(), file);
+        documents.findByVerificationIdAndSide(verification.getId(), side)
+                .ifPresentOrElse(
+                        existing -> existing.replace(object, clock.instant()),
+                        () -> documents.save(new VerificationDocument(verification, object, side, clock.instant())));
     }
 
     @Transactional
@@ -261,7 +353,11 @@ public class VerificationService {
             UUID adminId, UUID verificationId, VerificationStatus decision, String reason) {
         UserAccount admin = requireUser(adminId);
         guardRecruitmentReview(verificationId);
-        IdentityVerification verification = requireVerification(verificationId);
+        return applyDecision(admin, requireVerification(verificationId), decision, reason);
+    }
+
+    private VerificationDtos.VerificationResponse applyDecision(
+            UserAccount admin, IdentityVerification verification, VerificationStatus decision, String reason) {
         VerificationStatus before = verification.getStatus();
         if (decision == VerificationStatus.APPROVED) {
             if ("DEMO".equals(verification.getDocumentType())) {
@@ -269,7 +365,7 @@ public class VerificationService {
                     throw new DomainException("DEMO_KYC_DISABLED", "Không duyệt hồ sơ DEMO ở production.", HttpStatus.UNPROCESSABLE_ENTITY);
                 }
             } else {
-                requireCleanIdentitySides(verificationId);
+                requireCleanIdentitySides(verification.getId());
             }
         }
         Instant now = clock.instant();
@@ -288,7 +384,7 @@ public class VerificationService {
         var evidence = documents.findByVerificationId(verificationId);
         boolean complete = List.of(DocumentSide.FRONT, DocumentSide.BACK).stream().allMatch(side -> evidence.stream()
                 .anyMatch(document -> document.getSide() == side && document.getStoredObject().getScanStatus()
-                        == com.taskly.storage.entity.FileScanStatus.CLEAN));
+                        == FileScanStatus.CLEAN));
         if (!complete) throw new DomainException("KYC_SCAN_REQUIRED",
                 "Cần đủ hai mặt ảnh đã qua kiểm tra an toàn.", HttpStatus.UNPROCESSABLE_ENTITY);
     }

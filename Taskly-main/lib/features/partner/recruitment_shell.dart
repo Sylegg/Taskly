@@ -792,8 +792,10 @@ class _RecruitmentShellState extends State<RecruitmentShell>
                                 singleLine: true,
                               ),
                               _buildInfoRow(
-                                'Ảnh KYC (3 ảnh)',
-                                '${savedIdentitySides(identity).length}/3 ảnh đã lưu trên hệ thống',
+                                'Định danh CCCD',
+                                application?['eligibility']?['identity_approved'] == true
+                                    ? 'Đã phê duyệt'
+                                    : '${savedIdentitySides(identity).length}/3 ảnh đã lưu trên hệ thống',
                               ),
                             ] else if (stepNumber == 2) ...[
                               _buildInfoRow(
@@ -1459,6 +1461,14 @@ class _RegistrationState extends State<_Registration> {
   final imageUrls = <String, String>{};
   bool uploadingIdentity = false;
   Map<String, dynamic>? verification;
+  bool get identityApproved {
+    final record = verification;
+    if (record == null) {
+      return widget.application['eligibility']?['identity_approved'] == true;
+    }
+    return record['status'] == 'APPROVED' &&
+        record['documentType'] == 'NATIONAL_ID';
+  }
   late List<String> areaIds = List<String>.from(widget.application['areaIds']);
   late List<String> serviceIds = List<String>.from(
     widget.application['serviceIds'],
@@ -1893,7 +1903,7 @@ class _RegistrationState extends State<_Registration> {
                   ),
                 ),
               ),
-              if (canEdit(sideLabel(side)))
+              if (!identityApproved && canEdit(sideLabel(side)))
                 TextButton.icon(
                   icon: const Icon(Icons.upload),
                   label: const Text('Đổi ảnh'),
@@ -1961,7 +1971,7 @@ class _RegistrationState extends State<_Registration> {
   }
 
   Future<void> _pickImage(String side) async {
-    if (!canEdit(sideLabel(side))) return;
+    if (identityApproved || !canEdit(sideLabel(side))) return;
     if (uploadingIdentity || busy) return;
     setState(() {
       uploadingIdentity = true;
@@ -2132,9 +2142,11 @@ class _RegistrationState extends State<_Registration> {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Tích hợp tải ảnh CCCD 2 mặt & ảnh chân dung trực tiếp trong hồ sơ.',
-            style: TextStyle(
+          Text(
+            identityApproved
+                ? 'CCCD đã được phê duyệt.'
+                : 'Tải ảnh CCCD hai mặt và ảnh chân dung.',
+            style: const TextStyle(
               fontSize: 12,
               color: PartnerColors.muted,
               height: 1.4,
@@ -2142,7 +2154,7 @@ class _RegistrationState extends State<_Registration> {
           ),
           const SizedBox(height: 14),
           TextFormField(
-            enabled: canEdit('Số CCCD / Mã định danh'),
+            enabled: !identityApproved && canEdit('Số CCCD / Mã định danh'),
             controller: cccdNumber,
             decoration: _inputDecoration(
               labelText: 'Số CCCD / Mã định danh (12 số)',
@@ -2182,15 +2194,17 @@ class _RegistrationState extends State<_Registration> {
                   icon: Icons.flip_to_back_rounded,
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _idPhotoBox(
-                  title: 'Ảnh chân dung',
-                  side: 'PORTRAIT',
-                  isUploaded: portraitImageUploaded,
-                  icon: Icons.face_rounded,
+              if (!identityApproved || portraitImageUploaded) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _idPhotoBox(
+                    title: 'Ảnh chân dung',
+                    side: 'PORTRAIT',
+                    isUploaded: portraitImageUploaded,
+                    icon: Icons.face_rounded,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
           if (uploadingIdentity) const LinearProgressIndicator(),
@@ -2770,12 +2784,14 @@ class _RegistrationState extends State<_Registration> {
                         ),
                         _buildSummaryRow(
                           Icons.photo_library_outlined,
-                          'Ảnh CCCD & Chân dung',
-                          (frontImageUploaded &&
-                                  backImageUploaded &&
-                                  portraitImageUploaded)
-                              ? 'Đã tải đủ 3 ảnh ✓'
-                              : '${[frontImageUploaded, backImageUploaded, portraitImageUploaded].where((x) => x).length}/3 ảnh đã lưu trên hệ thống',
+                          'Định danh CCCD',
+                          identityApproved
+                              ? 'CCCD đã được phê duyệt'
+                              : (frontImageUploaded &&
+                                    backImageUploaded &&
+                                    portraitImageUploaded)
+                                  ? 'Đã tải đủ 3 ảnh ✓'
+                                  : '${[frontImageUploaded, backImageUploaded, portraitImageUploaded].where((x) => x).length}/3 ảnh đã lưu trên hệ thống',
                         ),
                         _buildSummaryRow(
                           Icons.location_on_outlined,

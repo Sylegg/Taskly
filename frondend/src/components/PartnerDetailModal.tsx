@@ -117,13 +117,11 @@ export default function PartnerDetailModal({
     getPartnerCriteriaProgress(partnerChecks);
 
   const dossier = data?.dossier;
+  const identities = dossier?.identities ?? data?.identities ?? [];
   const bankAccounts = data?.bank || [];
   const profile = data?.profile || partner;
-  const latestIdentity = dossier?.identities?.[0];
+  const latestIdentity = identities[0];
   const kycStatus = latestIdentity?.status || partner.kyc;
-  const kycApproved = kycStatus === 'APPROVED';
-  const cleanIdentitySides = ['FRONT', 'BACK'].every(side => dossier?.documents?.some((doc: any) =>
-    doc.verification_id === latestIdentity?.id && doc.document_side === side && doc.scan_status === 'CLEAN'));
   const avatar = newAvatar || profile.avatar || partner.avatar;
 
   async function reloadPartner() {
@@ -240,7 +238,11 @@ export default function PartnerDetailModal({
 
         {/* Modal Body */}
         <div className="partner-modal-body">
-          {editing ? <PartnerProfileEditor id={partner.id} onCancel={() => setEditing(false)} onSaved={(latest) => { setData(latest); setEditing(false); onSaved?.(); }} /> : <>
+          {editing ? <PartnerProfileEditor id={partner.id} onCancel={() => setEditing(false)} onSaved={(latest) => {
+            setData((previous: any) => ({ ...previous, ...latest }));
+            setEditing(false);
+            onSaved?.();
+          }} /> : <>
           {error && (
             <div style={{ padding: '12px 16px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, color: '#dc2626', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
               <AlertCircle size={17} />
@@ -456,8 +458,8 @@ export default function PartnerDetailModal({
                   <h4 className="partner-card-title"><FileText size={16} color="#2563eb" /> Căn cước công dân (CCCD)</h4>
                   <PartnerKycBadge kyc={kycStatus} />
                 </div>
-                {dossier?.identities && dossier.identities.length > 0 ? (
-                  dossier.identities.map((idDoc: any, i: number) => (
+                {identities.length > 0 ? (
+                  identities.map((idDoc: any, i: number) => (
                     <div key={i} className="partner-spec-list">
                       <div className="partner-spec-item">
                         <span className="partner-spec-label">Họ tên trên CCCD:</span>
@@ -483,17 +485,9 @@ export default function PartnerDetailModal({
                   </div>
                 )}
 
-                <div className="partner-spec-list">
-                  <div className="partner-spec-item">
-                    <span className="partner-spec-label">Giấy tờ CCCD</span>
-                    <span className="partner-spec-value">{cleanIdentitySides ? 'Hai mặt đã qua kiểm tra an toàn' : 'Chưa đủ hai mặt đã kiểm tra'}</span>
-                  </div>
-                  <div className="partner-spec-item">
-                    <span className="partner-spec-label">Phê duyệt CCCD</span>
-                    <span className="partner-spec-value">{kycApproved ? 'Đã phê duyệt' : 'Chưa phê duyệt'}</span>
-                  </div>
-                </div>
-                {dossier && <AdminKycActions key={partner.id} dossier={dossier} onChanged={reloadPartner} photoLinks />}
+                {(dossier || data?.canReviewIdentity === true) && <AdminKycActions key={partner.id} partnerId={partner.id} identity={latestIdentity}
+                  documents={dossier?.documents ?? data.documents ?? []} canReview={data.canReviewIdentity === true}
+                  onChanged={reloadPartner} photoLinks />}
 
                 {/* Exam result */}
                 <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 14 }}>

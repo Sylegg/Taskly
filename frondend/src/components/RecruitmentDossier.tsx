@@ -14,6 +14,7 @@ export type Evidence = Record<string, string | number | boolean | null>;
 
 export type DossierApplication = {
   id: string;
+  userId: string;
   fullName: string;
   status: string;
   version: number;
@@ -118,12 +119,12 @@ export default function RecruitmentDossier({
   dossier,
   finalImages,
   canReadIdentity,
-  onIdentityApproved,
+  onIdentityChanged,
 }: {
   dossier: Dossier;
   finalImages?: Record<string, string> | null;
   canReadIdentity: boolean;
-  onIdentityApproved?: () => Promise<void>;
+  onIdentityChanged: () => Promise<void>;
 }) {
   const app = dossier.application;
   const [activeTab, setActiveTab] = useState<'identity' | 'academy' | 'office'>('identity');
@@ -341,6 +342,9 @@ export default function RecruitmentDossier({
                 </div>
               </div>
 
+              {canReadIdentity && <AdminKycActions key={app.id} partnerId={app.userId} identity={dossier.identities[0]}
+                documents={dossier.documents} canReview onChanged={onIdentityChanged} />}
+
               {dossier.identities.length === 0 ? (
                 <p className="dossier-empty">Chưa có hồ sơ CCCD.</p>
               ) : (
@@ -416,8 +420,6 @@ export default function RecruitmentDossier({
                   </table>
                 </div>
               )}
-
-              {canReadIdentity && <AdminKycActions key={app.id} dossier={dossier} onChanged={onIdentityApproved} />}
 
               {/* CCCD PHOTO INSPECTION CARDS */}
               {canReadIdentity && dossier.documents.length > 0 && (
