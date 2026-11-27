@@ -44,3 +44,14 @@
 .app-frame .dwa-btn-primary{background:var(--portal-accent);border-color:var(--portal-accent)}
 .app-frame .dwa-btn-primary:hover{background:var(--portal-deep)}
 .withdrawals-only .dwa-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:800px){.withdrawals-only .dwa-kpi-grid{grid-template-columns:1fr}}
+.admin-inline-value{display:inline-flex;gap:8px;align-items:center;justify-content:flex-end;border:0;background:transparent;padding:3px 0;color:inherit;font:inherit;text-align:right;overflow-wrap:anywhere}
+.admin-inline-value:hover{color:#087c63}
+.admin-inline-value svg{flex:none;color:#087c63}
+.admin-inline-form{display:grid;gap:6px;min-width:0}
+.admin-inline-form input{width:100%;min-width:0;padding:7px 8px;border:1px solid #cbd5e1;border-radius:8px}
+.admin-inline-form small[role=alert]{color:#b91c1c}
+.admin-kyc-actions{display:grid;gap:10px;margin:12px 0}
+.admin-kyc-actions form{display:grid;gap:8px;border:1px solid #e2e8f0;border-radius:12px;padding:12px}
+.admin-kyc-actions .btn{justify-self:start}
+.admin-kyc-sides{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+.admin-kyc-side{display:grid;gap:7px;border:1px solid #e2e8f0;border-radius:10px;padding:9px}

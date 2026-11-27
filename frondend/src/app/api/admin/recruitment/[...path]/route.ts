@@ -11,7 +11,7 @@ async function proxy(request: NextRequest, context: Context) {
    const session = await adminSession(true);
    return NextResponse.json({data:await callBackend('/admin/verifications/'+route.slice(4),'POST',await authorizedPhoto(request),session.access)});
   }
-  if (request.method === 'POST' && /^kyc\/office\/[0-9a-f-]{36}\/(?:draft|[0-9a-f-]{36}\/submit)$/.test(route)) {
+  if (request.method === 'POST' && /^kyc\/office\/[0-9a-f-]{36}\/(?:draft|[0-9a-f-]{36}\/(?:submit|approve))$/.test(route)) {
    requireSameOrigin(request);
    const session=await adminSession(true);
    return NextResponse.json({data:await callBackend('/admin/verifications/'+route.slice(4),'POST',await request.json(),session.access)});

@@ -17,7 +17,7 @@ public class RecruitmentOfficeService {
  @Transactional public Map<String,Object> confirmCheckin(UUID actor,UUID applicationId){
   var app=recruitment.detail(applicationId);
   app=recruitment.current(app.userId());
-  if(!Boolean.TRUE.equals(app.eligibility().get("preliminary_approved"))||!Set.of("PRELIMINARY_APPROVED","UNIFORM_PENDING","DOCUMENT_APPOINTMENT","ACTION_REQUIRED","DOCUMENTS_RECEIVED","FINAL_REVIEW").contains(app.status()))throw RecruitmentService.invalid("Hồ sơ chưa ở bước tiếp nhận tại văn phòng.");
+  if(!Boolean.TRUE.equals(app.eligibility().get("preliminary_approved"))||!Set.of("PRELIMINARY_APPROVED","UNIFORM_PENDING","DOCUMENT_APPOINTMENT","ACTION_REQUIRED","DOCUMENTS_RECEIVED","FINAL_REVIEW","ACTIVE").contains(app.status()))throw RecruitmentService.invalid("Hồ sơ chưa ở bước tiếp nhận tại văn phòng.");
   var existing=db.queryForList("SELECT * FROM partner_office_appointments WHERE application_id=? AND status IN ('BOOKED','CHECKED_IN','COMPLETED') ORDER BY created_at DESC LIMIT 1",applicationId);
   if(!existing.isEmpty()){
    var appointment=existing.getFirst();

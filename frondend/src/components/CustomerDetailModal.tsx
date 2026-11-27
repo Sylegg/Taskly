@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import './customer-admin.css';
 import AdminAddressBook from './AdminAddressBook';
+import AdminInlineField, { type ProfileField } from './AdminInlineField';
 
 const orderStatusLabels: Record<string,string> = { DRAFT:'Bản nháp', POSTED:'Đã đặt dịch vụ', MATCHING:'Đang tìm đối tác', ACCEPTED:'Đối tác đã nhận việc', TASKER_ON_THE_WAY:'Đối tác đang đến', ARRIVED:'Đối tác đã đến', IN_PROGRESS:'Đang thực hiện', COMPLETED:'Đã hoàn thành', PAID:'Đã thanh toán', CANCELLED:'Đã hủy', DISPUTED:'Đang xử lý khiếu nại', REFUNDED:'Đã hoàn tiền', EXPIRED:'Đã hết hạn' };
 
@@ -124,6 +125,14 @@ export default function CustomerDetailModal({
       setEditing(false);
     } catch (e) { setEditError((e as Error).message); }
     finally { setEditSaving(false); }
+  }
+
+  async function saveProfileField(field: ProfileField, value: string) {
+    if (!onUpdateCustomer) throw Error('Không thể lưu thông tin.');
+    await onUpdateCustomer(customer.id, { profileField: { field, value } });
+    setData((previous: any) => ({
+      ...previous, profile: { ...previous.profile, [field === 'name' ? 'full_name' : field]: value || null },
+    }));
   }
 
   return (
@@ -240,15 +249,18 @@ export default function CustomerDetailModal({
                 <div className="customer-spec-grid">
                   <div className="customer-spec-item">
                     <span className="customer-spec-label">Họ và tên</span>
-                    <span className="customer-spec-val">{profile.full_name || customer.name || '—'}</span>
+                    {data && onUpdateCustomer ? <AdminInlineField field="name" label="Họ và tên" value={profile.full_name} onSave={saveProfileField} />
+                      : <span className="customer-spec-val">{profile.full_name || customer.name || '—'}</span>}
                   </div>
                   <div className="customer-spec-item">
                     <span className="customer-spec-label">Số điện thoại</span>
-                    <span className="customer-spec-val">{profile.phone || customer.phone || '—'}</span>
+                    {data && onUpdateCustomer ? <AdminInlineField field="phone" label="Số điện thoại" value={profile.phone} onSave={saveProfileField} />
+                      : <span className="customer-spec-val">{profile.phone || customer.phone || '—'}</span>}
                   </div>
                   <div className="customer-spec-item">
                     <span className="customer-spec-label">Địa chỉ email</span>
-                    <span className="customer-spec-val">{profile.email || customer.email || '—'}</span>
+                    {data && onUpdateCustomer ? <AdminInlineField field="email" label="Email" value={profile.email} onSave={saveProfileField} />
+                      : <span className="customer-spec-val">{profile.email || customer.email || '—'}</span>}
                   </div>
 
                   <div className="customer-spec-item">
@@ -259,6 +271,10 @@ export default function CustomerDetailModal({
                         : '—'}
                     </span>
                   </div>
+                  {data && onUpdateCustomer && <div className="customer-spec-item">
+                    <span className="customer-spec-label">Ngày hồ sơ</span>
+                    <AdminInlineField field="profile_date" label="Ngày hồ sơ" value={profile.profile_date} onSave={saveProfileField} />
+                  </div>}
 
                 </div>
               </div>

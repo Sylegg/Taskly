@@ -35,6 +35,8 @@ import PartnerKycBadge from './PartnerKycBadge';
 import './partner-admin.css';
 import PartnerProfileEditor from './PartnerProfileEditor';
 import AdminAddressBook from './AdminAddressBook';
+import AdminInlineField, { displayProfileDate, type ProfileField } from './AdminInlineField';
+import AdminKycActions from './AdminKycActions';
 
 type PartnerDetailModalProps = {
   partner: any;
@@ -50,6 +52,7 @@ type PartnerDetailModalProps = {
 export default function PartnerDetailModal({
   partner,
   onClose,
+  onUpdatePartner,
   onAction,
   initialEdit = false,
   onSaved,
@@ -117,7 +120,34 @@ export default function PartnerDetailModal({
   const dossier = data?.dossier;
   const bankAccounts = data?.bank || [];
   const profile = data?.profile || partner;
+  const latestIdentity = dossier?.identities?.[0];
+  const kycStatus = latestIdentity?.status || partner.kyc;
+  const kycApproved = kycStatus === 'APPROVED';
+  const cleanIdentitySides = ['FRONT', 'BACK'].every(side => dossier?.documents?.some((doc: any) =>
+    doc.verification_id === latestIdentity?.id && doc.document_side === side && doc.scan_status === 'CLEAN'));
   const avatar = newAvatar || profile.avatar || partner.avatar;
+
+  async function reloadPartner() {
+    const response = await fetch('/api/admin/customers/' + encodeURIComponent(partner.id), { cache: 'no-store' });
+    const result = await response.json();
+    if (!response.ok) throw Error(result.error || 'Không thể tải lại hồ sơ đối tác.');
+    setData(result.data);
+    onSaved?.();
+  }
+
+  async function saveProfileField(field: ProfileField, value: string) {
+    if (!onUpdatePartner) throw Error('Không thể lưu thông tin.');
+    await onUpdatePartner(partner.id, { profileField: { field, value } });
+    if (field === 'date_of_birth') {
+      setData((previous: any) => ({
+        ...previous, dossier: { ...previous.dossier, application: { ...previous.dossier.application, dateOfBirth: value || null } },
+      }));
+    } else {
+      setData((previous: any) => ({
+        ...previous, profile: { ...previous.profile, [field === 'name' ? 'full_name' : field]: value || null },
+      }));
+    }
+  }
 
   async function saveAvatar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -159,19 +189,19 @@ export default function PartnerDetailModal({
             </div>
             <div className="partner-modal-name-group">
               <div className="partner-modal-name-row">
-                <h2>{partner.name || 'Đối tác chưa cập nhật tên'}</h2>
+                <h2>{profile.full_name || partner.name || 'Đối tác chưa cập nhật tên'}</h2>
                 <span className={`partner-badge ${partner.status === 'ACTIVE' ? 'active' : 'suspended'}`}>
                   {partner.status === 'ACTIVE' ? '● Đang hoạt động' : 'Tạm ngưng'}
                 </span>
                 <span className="partner-badge info">
                   {recruitmentLabel}
                 </span>
-                {partner.kyc && <PartnerKycBadge kyc={partner.kyc} prefix="KYC " />}
+                {kycStatus && <PartnerKycBadge kyc={kycStatus} prefix="KYC " />}
               </div>
               <div className="partner-modal-id-row">
-                <span><Phone size={13} /> {partner.phone || 'Chưa có SĐT'}</span>
+                <span><Phone size={13} /> {profile.phone || partner.phone || 'Chưa có SĐT'}</span>
                 <span>•</span>
-                <span><Mail size={13} /> {partner.email || 'Chưa có email'}</span>
+                <span><Mail size={13} /> {profile.email || partner.email || 'Chưa có email'}</span>
               </div>
             </div>
           </div>
@@ -231,19 +261,24 @@ export default function PartnerDetailModal({
                 <div className="partner-spec-list">
                   <div className="partner-spec-item">
                     <span className="partner-spec-label">Họ và tên:</span>
-                    <strong className="partner-spec-value">{profile?.full_name || partner.name || 'Chưa cập nhật'}</strong>
+                    {data && onUpdatePartner ? <AdminInlineField field="name" label="Họ và tên" value={profile.full_name} onSave={saveProfileField} />
+                      : <strong className="partner-spec-value">{profile.full_name || partner.name || 'Chưa cập nhật'}</strong>}
                   </div>
                   <div className="partner-spec-item">
                     <span className="partner-spec-label">Số điện thoại:</span>
-                    <strong className="partner-spec-value">{profile?.phone || partner.phone || 'Chưa cập nhật'}</strong>
+                    {data && onUpdatePartner ? <AdminInlineField field="phone" label="Số điện thoại" value={profile.phone} onSave={saveProfileField} />
+                      : <strong className="partner-spec-value">{profile.phone || partner.phone || 'Chưa cập nhật'}</strong>}
                   </div>
                   <div className="partner-spec-item">
                     <span className="partner-spec-label">Email tài khoản:</span>
-                    <span className="partner-spec-value">{profile?.email || partner.email || 'Chưa cập nhật'}</span>
+                    {data && onUpdatePartner ? <AdminInlineField field="email" label="Email" value={profile.email} onSave={saveProfileField} />
+                      : <span className="partner-spec-value">{profile.email || partner.email || 'Chưa cập nhật'}</span>}
                   </div>
                   <div className="partner-spec-item">
                     <span className="partner-spec-label">Ngày sinh:</span>
-                    <span className="partner-spec-value">{dossier?.application?.dateOfBirth ? dossier.application.dateOfBirth.split('-').reverse().join('/') : 'Chưa có'}</span>
+                    {dossier && onUpdatePartner ? <AdminInlineField field="date_of_birth" label="Ngày sinh"
+                      value={dossier.application.dateOfBirth} onSave={saveProfileField} />
+                      : <span className="partner-spec-value">{displayProfileDate(dossier?.application?.dateOfBirth)}</span>}
                   </div>
 
                   <div className="partner-spec-item">
@@ -254,6 +289,10 @@ export default function PartnerDetailModal({
                     <span className="partner-spec-label">Ngày tạo tài khoản:</span>
                     <span className="partner-spec-value">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString('vi-VN') : (partner.created || 'Gần đây')}</span>
                   </div>
+                  {data && onUpdatePartner && <div className="partner-spec-item">
+                    <span className="partner-spec-label">Ngày hồ sơ</span>
+                    <AdminInlineField field="profile_date" label="Ngày hồ sơ" value={profile.profile_date} onSave={saveProfileField} />
+                  </div>}
                   <form className="partner-avatar-form" onSubmit={saveAvatar}>
                     <strong>Ảnh đại diện</strong>
                     <div className="row" style={{ flexWrap: 'wrap' }}>
@@ -424,9 +463,7 @@ export default function PartnerDetailModal({
               <div className="partner-card-box">
                 <div className="partner-card-header">
                   <h4 className="partner-card-title"><FileText size={16} color="#2563eb" /> Căn cước công dân (CCCD)</h4>
-                  <span className={`partner-badge ${partner.kyc === 'APPROVED' ? 'active' : 'pending'}`}>
-                    {partnerStatusLabels[partner.kyc] || 'Chưa nộp định danh'}
-                  </span>
+                  <PartnerKycBadge kyc={kycStatus} />
                 </div>
                 {dossier?.identities && dossier.identities.length > 0 ? (
                   dossier.identities.map((idDoc: any, i: number) => (
@@ -458,13 +495,14 @@ export default function PartnerDetailModal({
                 <div className="partner-spec-list">
                   <div className="partner-spec-item">
                     <span className="partner-spec-label">Giấy tờ CCCD</span>
-                    <span className="partner-spec-value">{partnerChecks.identity_complete ? 'Hợp lệ' : 'Chưa đạt yêu cầu'}</span>
+                    <span className="partner-spec-value">{cleanIdentitySides ? 'Hai mặt đã qua kiểm tra an toàn' : 'Chưa đủ hai mặt đã kiểm tra'}</span>
                   </div>
                   <div className="partner-spec-item">
                     <span className="partner-spec-label">Phê duyệt CCCD</span>
-                    <span className="partner-spec-value">{partnerChecks.identity_approved ? 'Đã phê duyệt' : 'Chưa phê duyệt'}</span>
+                    <span className="partner-spec-value">{kycApproved ? 'Đã phê duyệt' : 'Chưa phê duyệt'}</span>
                   </div>
                 </div>
+                {dossier && <AdminKycActions key={partner.id} dossier={dossier} onChanged={reloadPartner} photoLinks />}
 
                 {/* Exam result */}
                 <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 14 }}>

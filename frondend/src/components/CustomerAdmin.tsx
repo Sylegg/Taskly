@@ -26,6 +26,7 @@ import {
   Award,
 } from 'lucide-react';
 import CustomerDetailModal from './CustomerDetailModal';
+import { displayProfileDate } from './AdminInlineField';
 import './customer-admin.css';
 
 type CustomerAdminProps = {
@@ -344,6 +345,7 @@ export default function CustomerAdmin({
                       <span style={{ fontSize: 12.5, color: '#64748b' }}>
                         {item.created ? new Date(item.created).toLocaleDateString('vi-VN') : '—'}
                       </span>
+                      {item.profile_date && <small style={{ display: 'block' }}>Ngày hồ sơ {displayProfileDate(item.profile_date)}</small>}
                     </td>
 
                     {/* Actions */}

@@ -51,6 +51,13 @@ public class AdminVerificationController {
         return ApiResponse.success(service.submitOfficeDraft(userId(jwt), applicationId, verificationId, request.consent()));
     }
 
+    @PostMapping("/office/{applicationId}/{verificationId}/approve")
+    ApiResponse<VerificationDtos.VerificationResponse> officeApprove(
+            @AuthenticationPrincipal Jwt jwt, @PathVariable UUID applicationId, @PathVariable UUID verificationId,
+            @Valid @RequestBody VerificationDtos.SubmitRequest request) {
+        return ApiResponse.success(service.approveOfficeDraft(userId(jwt), applicationId, verificationId, request.consent()));
+    }
+
     @PostMapping(value = "/{id}/documents/{side}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ApiResponse<VerificationDtos.VerificationResponse> addDraftDocument(
             @AuthenticationPrincipal Jwt jwt, @PathVariable UUID id, @PathVariable DocumentSide side,

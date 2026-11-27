@@ -6,6 +6,10 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     const { access } = await adminSession(); const { id } = await context.params;
     if (!/^[0-9a-f-]{36}$/i.test(id)) throw new ApiError('Mã khách hàng không hợp lệ.', 400);
     const body = await request.json();
+    if (body.profileField !== undefined) {
+      await callBackend('/admin/customers/' + id + '/profile-field', 'PATCH', body.profileField, access);
+      return NextResponse.json({success:true});
+    }
     if (body.edits) return NextResponse.json({success:true,data:await callBackend('/admin/customers/' + id + '/details/batch','PATCH',body,access)});
     if (body.section) return NextResponse.json({success:true,data:await callBackend('/admin/customers/' + id + '/details','PATCH',body,access)});
     if (body.status !== undefined) await callBackend('/admin/customers/' + id + '/status', 'PATCH', { status: body.status }, access);

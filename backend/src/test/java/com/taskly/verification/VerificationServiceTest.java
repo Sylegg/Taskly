@@ -159,6 +159,8 @@ class VerificationServiceTest {
         when(verifications.findByIdAndUserId(draft.getId(), owner.getId())).thenReturn(Optional.of(draft));
         assertThatThrownBy(() -> service.submitOfficeDraft(admin.getId(), applicationId, draft.getId(), true))
                 .isInstanceOfSatisfying(DomainException.class, e -> assertThat(e.getCode()).isEqualTo("KYC_SCAN_REQUIRED"));
+        assertThatThrownBy(() -> service.approveOfficeDraft(admin.getId(), applicationId, draft.getId(), true))
+                .isInstanceOfSatisfying(DomainException.class, e -> assertThat(e.getCode()).isEqualTo("KYC_SCAN_REQUIRED"));
         assertThat(draft.getSubmittedAt()).isNull();
     }
 

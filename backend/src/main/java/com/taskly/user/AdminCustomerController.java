@@ -116,7 +116,7 @@ public class AdminCustomerController {
     private DomainException badEdit(){return new DomainException("INVALID_PARTNER_EDIT","Thông tin chỉnh sửa không hợp lệ.",HttpStatus.BAD_REQUEST);}
     @GetMapping("/{id}/details")
     public ApiResponse<Map<String,Object>> details(@PathVariable UUID id) {
-        var users=db.queryForList("SELECT u.id,u.email,u.phone,u.status,u.created_at,p.full_name,p.language,COALESCE(p.partner_avatar,(SELECT f.portrait FROM partner_final_documents f JOIN partner_applications a ON a.id=f.application_id WHERE a.user_id=u.id)) AS avatar FROM users u LEFT JOIN user_profiles p ON p.user_id=u.id WHERE u.id=?",id);
+        var users=db.queryForList("SELECT u.id,u.email,u.phone,u.status,u.created_at,p.full_name,p.language,to_char(p.admin_profile_date,'YYYY-MM-DD') AS profile_date,COALESCE(p.partner_avatar,(SELECT f.portrait FROM partner_final_documents f JOIN partner_applications a ON a.id=f.application_id WHERE a.user_id=u.id)) AS avatar FROM users u LEFT JOIN user_profiles p ON p.user_id=u.id WHERE u.id=?",id);
         if(users.isEmpty())throw new DomainException("USER_NOT_FOUND","Không tìm thấy tài khoản.",HttpStatus.NOT_FOUND);
         var result=new java.util.LinkedHashMap<String,Object>();
         result.put("profile",users.getFirst());
@@ -130,7 +130,7 @@ public class AdminCustomerController {
     }
     @GetMapping("/{id}/customer-details")
     public ApiResponse<Map<String,Object>> customerDetails(@PathVariable UUID id) {
-        var users=db.queryForList("SELECT u.id,u.email,u.phone,u.status,u.created_at,p.full_name FROM users u LEFT JOIN user_profiles p ON p.user_id=u.id WHERE u.id=?",id);
+        var users=db.queryForList("SELECT u.id,u.email,u.phone,u.status,u.created_at,p.full_name,to_char(p.admin_profile_date,'YYYY-MM-DD') AS profile_date FROM users u LEFT JOIN user_profiles p ON p.user_id=u.id WHERE u.id=?",id);
         if(users.isEmpty())throw new DomainException("USER_NOT_FOUND","Không tìm thấy tài khoản.",HttpStatus.NOT_FOUND);
         var result=new java.util.LinkedHashMap<String,Object>();
         result.put("profile",users.getFirst());
@@ -147,6 +147,7 @@ public class AdminCustomerController {
               COALESCE(p.partner_avatar,(SELECT f.portrait FROM partner_final_documents f WHERE f.application_id=a.id)) AS avatar,
               u.used_customer AS customer_app, (u.used_partner OR a.id IS NOT NULL) AS partner_app,
               u.created_at AS created,
+              to_char(p.admin_profile_date,'YYYY-MM-DD') AS profile_date,
               (SELECT COUNT(*) FROM tasks t WHERE t.customer_id=u.id AND t.status<>'DRAFT') AS bookings,
               (SELECT COUNT(*) FROM tasks t WHERE t.tasker_id=u.id) AS accepted_jobs,
               (SELECT COUNT(*) FROM tasks t WHERE t.tasker_id=u.id AND t.status IN ('COMPLETED','PAID')) AS completed_jobs,
@@ -181,6 +182,41 @@ public class AdminCustomerController {
         @Pattern(regexp="^0[0-9]{9}$") String phone,
         @Email @Size(max=254) String email) {}
     public record StatusRequest(@NotBlank @Pattern(regexp="ACTIVE|SUSPENDED") String status) {}
+    public record ProfileFieldRequest(@NotBlank String field, @Size(max=254) String value) {}
+
+    @PatchMapping("/{id}/profile-field")
+    @Transactional
+    public ApiResponse<Void> updateProfileField(@PathVariable UUID id, @Valid @RequestBody ProfileFieldRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        requireCustomer(id);
+        String value=request.value()==null ? "" : request.value().trim();
+        switch (request.field()) {
+            case "name", "phone", "email" -> {
+                String name = (String)db.queryForMap("SELECT full_name FROM user_profiles WHERE user_id=?",id).get("full_name");
+                if ("name".equals(request.field())) {
+                    if (value.length()<2 || value.length()>160) throw badEdit();
+                    name=value;
+                }
+                String phone="phone".equals(request.field()) ? value : null;
+                String email="email".equals(request.field()) ? value : null;
+                if (phone!=null && !phone.matches("0[0-9]{9}")) throw badEdit();
+                if (email!=null && !email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")) throw badEdit();
+                updateContact(id,name,phone,email);
+            }
+            case "profile_date", "date_of_birth" -> {
+                java.time.LocalDate date=value.isEmpty() ? null : editDate(value);
+                if (date!=null && (date.getYear()<1900 || date.isAfter(java.time.LocalDate.now(clock.withZone(java.time.ZoneId.of("Asia/Ho_Chi_Minh")))))) throw badEdit();
+                if ("profile_date".equals(request.field())) {
+                    if (db.update("UPDATE user_profiles SET admin_profile_date=?,updated_at=CURRENT_TIMESTAMP WHERE user_id=?",date,id)!=1) throw badEdit();
+                } else if (db.update("UPDATE partner_applications SET date_of_birth=?,updated_at=CURRENT_TIMESTAMP,version=version+1 WHERE user_id=?",date,id)!=1) {
+                    throw badEdit();
+                }
+            }
+            default -> throw badEdit();
+        }
+        auditProfileChange(jwt,id,"UPDATE_USER_"+request.field().toUpperCase(Locale.ROOT),id);
+        return ApiResponse.success(null);
+    }
     private void requireCustomer(UUID id) {
         if (db.queryForObject("SELECT COUNT(*) FROM users u WHERE u.id = ? AND EXISTS (SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id WHERE ur.user_id = u.id AND r.role_key IN ('CUSTOMER','TASKER')) AND NOT EXISTS (SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id WHERE ur.user_id = u.id AND r.role_key IN ('ADMIN','SUPER_ADMIN'))", Integer.class, id) == 0)
             throw new DomainException("CUSTOMER_NOT_FOUND", "Không tìm thấy khách hàng.", HttpStatus.NOT_FOUND);

@@ -23,6 +23,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import PartnerDetailModal from './PartnerDetailModal';
+import { displayProfileDate } from './AdminInlineField';
 import PartnerKycBadge from './PartnerKycBadge';
 import { getPartnerCriteriaProgress } from '@/lib/partner-criteria';
 import { partnerStatusLabels } from './PartnerChecks';
@@ -345,8 +346,7 @@ export default function PartnerAdmin({
                         </div>
                         <div className="partner-user-info">
                           <span className="partner-user-name">{item.name || 'Chưa đặt tên'}</span>
-                          <span className="partner-user-meta">
-                          </span>
+                          {item.profile_date && <span className="partner-user-meta">Ngày hồ sơ {displayProfileDate(item.profile_date)}</span>}
                         </div>
                       </div>
                     </td>

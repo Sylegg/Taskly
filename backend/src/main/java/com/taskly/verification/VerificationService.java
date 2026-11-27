@@ -119,6 +119,14 @@ public class VerificationService {
                 "Nhân viên gửi hồ sơ sau khi đối chiếu giấy tờ gốc và xác nhận sự đồng ý trực tiếp");
     }
 
+    @Transactional
+    public VerificationDtos.VerificationResponse approveOfficeDraft(
+            UUID actorId, UUID applicationId, UUID verificationId, boolean consent) {
+        submitOfficeDraft(actorId, applicationId, verificationId, consent);
+        return decide(actorId, verificationId, VerificationStatus.APPROVED,
+                "Đã đối chiếu CCCD gốc và phê duyệt cùng chủ hồ sơ tại văn phòng.");
+    }
+
     @Transactional(readOnly = true)
     public VerificationDtos.VerificationResponse current(UUID userId) {
         return verifications.findFirstByUserIdOrderByCreatedAtDesc(userId)

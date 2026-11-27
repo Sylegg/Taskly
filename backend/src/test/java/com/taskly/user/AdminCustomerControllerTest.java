@@ -132,6 +132,25 @@ class AdminCustomerControllerTest {
         org.junit.jupiter.api.Assertions.assertEquals(4,db.queryForObject(
                 "SELECT COUNT(*) FROM audit_logs WHERE actor_id=? AND entity_id=?",Integer.class,actor,id));
     }
+
+    @Test
+    void profileDateCanBeCorrectedWithoutRewritingAccountCreation() throws Exception {
+        UUID id = customer(), actor = UUID.randomUUID();
+        var admin = jwt().jwt(token -> token.subject(actor.toString())).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        var creation = db.queryForObject("SELECT created_at FROM users WHERE id=?",java.time.OffsetDateTime.class,id);
+        String path = "/api/v1/admin/customers/" + id + "/profile-field";
+        mvc.perform(patch(path).with(admin).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"field\":\"profile_date\",\"value\":\"2026-09-15\"}")).andExpect(status().isOk());
+        mvc.perform(get("/api/v1/admin/customers/" + id + "/customer-details").with(admin)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.profile.profile_date").value("2026-09-15"));
+        org.junit.jupiter.api.Assertions.assertEquals(creation,
+                db.queryForObject("SELECT created_at FROM users WHERE id=?",java.time.OffsetDateTime.class,id));
+        mvc.perform(patch(path).with(admin).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"field\":\"created_at\",\"value\":\"2026-09-16\"}")).andExpect(status().isBadRequest());
+        org.junit.jupiter.api.Assertions.assertEquals(1,db.queryForObject(
+                "SELECT COUNT(*) FROM audit_logs WHERE actor_id=? AND entity_id=? AND action='UPDATE_USER_PROFILE_DATE'",
+                Integer.class,actor,id));
+    }
     @Test
     @org.springframework.transaction.annotation.Transactional
     void partnerAccountIncludesEveryReviewStepAndLatestIdentityStatus() throws Exception {
