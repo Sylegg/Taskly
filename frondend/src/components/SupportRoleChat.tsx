@@ -36,6 +36,7 @@ interface SupportAdminProps {
   onNewMessage?: () => void;
   onUnreadChange?: (count: number, name: string) => void;
   onClose?: () => void;
+  onOpenProfile?: (userId: string, role: Role) => void;
 }
 
 function formatTimestamp(isoString?: string): string {
@@ -93,7 +94,8 @@ export default function SupportRoleChat({
   visible = true,
   onNewMessage,
   onUnreadChange,
-  onClose
+  onClose,
+  onOpenProfile,
 }: SupportAdminProps & {role: Role}) {
   const activeRole = role;
   const [partnerQueue, setPartnerQueue] = useState<Row[]>([]);
@@ -476,6 +478,8 @@ export default function SupportRoleChat({
             </div>
           </div>
 
+          {onOpenProfile && <button type="button" className="btn btn-outline"
+            onClick={() => onOpenProfile(selectedPerson.user_id, activeRole)}>Mở hồ sơ</button>}
           <button
             type="button"
             className={styles.headerActionBtn}

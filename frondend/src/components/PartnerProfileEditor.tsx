@@ -8,7 +8,7 @@ export default function PartnerProfileEditor({id,onCancel,onSaved}:{id:string;on
    const groups:any[]=[];
    function add(title:string,section:string,value:any,keys:string[],recordId?:string){const values=Object.fromEntries(keys.map(key=>[key,key==='dateOfBirth' && value?.[key] ? value[key].split('-').reverse().join('/') : value?.[key]??'']));groups.push({title,section,recordId,keys,values,original:JSON.stringify(values)})}
    add('Thông tin cá nhân','profile',data.profile,['full_name','email','phone']);
-   if(data.dossier)add('Thông tin cá nhân','application',data.dossier.application,['dateOfBirth']);
+   if(data.dossier)add('Thông tin cá nhân','application',data.dossier.application,['dateOfBirth','experience','transport','referral']);
    add('Ngân hàng nhận thu nhập Partner','bank',data.bank?.[0],['bank_name','account_name','account_number']);
    for(const a of data.dossier?.identities||[])add('CCCD '+(a.document_number||''),'identity',a,['legal_name','document_number'],a.id);
    setSaveError('');setEditing(groups);

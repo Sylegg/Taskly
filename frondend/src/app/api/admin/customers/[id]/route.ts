@@ -9,7 +9,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     if (body.edits) return NextResponse.json({success:true,data:await callBackend('/admin/customers/' + id + '/details/batch','PATCH',body,access)});
     if (body.section) return NextResponse.json({success:true,data:await callBackend('/admin/customers/' + id + '/details','PATCH',body,access)});
     if (body.status !== undefined) await callBackend('/admin/customers/' + id + '/status', 'PATCH', { status: body.status }, access);
-    else await callBackend('/admin/customers/' + id, 'PATCH', { name: body.name, phone: body.phone }, access);
+    else await callBackend('/admin/customers/' + id, 'PATCH', { name: body.name, phone: body.phone, email: body.email }, access);
     return NextResponse.json({ success: true });
   } catch (e) { return failure(e); }
 }

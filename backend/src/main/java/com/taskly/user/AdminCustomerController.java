@@ -4,12 +4,14 @@ import com.taskly.common.api.ApiResponse;
 import com.taskly.common.exception.DomainException;
 import com.taskly.auth.RefreshTokenService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.Clock;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.taskly.user.dto.UserDtos;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @RestController
 @RequestMapping("/api/v1/admin/customers")
@@ -29,8 +34,11 @@ public class AdminCustomerController {
     private final RefreshTokenService refresh;
     private final Clock clock;
     private final com.taskly.storage.PrivateObjectStorageService storage;
-    public AdminCustomerController(JdbcTemplate db, RefreshTokenService refresh, Clock clock, com.taskly.recruitment.RecruitmentDossierService dossiers, com.taskly.storage.PrivateObjectStorageService storage) {
-        this.dossiers=dossiers; this.db = db; this.refresh = refresh; this.clock = clock; this.storage = storage;
+    private final UserService userService;
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entities;
+    public AdminCustomerController(JdbcTemplate db, RefreshTokenService refresh, Clock clock, com.taskly.recruitment.RecruitmentDossierService dossiers, com.taskly.storage.PrivateObjectStorageService storage, UserService userService) {
+        this.dossiers=dossiers; this.db = db; this.refresh = refresh; this.clock = clock; this.storage = storage; this.userService = userService;
     }
     @PostMapping(value="/{id}/partner-avatar", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
@@ -67,10 +75,7 @@ public class AdminCustomerController {
         if(section.equals("profile")) {
             String name=editText(v,"full_name",160,true),phone=editText(v,"phone",32,true),email=editText(v,"email",254,true);
             if(name.length()<2||!phone.matches("0[0-9]{9}")||!email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+"))throw badEdit();
-            if(db.queryForObject("SELECT COUNT(*) FROM users WHERE id<>? AND (email=? OR phone=?)",Integer.class,id,email,phone)>0)throw new DomainException("CONTACT_EXISTS","Email hoặc điện thoại đã được sử dụng.",HttpStatus.CONFLICT);
-            db.update("UPDATE users SET email=?,phone=?,updated_at=CURRENT_TIMESTAMP,version=version+1 WHERE id=?",email,phone,id);
-            db.update("UPDATE user_profiles SET full_name=?,updated_at=CURRENT_TIMESTAMP WHERE user_id=?",name,id);
-            db.update("UPDATE partner_applications SET full_name=?,contact_phone=?,updated_at=CURRENT_TIMESTAMP,version=version+1 WHERE user_id=?",name,phone,id);
+            updateContact(id,name,phone,email);
         } else if(section.equals("bank")) {
             String bank=editText(v,"bank_name",100,true),name=editText(v,"account_name",150,true),number=editText(v,"account_number",34,true);
             if(!number.matches("[0-9]{6,34}"))throw badEdit();
@@ -117,7 +122,7 @@ public class AdminCustomerController {
         result.put("profile",users.getFirst());
         result.put("performance",db.queryForMap("SELECT COUNT(*) AS accepted_jobs, COALESCE(SUM(CASE WHEN status IN ('COMPLETED','PAID') THEN 1 ELSE 0 END),0) AS completed_jobs FROM tasks WHERE tasker_id=?",id));
         result.put("bank",db.queryForList("SELECT bank_name,account_name,account_number,updated_at FROM partner_bank_accounts WHERE user_id=?",id));
-        result.put("addresses",db.queryForList("SELECT id,label,recipient_name,recipient_phone,address_line,ward,district,city,building_type,building_description,notes FROM addresses WHERE user_id=? AND deleted_at IS NULL",id));
+        result.put("addresses",addressRows(id));
         var applications=db.queryForList("SELECT id FROM partner_applications WHERE user_id=?",UUID.class,id);
         result.put("workOptions",Map.of("areas",db.queryForList("SELECT id,name,city FROM recruitment_areas ORDER BY city,name"),"services",db.queryForList("SELECT id,name FROM services WHERE deleted_at IS NULL AND active=true ORDER BY name")));
         result.put("dossier",applications.isEmpty()?null:dossiers.detail(applications.getFirst(),true,true));
@@ -129,7 +134,7 @@ public class AdminCustomerController {
         if(users.isEmpty())throw new DomainException("USER_NOT_FOUND","Không tìm thấy tài khoản.",HttpStatus.NOT_FOUND);
         var result=new java.util.LinkedHashMap<String,Object>();
         result.put("profile",users.getFirst());
-        result.put("addresses",db.queryForList("SELECT id,label,recipient_name,recipient_phone,address_line,ward,district,city,building_type,building_description,notes FROM addresses WHERE user_id=? AND deleted_at IS NULL",id));
+        result.put("addresses",addressRows(id));
         result.put("orders",db.queryForList("SELECT id,service_name_snapshot AS service_name,status,budget_amount AS total,scheduled_at,CONCAT_WS(', ',NULLIF(address_line_snapshot,''),NULLIF(ward_snapshot,''),NULLIF(district_snapshot,''),NULLIF(city_snapshot,'')) AS location FROM tasks WHERE customer_id=? AND status<>'DRAFT' ORDER BY created_at DESC",id));
         return ApiResponse.success(result);
     }
@@ -173,7 +178,8 @@ public class AdminCustomerController {
     }
     public record UpdateCustomerRequest(
         @NotBlank @Size(min=2, max=160) String name,
-        @NotBlank @Pattern(regexp="^0[0-9]{9}$") String phone) {}
+        @Pattern(regexp="^0[0-9]{9}$") String phone,
+        @Email @Size(max=254) String email) {}
     public record StatusRequest(@NotBlank @Pattern(regexp="ACTIVE|SUSPENDED") String status) {}
     private void requireCustomer(UUID id) {
         if (db.queryForObject("SELECT COUNT(*) FROM users u WHERE u.id = ? AND EXISTS (SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id WHERE ur.user_id = u.id AND r.role_key IN ('CUSTOMER','TASKER')) AND NOT EXISTS (SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id WHERE ur.user_id = u.id AND r.role_key IN ('ADMIN','SUPER_ADMIN'))", Integer.class, id) == 0)
@@ -182,25 +188,98 @@ public class AdminCustomerController {
     }
     @PatchMapping("/{id}")
     @Transactional
-    public ApiResponse<Void> update(@PathVariable UUID id, @Valid @RequestBody UpdateCustomerRequest body) {
+    public ApiResponse<Void> update(@PathVariable UUID id, @Valid @RequestBody UpdateCustomerRequest body, @AuthenticationPrincipal Jwt jwt) {
         requireCustomer(id);
         if (body.name().trim().length() < 2)
             throw new DomainException("INVALID_NAME", "Họ tên cần ít nhất 2 ký tự.", HttpStatus.UNPROCESSABLE_ENTITY);
-        if (db.queryForObject("SELECT COUNT(*) FROM users WHERE phone = ? AND id <> ?", Integer.class, body.phone(), id) > 0)
-            throw new DomainException("PHONE_EXISTS", "Số điện thoại đã được sử dụng.", HttpStatus.CONFLICT);
-        db.update("UPDATE users SET phone = ?, updated_at = ?, version = version + 1 WHERE id = ?", body.phone(), clock.instant(), id);
-        db.update("UPDATE user_profiles SET full_name = ?, updated_at = ? WHERE user_id = ?", body.name().trim(), clock.instant(), id);
+        updateContact(id,body.name().trim(),body.phone(),body.email());
+        auditProfileChange(jwt,id,"UPDATE_USER_CONTACT",id);
         return ApiResponse.success(null);
+    }
+
+    private void updateContact(UUID id, String name, String phone, String email) {
+        var account=db.queryForMap("SELECT email,phone FROM users WHERE id=?",id);
+        String nextEmail=email==null ? (String)account.get("email") : email.trim().toLowerCase(Locale.ROOT);
+        String nextPhone=phone==null ? (String)account.get("phone") : phone;
+        if(email!=null && nextEmail.isBlank()) throw badEdit();
+        if (Boolean.TRUE.equals(db.queryForObject("""
+                SELECT EXISTS(SELECT 1 FROM users WHERE id<>? AND (lower(email)=lower(?) OR phone=?))
+                    OR EXISTS(SELECT 1 FROM partner_applications WHERE user_id<>? AND contact_phone=?)
+                """,Boolean.class,id,nextEmail,nextPhone,id,nextPhone))) {
+            throw new DomainException("CONTACT_EXISTS","Email hoặc số điện thoại đã được sử dụng.",HttpStatus.CONFLICT);
+        }
+        db.update("""
+                UPDATE users SET email=?,phone=?,
+                    email_verified_at=CASE WHEN email IS NOT DISTINCT FROM ? THEN email_verified_at END,
+                    phone_verified_at=CASE WHEN phone IS NOT DISTINCT FROM ? THEN phone_verified_at END,
+                    updated_at=CURRENT_TIMESTAMP,version=version+1 WHERE id=?
+                """,nextEmail,nextPhone,nextEmail,nextPhone,id);
+        db.update("UPDATE user_profiles SET full_name=?,updated_at=CURRENT_TIMESTAMP WHERE user_id=?",name,id);
+        db.update("UPDATE partner_applications SET full_name=?,contact_phone=coalesce(?,contact_phone),updated_at=CURRENT_TIMESTAMP,version=version+1 WHERE user_id=? AND (full_name,contact_phone) IS DISTINCT FROM (?,coalesce(?,contact_phone))",name,nextPhone,id,name,nextPhone);
+        if (!java.util.Objects.equals(nextEmail,account.get("email")) || !java.util.Objects.equals(nextPhone,account.get("phone"))) {
+            refresh.revokeAll(id,clock.instant());
+        }
+    }
+
+    private List<Map<String,Object>> addressRows(UUID userId) {
+        return db.queryForList("""
+                SELECT id,label,recipient_name,recipient_phone,address_line,ward,district,city,
+                    building_type,building_description,notes,latitude,longitude,is_default
+                FROM addresses WHERE user_id=? AND deleted_at IS NULL
+                ORDER BY is_default DESC,created_at,id
+                """,userId);
+    }
+
+    @PostMapping("/{id}/addresses")
+    @Transactional
+    public ApiResponse<List<Map<String,Object>>> addAddress(
+            @PathVariable UUID id, @Valid @RequestBody UserDtos.AddressRequest request, @AuthenticationPrincipal Jwt jwt) {
+        requireCustomer(id);
+        var added=userService.createAddress(id,request);
+        auditProfileChange(jwt,id,"ADD_USER_ADDRESS",added.id());
+        entities.flush();
+        return ApiResponse.success(addressRows(id));
+    }
+
+    @PatchMapping("/{id}/addresses/{addressId}")
+    @Transactional
+    public ApiResponse<List<Map<String,Object>>> editAddress(
+            @PathVariable UUID id, @PathVariable UUID addressId, @Valid @RequestBody UserDtos.AddressRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        requireCustomer(id);
+        userService.updateAddress(id,addressId,request);
+        auditProfileChange(jwt,id,"UPDATE_USER_ADDRESS",addressId);
+        entities.flush();
+        return ApiResponse.success(addressRows(id));
+    }
+
+    @DeleteMapping("/{id}/addresses/{addressId}")
+    @Transactional
+    public ApiResponse<List<Map<String,Object>>> removeAddress(
+            @PathVariable UUID id, @PathVariable UUID addressId, @AuthenticationPrincipal Jwt jwt) {
+        requireCustomer(id);
+        userService.deleteAddress(id,addressId);
+        auditProfileChange(jwt,id,"REMOVE_USER_ADDRESS",addressId);
+        entities.flush();
+        return ApiResponse.success(addressRows(id));
+    }
+
+    private void auditProfileChange(Jwt actor,UUID userId,String action,UUID recordId) {
+        db.update("""
+                INSERT INTO audit_logs(id,actor_id,actor_type,action,entity_type,entity_id,new_value_summary,created_at)
+                VALUES(?,?,'ADMIN',?,'User',?,?,CURRENT_TIMESTAMP)
+                """,UUID.randomUUID(),UUID.fromString(actor.getSubject()),action,userId,recordId.toString());
     }
     @PatchMapping("/{id}/status")
     @Transactional
-    public ApiResponse<Void> status(@PathVariable UUID id, @Valid @RequestBody StatusRequest body) {
+    public ApiResponse<Void> status(@PathVariable UUID id, @Valid @RequestBody StatusRequest body, @AuthenticationPrincipal Jwt jwt) {
         requireCustomer(id);
         String current = db.queryForObject("SELECT status FROM users WHERE id = ?", String.class, id);
         if (!List.of("ACTIVE", "SUSPENDED").contains(current))
             throw new DomainException("STATUS_NOT_ALLOWED", "Chỉ có thể khóa hoặc mở khóa tài khoản đã xác minh.", HttpStatus.UNPROCESSABLE_ENTITY);
         db.update("UPDATE users SET status = ?, updated_at = ?, version = version + 1 WHERE id = ?", body.status(), clock.instant(), id);
         if (body.status().equals("SUSPENDED")) refresh.revokeAll(id, clock.instant());
+        auditProfileChange(jwt,id,body.status().equals("SUSPENDED") ? "SUSPEND_USER" : "RESTORE_USER",id);
         return ApiResponse.success(null);
     }
 }

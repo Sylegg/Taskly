@@ -68,7 +68,7 @@ public class VerificationService {
 
     private IdentityVerification startDraft(UserAccount user, UserAccount actor, String reason) {
         UUID userId = user.getId();
-        users.lockForVerification(userId).orElseThrow(() -> notFound("USER_NOT_FOUND", "Không tìm thấy tài khoản."));
+        users.lockForUpdate(userId).orElseThrow(() -> notFound("USER_NOT_FOUND", "Không tìm thấy tài khoản."));
         var latest = verifications.findFirstByUserIdOrderByCreatedAtDesc(userId);
         if (latest.isPresent() && EnumSet.of(VerificationStatus.DRAFT, VerificationStatus.SUBMITTED,
                 VerificationStatus.UNDER_REVIEW, VerificationStatus.APPROVED).contains(latest.get().getStatus())) {

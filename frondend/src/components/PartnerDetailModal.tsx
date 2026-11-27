@@ -34,6 +34,7 @@ import { partnerStatusLabels } from './PartnerChecks';
 import PartnerKycBadge from './PartnerKycBadge';
 import './partner-admin.css';
 import PartnerProfileEditor from './PartnerProfileEditor';
+import AdminAddressBook from './AdminAddressBook';
 
 type PartnerDetailModalProps = {
   partner: any;
@@ -274,6 +275,14 @@ export default function PartnerDetailModal({
                   </form>
                 </div>
               </div>
+
+              {data && <div className="partner-card-box">
+                <div className="partner-card-header">
+                  <h4 className="partner-card-title"><MapPin size={16} /> Sổ địa chỉ</h4>
+                </div>
+                <AdminAddressBook userId={partner.id} addresses={data.addresses || []}
+                  onSaved={addresses => setData((previous: any) => ({ ...previous, addresses }))} />
+              </div>}
 
               {/* Bank Account Card */}
               <div className="partner-card-box">

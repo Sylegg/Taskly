@@ -267,7 +267,7 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
     {route !== 'tickets' && <div className="admin-chat-launcher">
       {<section style={{display:supportChatOpen?undefined:'none'}} className="admin-chat-popover" aria-label="Hộp chat chăm sóc khách hàng">
         <header className="admin-chat-popover-heading"><strong><span className="live-dot" />Chăm sóc khách hàng</strong><button className="icon-button" aria-label="Đóng hộp chat" onClick={() => setSupportChatOpen(false)}><X size={18}/></button></header>
-        <SupportAdmin initialRole={portal} visible={supportChatOpen} onUnreadChange={(count,name)=>{setSupportUnread(count);setSupportSender(name);}} onNewMessage={()=>notify('Có tin nhắn CSKH mới')} onClose={() => setSupportChatOpen(false)} />
+        <SupportAdmin initialRole={portal} visible={supportChatOpen} onOpenProfile={openSupportProfile} onUnreadChange={(count,name)=>{setSupportUnread(count);setSupportSender(name);}} onNewMessage={()=>notify('Có tin nhắn CSKH mới')} onClose={() => setSupportChatOpen(false)} />
       </section>}
       {!supportChatOpen&&supportUnread>0&&<button className="admin-chat-alert" onClick={()=>setSupportChatOpen(true)} aria-live="polite">{supportSender}: có {supportUnread} tin nhắn chưa đọc</button>}
       <button className="admin-chat-fab" aria-label={supportChatOpen ? 'Thu nhỏ hộp chat' : 'Mở hộp chat'} title={supportUnread>0 ? `${supportUnread} tin nhắn CSKH chưa đọc` : 'Hộp chat chăm sóc khách hàng'} onClick={() => setSupportChatOpen(open => !open)}><MessageSquare size={25}/>{supportUnread>0&&<span className="admin-chat-count">{supportUnread>99?'99+':supportUnread}</span>}</button>
@@ -278,6 +278,19 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
   function kpi(name: string, value: any, icon: React.ReactNode, sub: string, tone = 'green') { return <div className="kpi-card"><div className="kpi-top"><span>{name}</span><div className={'kpi-icon ' + tone}>{icon}</div></div><strong>{value}</strong><small>{sub}</small></div> }
   function btn(label: string, onClick: () => void, kind = 'outline') { return <button className={'btn btn-' + kind} onClick={onClick}>{label}</button> }
   function goDetail(kind: string, item: Row) { setPartnerEditMode(false); setSelected({ kind, id: item.id }) }
+  function openSupportProfile(userId: string, role: AdminPortal) {
+    const preferred = role === 'partner' ? 'partners' : 'customers';
+    const fallback = preferred === 'partners' ? 'customers' : 'partners';
+    for (const kind of [preferred, fallback]) {
+      const account = db[kind].find((row: Row) => row.id === userId);
+      if (account) {
+        setSupportChatOpen(false);
+        goDetail(kind, account);
+        return;
+      }
+    }
+    notify('Chưa tìm thấy hồ sơ của tài khoản này.');
+  }
   function sectionTitle(title: string, desc?: string, action?: React.ReactNode) { return <div className="section-head"><div><h2>{title}</h2>{desc && <p>{desc}</p>}</div>{action}</div> }
   function renderModule(): React.ReactNode {
     if (route === 'tasks') return <TaskAdmin query={q} />;
@@ -296,7 +309,7 @@ export default function AdminApp({ customers: accounts, customerLoading, custome
         )}</div> : <p>Chưa có công việc đang tranh chấp.</p>}
       </section>;
     }
-    if (route === 'tickets') return <SupportAdmin fullPage initialRole={portal} />;
+    if (route === 'tickets') return <SupportAdmin fullPage initialRole={portal} onOpenProfile={openSupportProfile} />;
     if (route === 'banners') return <BannerAdmin />;
     if (route === 'community') return <CommunityAdmin />;
     if (route.startsWith('recruitment')) return <RecruitmentAdmin key={route} initialTab={route==='recruitment-areas'?'areas':route==='recruitment-exam'?'exam':route==='recruitment-uniforms'?'uniforms':'applications'} />;

@@ -11,6 +11,7 @@ interface Props {
  onNewMessage?: () => void;
  onUnreadChange?: (count: number, name: string) => void;
  onClose?: () => void;
+ onOpenProfile?: (userId: string, role: Role) => void;
 }
 
 export default function SupportAdmin(props: Props) {

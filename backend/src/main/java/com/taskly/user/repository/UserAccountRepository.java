@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from UserAccount u where u.id = :id")
-    Optional<UserAccount> lockForVerification(@Param("id") UUID id);
+    Optional<UserAccount> lockForUpdate(@Param("id") UUID id);
     Optional<UserAccount> findByEmailIgnoreCase(String email);
     Optional<UserAccount> findByPhone(String phone);
     boolean existsByEmailIgnoreCase(String email);

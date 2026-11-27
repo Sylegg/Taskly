@@ -33,6 +33,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import './customer-admin.css';
+import AdminAddressBook from './AdminAddressBook';
 
 const orderStatusLabels: Record<string,string> = { DRAFT:'Bản nháp', POSTED:'Đã đặt dịch vụ', MATCHING:'Đang tìm đối tác', ACCEPTED:'Đối tác đã nhận việc', TASKER_ON_THE_WAY:'Đối tác đang đến', ARRIVED:'Đối tác đã đến', IN_PROGRESS:'Đang thực hiện', COMPLETED:'Đã hoàn thành', PAID:'Đã thanh toán', CANCELLED:'Đã hủy', DISPUTED:'Đang xử lý khiếu nại', REFUNDED:'Đã hoàn tiền', EXPIRED:'Đã hết hạn' };
 
@@ -108,9 +109,22 @@ export default function CustomerDetailModal({
   const customerTasks = data?.orders || [];
   const completedTasksCount = customerTasks.filter((t:any) => ['COMPLETED', 'PAID'].includes(t.status)).length;
   const totalSpent = customerTasks.filter((t:any) => ['COMPLETED', 'PAID'].includes(t.status)).reduce((sum:number,t:any) => sum + Number(t.total || 0),0);
-  const [editing,setEditing]=useState(false),[editName,setEditName]=useState(''),[editPhone,setEditPhone]=useState(''),[editSaving,setEditSaving]=useState(false),[editError,setEditError]=useState('');
-  function beginEdit(){setEditName(profile.full_name || customer.name || '');setEditPhone(profile.phone || customer.phone || '');setEditError('');setActiveTab('overview');setEditing(true)}
-  async function saveProfile(){setEditSaving(true);setEditError('');try{if(!onUpdateCustomer)throw Error('Không thể lưu thông tin');await onUpdateCustomer(customer.id,{name:editName,phone:editPhone});setData((old:any)=>({...old,profile:{...profile,full_name:editName,phone:editPhone}}));setEditing(false)}catch(e:any){setEditError(e.message)}finally{setEditSaving(false)}}
+  const [editing,setEditing]=useState(false),[editName,setEditName]=useState(''),[editPhone,setEditPhone]=useState(''),[editEmail,setEditEmail]=useState(''),[editSaving,setEditSaving]=useState(false),[editError,setEditError]=useState('');
+  function beginEdit(){setEditName(profile.full_name || customer.name || '');setEditPhone(profile.phone || customer.phone || '');setEditEmail(profile.email || '');setEditError('');setActiveTab('overview');setEditing(true)}
+  async function saveProfile(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setEditSaving(true);
+    setEditError('');
+    try {
+      if (!onUpdateCustomer) throw Error('Không thể lưu thông tin');
+      const email = editEmail.trim().toLowerCase() || null;
+      const phone = editPhone.trim() || null;
+      await onUpdateCustomer(customer.id,{name:editName,phone,email});
+      setData((old:any)=>({...old,profile:{...profile,full_name:editName.trim(),phone:phone ?? profile.phone,email:email ?? profile.email}}));
+      setEditing(false);
+    } catch (e) { setEditError((e as Error).message); }
+    finally { setEditSaving(false); }
+  }
 
   return (
     <div
@@ -194,7 +208,17 @@ export default function CustomerDetailModal({
           )}
 
           {/* TAB 1: OVERVIEW */}
-          {editing && <div className="customer-card-box"><h4>Thông tin cá nhân</h4><div className="form-grid"><label className="field"><span>Họ và tên</span><input value={editName} onChange={e=>setEditName(e.target.value)} /></label><label className="field"><span>Số điện thoại</span><input value={editPhone} onChange={e=>setEditPhone(e.target.value)} /></label></div>{editError && <p role="alert">{editError}</p>}<button className="btn btn-primary" disabled={editSaving} onClick={saveProfile}>{editSaving?'Đang lưu…':'Lưu thay đổi'}</button><button className="btn btn-ghost" disabled={editSaving} onClick={()=>setEditing(false)}>Hủy</button></div>}
+          {editing && <form className="customer-card-box" onSubmit={saveProfile}>
+            <h4>Thông tin cá nhân</h4>
+            <div className="form-grid">
+              <label className="field"><span>Họ và tên</span><input required minLength={2} maxLength={160} value={editName} onChange={e=>setEditName(e.target.value)} /></label>
+              <label className="field"><span>Số điện thoại</span><input required={Boolean(profile.phone)} type="tel" pattern="0[0-9]{9}" value={editPhone} onChange={e=>setEditPhone(e.target.value)} /></label>
+              <label className="field"><span>Email</span><input type="email" required={Boolean(profile.email)} maxLength={254} value={editEmail} onChange={e=>setEditEmail(e.target.value)} /></label>
+            </div>
+            {editError && <p role="alert">{editError}</p>}
+            <button className="btn btn-primary" disabled={editSaving}>{editSaving?'Đang lưu…':'Lưu thay đổi'}</button>
+            <button type="button" className="btn btn-ghost" disabled={editSaving} onClick={()=>setEditing(false)}>Hủy</button>
+          </form>}
           {!editing && activeTab === 'overview' && (
             <>
               {/* Profile Card */}
@@ -282,45 +306,9 @@ export default function CustomerDetailModal({
                   {addresses.length} địa chỉ được đồng bộ từ máy chủ
                 </span>
               </div>
-              {loading ? (
-                <div className="customer-empty-box">
-                  <RefreshCw size={24} className="spin" />
-                  <span>Đang tải danh sách địa chỉ từ máy chủ…</span>
-                </div>
-              ) : addresses.length > 0 ? (
-                <div className="customer-address-grid">
-                  {addresses.map((addr: any) => (
-                    <div key={addr.id} className="customer-address-card">
-                      <div className="customer-address-card-header">
-                        <span className="customer-address-label-badge">{addr.label || 'Địa chỉ'}</span>
-                        {addr.building_type && (
-                          <span style={{ fontSize: 11.5, color: '#64748b' }}>{addr.building_type}</span>
-                        )}
-                      </div>
-                      <div className="customer-address-recipient">
-                        {addr.recipient_name || 'Chưa có người liên hệ'} ·{' '}
-                        <span style={{ color: '#059669' }}>{addr.recipient_phone || 'Chưa có số liên hệ'}</span>
-                      </div>
-                      <div className="customer-address-line">
-                        <strong>{addr.address_line}</strong>
-                        {[addr.ward, addr.district, addr.city].filter(Boolean).length > 0 && (
-                          <div>{[addr.ward, addr.district, addr.city].filter(Boolean).join(', ')}</div>
-                        )}
-                      </div>
-                      {(addr.building_description || addr.notes) && (
-                        <div className="customer-address-meta">
-                          {addr.building_description && <span>Chỉ dẫn vị trí: {addr.building_description}</span>}{addr.notes && <span>Ghi chú cho Partner: {addr.notes}</span>}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="customer-empty-box">
-                  <MapPin size={32} style={{ opacity: 0.3 }} />
-                  <strong>Chưa có địa chỉ nào được lưu</strong>
-                  <span>Khách hàng chưa lưu sổ địa chỉ nhận việc trên ứng dụng.</span>
-                </div>
+              {loading ? <p role="status">Đang tải sổ địa chỉ…</p> : (
+                <AdminAddressBook userId={customer.id} addresses={addresses}
+                  onSaved={next => setData((previous: any) => ({ ...previous, addresses: next }))} />
               )}
             </div>
           )}

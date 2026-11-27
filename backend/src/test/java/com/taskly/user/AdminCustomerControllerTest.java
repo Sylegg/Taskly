@@ -83,7 +83,8 @@ class AdminCustomerControllerTest {
     @Test
     void adminReadsActualCustomersAndUpdatesDatabase() throws Exception {
         UUID id = customer();
-        var admin = jwt().authorities(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
+        var admin = jwt().jwt(token -> token.subject(UUID.randomUUID().toString()))
+                .authorities(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"));
         mvc.perform(get("/api/v1/admin/customers").with(admin)).andExpect(status().isOk())
             .andExpect(jsonPath("$.data[?(@.id == '"+id+"')].name").value("Customer API test"));
         mvc.perform(patch("/api/v1/admin/customers/"+id).with(admin).contentType(MediaType.APPLICATION_JSON)
@@ -99,6 +100,37 @@ class AdminCustomerControllerTest {
             .content("{\"status\":\"ACTIVE\"}")).andExpect(status().isOk());
         mvc.perform(patch("/api/v1/admin/customers/"+id+"/status").with(admin).contentType(MediaType.APPLICATION_JSON)
             .content("{\"status\":\"SUPER_ADMIN\"}")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void adminCanManageSavedAddressesAndDeletingDefaultReassignsIt() throws Exception {
+        UUID id = customer(), other = customer(), actor = UUID.randomUUID();
+        var admin = jwt().jwt(token -> token.subject(actor.toString())).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        String addressPath = "/api/v1/admin/customers/" + id + "/addresses";
+        String home = """
+                {"label":"Nhà","addressLine":"Địa chỉ kiểm thử một","city":"TP. Hồ Chí Minh","defaultAddress":false}
+                """;
+        String office = """
+                {"label":"Văn phòng","addressLine":"Địa chỉ kiểm thử hai","city":"TP. Hồ Chí Minh","defaultAddress":true}
+                """;
+        mvc.perform(post(addressPath).with(admin).contentType(MediaType.APPLICATION_JSON).content(home))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data[0].is_default").value(true));
+        mvc.perform(post(addressPath).with(admin).contentType(MediaType.APPLICATION_JSON).content(office))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data[0].label").value("Văn phòng"))
+                .andExpect(jsonPath("$.data[1].is_default").value(false));
+        UUID addressId = db.queryForObject("SELECT id FROM addresses WHERE user_id=? AND is_default",UUID.class,id);
+        mvc.perform(patch(addressPath + "/" + addressId).with(admin).contentType(MediaType.APPLICATION_JSON)
+                .content(office.replace("kiểm thử hai","kiểm thử đã sửa")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data[0].address_line").value("Địa chỉ kiểm thử đã sửa"));
+        mvc.perform(delete("/api/v1/admin/customers/" + other + "/addresses/" + addressId).with(admin))
+                .andExpect(status().isNotFound());
+        mvc.perform(delete(addressPath + "/" + addressId).with(admin))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].is_default").value(true));
+        org.junit.jupiter.api.Assertions.assertEquals(1,db.queryForObject(
+                "SELECT COUNT(*) FROM addresses WHERE id=? AND deleted_at IS NOT NULL",Integer.class,addressId));
+        org.junit.jupiter.api.Assertions.assertEquals(4,db.queryForObject(
+                "SELECT COUNT(*) FROM audit_logs WHERE actor_id=? AND entity_id=?",Integer.class,actor,id));
     }
     @Test
     @org.springframework.transaction.annotation.Transactional

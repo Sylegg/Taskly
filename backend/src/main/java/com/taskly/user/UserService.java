@@ -132,7 +132,7 @@ public class UserService {
 
     @Transactional
     public UserDtos.AddressResponse createAddress(UUID userId, UserDtos.AddressRequest request) {
-        UserAccount user = requireUser(userId);
+        UserAccount user = lockAddressBook(userId);
         Instant now = clock.instant();
         boolean makeDefault = request.defaultAddress() || addresses.countByUserIdAndDeletedAtIsNull(userId) == 0;
         if (makeDefault) clearDefault(userId, now);
@@ -145,6 +145,7 @@ public class UserService {
 
     @Transactional
     public UserDtos.AddressResponse updateAddress(UUID userId, UUID id, UserDtos.AddressRequest request) {
+        lockAddressBook(userId);
         Address address = requireAddress(userId, id);
         Instant now = clock.instant();
         boolean makeDefault = request.defaultAddress() || address.isDefaultAddress();
@@ -158,6 +159,7 @@ public class UserService {
 
     @Transactional
     public void setDefaultAddress(UUID userId, UUID id) {
+        lockAddressBook(userId);
         Address address = requireAddress(userId, id);
         Instant now = clock.instant();
         clearDefault(userId, now);
@@ -166,6 +168,7 @@ public class UserService {
 
     @Transactional
     public void deleteAddress(UUID userId, UUID id) {
+        lockAddressBook(userId);
         Address address = requireAddress(userId, id);
         boolean wasDefault = address.isDefaultAddress();
         Instant now = clock.instant();
@@ -175,6 +178,11 @@ public class UserService {
                     .filter(item -> !item.getId().equals(id)).findFirst()
                     .ifPresent(item -> item.setDefaultAddress(true, now));
         }
+    }
+
+    private UserAccount lockAddressBook(UUID userId) {
+        return users.lockForUpdate(userId).orElseThrow(() ->
+                new DomainException("USER_NOT_FOUND", "Không tìm thấy tài khoản.", HttpStatus.NOT_FOUND));
     }
 
     private void clearDefault(UUID userId, Instant now) {
