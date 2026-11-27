@@ -129,6 +129,30 @@ public class VerificationService {
     }
 
     @Transactional
+    public VerificationDtos.VerificationResponse addAdminDraftDocument(
+            UUID adminId, UUID verificationId, DocumentSide side, MultipartFile file, boolean ownerAuthorized) {
+        if (!ownerAuthorized) {
+            throw new DomainException("KYC_CONSENT_REQUIRED", "Cần có sự đồng ý của chủ hồ sơ để thêm ảnh.", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        UserAccount admin = requireUser(adminId);
+        IdentityVerification draft = requireVerification(verificationId);
+        if (draft.getStatus() != VerificationStatus.DRAFT || !"NATIONAL_ID".equals(draft.getDocumentType())) {
+            throw conflict("KYC_NOT_EDITABLE", "Chỉ có thể bổ sung ảnh cho bản nháp CCCD của đối tác.");
+        }
+        requireOwnedDraft(draft.getUser().getId(), verificationId);
+        if (documents.findByVerificationIdAndSide(verificationId, side).isPresent()) {
+            throw conflict("KYC_DOCUMENT_EXISTS", "Mục này đã có ảnh. Chủ hồ sơ có thể đổi ảnh trên app Partner.");
+        }
+        Instant now = clock.instant();
+        var object = storage.uploadKycImage(draft.getUser(), side.name(), file);
+        documents.save(new VerificationDocument(draft, object, side, now));
+        draft.updateDraft(draft.getLegalName(), draft.getDocumentType(), draft.getDocumentNumberMasked(), now);
+        history.save(new VerificationHistory(draft, VerificationStatus.DRAFT, VerificationStatus.DRAFT,
+                admin, "Nhân viên bổ sung ảnh " + side + " với sự đồng ý của chủ hồ sơ", now));
+        return response(draft);
+    }
+
+    @Transactional
     public VerificationDtos.VerificationResponse submit(
             UUID userId, UUID verificationId, VerificationDtos.SubmitRequest request) {
         IdentityVerification verification = requireOwnedDraft(userId, verificationId);

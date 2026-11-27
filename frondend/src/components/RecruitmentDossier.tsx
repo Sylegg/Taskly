@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import {
   User, Phone, Mail, Calendar, MapPin, Briefcase, Award,
   CheckCircle2, XCircle, Clock, FileText, Shield, GraduationCap,
@@ -132,6 +132,15 @@ export default function RecruitmentDossier({
   const [loading, setLoading] = useState<boolean>(false);
   const [documentUrls, setDocumentUrls] = useState<Record<string, string>>({});
   const [approving, setApproving] = useState(false);
+  const [uploadingIdentity, setUploadingIdentity] = useState(false);
+  const identity = dossier.identities[0];
+  const identityDocuments = dossier.documents.filter(doc => doc.verification_id === identity?.id);
+  const availableSides = ['FRONT', 'BACK', 'SELFIE'].filter(side => !identityDocuments.some(doc => doc.document_side === side));
+  const canAddIdentityPhoto = canReadIdentity && identity?.status === 'DRAFT' &&
+    identity.document_type === 'NATIONAL_ID' && availableSides.length > 0;
+  const canApproveIdentity = canReadIdentity && app.reviewReady && identity?.document_type === 'NATIONAL_ID' &&
+    (identity.status === 'SUBMITTED' || identity.status === 'UNDER_REVIEW') &&
+    ['FRONT', 'BACK'].every(side => identityDocuments.some(doc => doc.document_side === side && doc.scan_status === 'CLEAN'));
 
   useEffect(() => {
     let cancelled = false;
@@ -153,6 +162,7 @@ export default function RecruitmentDossier({
   }, [dossier.documents, canReadIdentity]);
 
   async function approveIdentity(identity: Evidence) {
+    if (!window.confirm('Xác nhận bạn đã đối chiếu cả hai mặt CCCD và thông tin của chủ hồ sơ?')) return;
     setApproving(true);
     setError('');
     try {
@@ -165,6 +175,27 @@ export default function RecruitmentDossier({
       await onIdentityApproved?.();
     } catch (e) { setError((e as Error).message); }
     finally { setApproving(false); }
+  }
+
+  async function addIdentityPhoto(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!canAddIdentityPhoto || uploadingIdentity) return;
+    const form = event.currentTarget;
+    const payload = new FormData(form);
+    const side = String(payload.get('side'));
+    payload.delete('side');
+    setUploadingIdentity(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/recruitment/kyc/${identity.id}/documents/${side}`, {
+        method: 'POST', body: payload,
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.error || 'Không thể thêm ảnh CCCD.');
+      form.reset();
+      await onIdentityApproved?.();
+    } catch (e) { setError((e as Error).message); }
+    finally { setUploadingIdentity(false); }
   }
 
   useEffect(() => {
@@ -358,7 +389,7 @@ export default function RecruitmentDossier({
               </div>
 
               {dossier.identities.length === 0 ? (
-                <p className="dossier-empty">Chưa có thông tin nộp CCCD.</p>
+                <p className="dossier-empty">Đối tác cần tạo bản nháp CCCD trên app Partner để Admin có thể bổ sung ảnh.</p>
               ) : (
                 <div className="dossier-identities-table-wrap">
                   <table className="dossier-table dossier-identity-table">
@@ -433,6 +464,25 @@ export default function RecruitmentDossier({
                 </div>
               )}
 
+              {canAddIdentityPhoto && (
+                <form onSubmit={addIdentityPhoto} className="dossier-doc-inspection">
+                  <h5>Bổ sung ảnh CCCD</h5>
+                  <div className="row" style={{ flexWrap: 'wrap' }}>
+                    <label className="field">Loại ảnh
+                      <select name="side">{availableSides.map(side => <option key={side} value={side}>{formatVal(side)}</option>)}</select>
+                    </label>
+                    <label className="field">Ảnh JPG hoặc PNG, tối đa 4 MB
+                      <input name="file" type="file" accept="image/jpeg,image/png" required />
+                    </label>
+                    <label><input type="checkbox" name="ownerAuthorized" value="true" required /> Chủ hồ sơ đã đồng ý cho bổ sung ảnh.</label>
+                    <button type="submit" className="btn btn-outline" disabled={uploadingIdentity}>
+                      {uploadingIdentity ? 'Đang tải ảnh…' : 'Thêm ảnh'}
+                    </button>
+                  </div>
+                  <p>Đối tác gửi hồ sơ từ app Partner sau khi kiểm tra thông tin và ảnh.</p>
+                </form>
+              )}
+
               {/* CCCD PHOTO INSPECTION CARDS */}
               {canReadIdentity && dossier.documents.length > 0 && (
                 <div className="dossier-doc-inspection">
@@ -475,6 +525,11 @@ export default function RecruitmentDossier({
               )}
 
               {/* IMAGE LIGHTBOX PREVIEW */}
+              {canApproveIdentity && (
+                <button type="button" className="btn btn-primary" disabled={approving} onClick={() => void approveIdentity(identity)}>
+                  {approving ? 'Đang duyệt…' : 'Duyệt KYC'}
+                </button>
+              )}
               {error && (
                 <div className="notice catalogue-notice" role="alert" style={{ marginTop: 12, background: '#fef2f2', borderColor: '#fca5a5', color: '#991b1b' }}>
                   {error}

@@ -118,6 +118,30 @@ class VerificationServiceTest {
     }
 
     @Test
+    void adminCanAddMissingPhotoWithPermissionWithoutSubmittingTheDraft() {
+        var owner = user();
+        var admin = user();
+        var draft = new IdentityVerification(owner, now);
+        draft.updateDraft("Partner Name", "NATIONAL_ID", "********7890", now);
+        var side = com.taskly.verification.entity.DocumentSide.FRONT;
+        var file = new org.springframework.mock.web.MockMultipartFile("file", "front.png", "image/png", new byte[]{1, 2});
+        when(users.findById(admin.getId())).thenReturn(Optional.of(admin));
+        when(verifications.findById(draft.getId())).thenReturn(Optional.of(draft));
+        when(verifications.findByIdAndUserId(draft.getId(), owner.getId())).thenReturn(Optional.of(draft));
+        when(storage.uploadKycImage(owner, "FRONT", file)).thenReturn(mock(com.taskly.storage.entity.StoredObject.class));
+
+        assertThatThrownBy(() -> service.addAdminDraftDocument(admin.getId(), draft.getId(), side, file, false))
+                .isInstanceOfSatisfying(DomainException.class, e -> assertThat(e.getCode()).isEqualTo("KYC_CONSENT_REQUIRED"));
+        var response = service.addAdminDraftDocument(admin.getId(), draft.getId(), side, file, true);
+        assertThat(response.status()).isEqualTo(com.taskly.verification.entity.VerificationStatus.DRAFT);
+        assertThat(response.submittedAt()).isNull();
+        org.mockito.Mockito.verify(storage).uploadKycImage(owner, "FRONT", file);
+        draft.submit(now);
+        assertThatThrownBy(() -> service.addAdminDraftDocument(admin.getId(), draft.getId(), side, file, true))
+                .isInstanceOfSatisfying(DomainException.class, e -> assertThat(e.getCode()).isEqualTo("KYC_NOT_EDITABLE"));
+    }
+
+    @Test
     void nationalIdRejectsLettersSpacesAndWrongLength() {
         UserAccount user=user();var value=new IdentityVerification(user,now);
         when(verifications.findByIdAndUserId(value.getId(),user.getId())).thenReturn(Optional.of(value));

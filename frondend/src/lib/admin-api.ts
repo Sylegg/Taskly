@@ -48,11 +48,12 @@ export function requireSameOrigin(request: NextRequest) {
 }
 export async function callBackend(path: string, method = 'GET', body?: unknown, access?: string) {
   let response: Response;
+  const multipart = body instanceof FormData;
   try {
     response = await fetch(backendApiUrl + path, {
       method, cache: 'no-store', signal: AbortSignal.timeout(15000),
-      headers: { 'Content-Type': 'application/json', ...(access ? { Authorization: 'Bearer ' + access } : {}) },
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      headers: { ...(multipart ? {} : { 'Content-Type': 'application/json' }), ...(access ? { Authorization: 'Bearer ' + access } : {}) },
+      ...(body !== undefined ? { body: multipart ? body : JSON.stringify(body) } : {}),
     });
   } catch {
     if (method !== 'GET') throw new ApiError('Không thể kết nối máy chủ TaskLy. Vui lòng thử lại.', 503);
