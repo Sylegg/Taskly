@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { CheckCircle2, X, ZoomIn } from 'lucide-react';
 import type { Evidence } from './RecruitmentDossier';
 
 const api = '/api/admin/recruitment/kyc/';
@@ -9,6 +9,95 @@ const sides = [
   { side: 'FRONT', field: 'front', label: 'Mặt trước' },
   { side: 'BACK', field: 'back', label: 'Mặt sau' },
 ] as const;
+
+type PhotoPreview = { label: string; url: string };
+
+function PhotoThumbnail({ label, url, onOpen, pending = false }: {
+  label: string;
+  url: string | null;
+  onOpen: () => void;
+  pending?: boolean;
+}) {
+  const [failedUrl, setFailedUrl] = useState('');
+  return <button className="admin-kyc-thumbnail" type="button" disabled={pending}
+    aria-label={`Xem ảnh ${label.toLowerCase()}`} onClick={onOpen}>
+    {url && url !== failedUrl
+      ? <img src={url} alt={`CCCD ${label.toLowerCase()}`} referrerPolicy="no-referrer" onError={() => setFailedUrl(url)} />
+      : <span className="admin-kyc-photo-placeholder">{url === null ? 'Đang tải ảnh…' : 'Không thể hiển thị ảnh'}</span>}
+    <span className="admin-kyc-photo-caption"><ZoomIn size={14} aria-hidden="true" /> {pending ? 'Đang mở…' : 'Phóng to'}</span>
+  </button>;
+}
+
+function PhotoField({ field, label, hasPhoto, busy, onPreview }: {
+  field: string;
+  label: string;
+  hasPhoto: boolean;
+  busy: boolean;
+  onPreview: (preview: PhotoPreview) => void;
+}) {
+  const [url, setUrl] = useState('');
+  useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
+
+  return <div className="admin-kyc-photo-field">
+    <label className="field">
+      {hasPhoto ? `${label} · Đã có ảnh` : `Thêm ảnh ${label.toLowerCase()}`}
+      <input name={field} type="file" accept="image/jpeg,image/png" required={!hasPhoto} disabled={busy}
+        onChange={event => {
+          const file = event.currentTarget.files?.[0];
+          setUrl(file ? URL.createObjectURL(file) : '');
+        }} />
+    </label>
+    {url && <PhotoThumbnail label={label} url={url} onOpen={() => onPreview({ label, url })} />}
+  </div>;
+}
+
+async function savedPhotoUrl(path: string, signal?: AbortSignal) {
+  const response = await fetch(path, { cache: 'no-store', signal });
+  const result = await response.json();
+  if (!response.ok) throw Error(result?.error || 'Không mở được ảnh CCCD.');
+  const url = new URL(result.data.url);
+  if (!['https:', 'http:'].includes(url.protocol)) throw Error('Liên kết ảnh không hợp lệ.');
+  return url.toString();
+}
+
+function SavedPhoto({ document, label, onPreview }: {
+  document: Evidence;
+  label: string;
+  onPreview: (preview: PhotoPreview) => void;
+}) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  const path = api + `${document.verification_id}/documents/${document.id}/url`;
+
+  useEffect(() => {
+    const request = new AbortController();
+    void savedPhotoUrl(path, request.signal).then(setUrl).catch(() => {
+      if (!request.signal.aborted) setUrl('');
+    });
+    return () => request.abort();
+  }, [path]);
+
+  async function open() {
+    setPending(true);
+    setError('');
+    try {
+      const freshUrl = await savedPhotoUrl(path);
+      setUrl(freshUrl);
+      onPreview({ label, url: freshUrl });
+    } catch (error) {
+      setError((error as Error).message);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return <div className="admin-kyc-photo-field">
+    <strong>{label}</strong>
+    <PhotoThumbnail label={label} url={url} pending={pending} onOpen={() => void open()} />
+    {error && <p className="admin-kyc-error" role="alert">{error}</p>}
+  </div>;
+}
 
 export default function AdminKycActions({ partnerId, identity, documents, canReview, onChanged, photoLinks = false }: {
   partnerId: string;
@@ -20,7 +109,7 @@ export default function AdminKycActions({ partnerId, identity, documents, canRev
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  const [preview, setPreview] = useState<PhotoPreview | null>(null);
   const verificationId = identity?.id;
   const version = identity?.version ?? -1;
   const isNationalId = identity?.document_type === 'NATIONAL_ID';
@@ -44,7 +133,7 @@ export default function AdminKycActions({ partnerId, identity, documents, canRev
       const response = await fetch(url, { method: 'POST', body });
       const result = await response.json().catch(() => null);
       if (!response.ok) throw Error(result?.error || 'Không thể lưu hồ sơ CCCD.');
-      setPhotoUrls({});
+      setPreview(null);
       await onChanged();
     } catch (error) {
       setError((error as Error).message);
@@ -61,20 +150,6 @@ export default function AdminKycActions({ partnerId, identity, documents, canRev
     void write(assistedPath + 'submit', form);
   }
 
-  async function getPhotoUrl(document: Evidence) {
-    setError('');
-    try {
-      const response = await fetch(api + `${document.verification_id}/documents/${document.id}/url`, { cache: 'no-store' });
-      const result = await response.json();
-      if (!response.ok) throw Error(result?.error || 'Không mở được ảnh CCCD.');
-      const url = new URL(result.data.url);
-      if (!['https:', 'http:'].includes(url.protocol)) throw Error('Liên kết ảnh không hợp lệ.');
-      setPhotoUrls(previous => ({ ...previous, [String(document.id)]: url.toString() }));
-    } catch (error) {
-      setError((error as Error).message);
-    }
-  }
-
   return <div className="admin-kyc-actions">
     <div className="admin-kyc-row">
       <span>Giấy tờ CCCD</span>
@@ -82,13 +157,10 @@ export default function AdminKycActions({ partnerId, identity, documents, canRev
     </div>
     {canSubmit && <form key={`${verificationId}-${version}`} onSubmit={submit}>
       <div className="admin-kyc-sides">
-        {sides.map(({ field, label }, index) => {
-          const hasPhoto = !newRecord && isNationalId && photos[index]?.scan_status === 'CLEAN';
-          return <label className="field" key={field}>
-            {hasPhoto ? `${label} · Đã có ảnh` : `Thêm ảnh ${label.toLowerCase()}`}
-            <input name={field} type="file" accept="image/jpeg,image/png" required={!hasPhoto} disabled={busy} />
-          </label>;
-        })}
+        {sides.map(({ field, label }, index) => (
+          <PhotoField key={field} field={field} label={label} busy={busy} onPreview={setPreview}
+            hasPhoto={!newRecord && isNationalId && photos[index]?.scan_status === 'CLEAN'} />
+        ))}
       </div>
       <small>JPG hoặc PNG, tối đa 4 MB mỗi ảnh.</small>
       <div className="admin-kyc-sides">
@@ -108,14 +180,11 @@ export default function AdminKycActions({ partnerId, identity, documents, canRev
       </button>
     </form>}
     {canReview && photoLinks && identityDocs.some(photo => photo.scan_status === 'CLEAN') && (
-      <div className="admin-kyc-photo-links">
+      <div className="admin-kyc-sides">
         {[...sides, { side: 'SELFIE', label: 'Ảnh chân dung' }].map(({ side, label }) => {
           const photo = identityDocs.find(doc => doc.document_side === side && doc.scan_status === 'CLEAN');
           if (!photo) return null;
-          const url = photoUrls[String(photo.id)];
-          return url
-            ? <a key={side} href={url} target="_blank" rel="noopener noreferrer" onClick={() => setPhotoUrls(previous => ({ ...previous, [String(photo.id)]: '' }))}>Mở {label.toLowerCase()}</a>
-            : <button key={side} className="btn btn-outline" type="button" onClick={() => void getPhotoUrl(photo)}>Xem {label.toLowerCase()}</button>;
+          return <SavedPhoto key={`${photo.id}-${photo.created_at}`} document={photo} label={label} onPreview={setPreview} />;
         })}
       </div>
     )}
@@ -132,5 +201,17 @@ export default function AdminKycActions({ partnerId, identity, documents, canRev
       ) : <strong>Chưa phê duyệt</strong>}
     </div>
     {error && <p className="admin-kyc-error" role="alert">{error}</p>}
+    {preview && <dialog className="admin-kyc-dialog" aria-label={`Ảnh CCCD · ${preview.label}`}
+      ref={node => { if (node && !node.open) node.showModal(); }}
+      onClose={() => setPreview(null)}
+      onClick={event => { if (event.target === event.currentTarget) event.currentTarget.close(); }}
+      onKeyDown={event => { if (event.key === 'Escape') event.stopPropagation(); }}>
+      <div className="admin-kyc-dialog-header">
+        <strong>{preview.label}</strong>
+        <button className="icon-button" type="button" aria-label="Đóng ảnh" autoFocus
+          onClick={event => event.currentTarget.closest('dialog')?.close()}><X size={18} aria-hidden="true" /></button>
+      </div>
+      <img src={preview.url} alt={`Ảnh CCCD · ${preview.label}`} referrerPolicy="no-referrer" />
+    </dialog>}
   </div>;
 }

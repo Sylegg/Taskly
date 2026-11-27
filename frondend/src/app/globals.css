@@ -61,7 +61,16 @@
 .admin-kyc-actions small{color:#64748b}
 .admin-kyc-consent{display:flex;align-items:flex-start;gap:6px;font-size:12px}
 .admin-kyc-consent input{accent-color:#047857}
-.admin-kyc-photo-links{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.admin-kyc-photo-field{display:grid;align-content:start;gap:6px;min-width:0}
+.admin-kyc-thumbnail{display:grid;width:100%;gap:0;padding:0;overflow:hidden;border:1px solid #dbe4eb;border-radius:10px;background:white;color:#334155;text-align:center}
+.admin-kyc-thumbnail img,.admin-kyc-photo-placeholder{display:block;width:100%;aspect-ratio:8/5;object-fit:contain;background:#f1f5f9}
+.admin-kyc-photo-placeholder{display:grid;place-items:center;padding:8px;font-size:11px}
+.admin-kyc-photo-caption{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 8px;font-size:11px;font-weight:700}
+.admin-kyc-thumbnail:hover .admin-kyc-photo-caption{background:#eff6ff;color:#1d4ed8}
+.admin-kyc-dialog{width:min(820px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:0;border:1px solid #e2e8f0;border-radius:14px;background:#fff;color:#0f172a}
+.admin-kyc-dialog::backdrop{background:rgba(15,23,42,.75)}
+.admin-kyc-dialog-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px}
+.admin-kyc-dialog>img{display:block;width:100%;max-height:calc(100dvh - 90px);background:#f1f5f9;object-fit:contain}
 .admin-kyc-approve,.admin-kyc-row .admin-kyc-approved{color:#047857;display:inline-flex;align-items:center;gap:6px}
 .admin-kyc-approve{background:#ecfdf5;border-color:#a7f3d0}
 .admin-kyc-error{margin:0;color:#b91c1c}
