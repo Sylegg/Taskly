@@ -5,6 +5,10 @@ import com.taskly.verification.dto.VerificationDtos;
 import com.taskly.verification.entity.DocumentSide;
 import com.taskly.verification.entity.VerificationStatus;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.MediaType;
@@ -28,6 +32,24 @@ public class AdminVerificationController {
     private final VerificationService service;
 
     public AdminVerificationController(VerificationService service) { this.service = service; }
+
+    public record OfficeDraftRequest(@NotBlank @Size(max = 160) String legalName,
+                                     @NotBlank @Pattern(regexp = "[0-9]{12}") String documentNumber,
+                                     @AssertTrue boolean consentRecorded) {}
+
+    @PostMapping("/office/{applicationId}/draft")
+    ApiResponse<VerificationDtos.VerificationResponse> officeDraft(
+            @AuthenticationPrincipal Jwt jwt, @PathVariable UUID applicationId,
+            @Valid @RequestBody OfficeDraftRequest request) {
+        return ApiResponse.success(service.prepareOfficeDraft(userId(jwt), applicationId, request));
+    }
+
+    @PostMapping("/office/{applicationId}/{verificationId}/submit")
+    ApiResponse<VerificationDtos.VerificationResponse> officeSubmit(
+            @AuthenticationPrincipal Jwt jwt, @PathVariable UUID applicationId, @PathVariable UUID verificationId,
+            @Valid @RequestBody VerificationDtos.SubmitRequest request) {
+        return ApiResponse.success(service.submitOfficeDraft(userId(jwt), applicationId, verificationId, request.consent()));
+    }
 
     @PostMapping(value = "/{id}/documents/{side}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     ApiResponse<VerificationDtos.VerificationResponse> addDraftDocument(

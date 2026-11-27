@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, type FormEvent } from 'react';
 import {
   X,
   User,
@@ -60,6 +60,10 @@ export default function PartnerDetailModal({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
+  const [newAvatar, setNewAvatar] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -112,6 +116,31 @@ export default function PartnerDetailModal({
   const dossier = data?.dossier;
   const bankAccounts = data?.bank || [];
   const profile = data?.profile || partner;
+  const avatar = newAvatar || profile.avatar || partner.avatar;
+
+  async function saveAvatar(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!avatarFile || uploadingAvatar) return;
+    const form = event.currentTarget;
+    const payload = new FormData(form);
+    payload.set('file', avatarFile);
+    setAvatarError('');
+    setUploadingAvatar(true);
+    try {
+      const response = await fetch('/api/admin/customers/' + encodeURIComponent(partner.id) + '/partner-avatar', {
+        method: 'POST', body: payload,
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || typeof result?.data?.avatar !== 'string') {
+        throw new Error(result?.error || 'Không thể lưu ảnh đại diện.');
+      }
+      setNewAvatar(result.data.avatar);
+      form.reset();
+      setAvatarFile(null);
+      onSaved?.();
+    } catch (error) { setAvatarError((error as Error).message); }
+    finally { setUploadingAvatar(false); }
+  }
 
   const isSuspended = partner.status === 'SUSPENDED';
   const recruitmentStatus = partner.recruitment_status || dossier?.application?.status || 'NOT_REGISTERED';
@@ -125,6 +154,7 @@ export default function PartnerDetailModal({
           <div className="partner-modal-profile">
             <div className="partner-modal-avatar">
               {String(partner.name || 'P').slice(0, 1).toUpperCase()}
+              {avatar && <img src={avatar} alt="Ảnh đại diện đối tác" onError={event => { event.currentTarget.hidden = true; }} />}
             </div>
             <div className="partner-modal-name-group">
               <div className="partner-modal-name-row">
@@ -223,6 +253,25 @@ export default function PartnerDetailModal({
                     <span className="partner-spec-label">Ngày tạo tài khoản:</span>
                     <span className="partner-spec-value">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString('vi-VN') : (partner.created || 'Gần đây')}</span>
                   </div>
+                  <form className="partner-avatar-form" onSubmit={saveAvatar}>
+                    <strong>Ảnh đại diện</strong>
+                    <div className="row" style={{ flexWrap: 'wrap' }}>
+                      <label className="btn btn-outline">Chọn ảnh
+                        <input className="partner-avatar-file" type="file" accept="image/jpeg,image/png"
+                          onChange={event => setAvatarFile(event.target.files?.[0] ?? null)} />
+                      </label>
+                      <label className="btn btn-outline">Chụp ảnh
+                        <input className="partner-avatar-file" type="file" accept="image/*" capture="user"
+                          onChange={event => setAvatarFile(event.target.files?.[0] ?? null)} />
+                      </label>
+                    </div>
+                    <small>{avatarFile?.name || 'JPG hoặc PNG, tối đa 4 MB.'}</small>
+                    <label><input type="checkbox" name="ownerAuthorized" value="true" required /> Đối tác đồng ý dùng ảnh làm ảnh đại diện.</label>
+                    <button className="btn btn-primary" type="submit" disabled={!avatarFile || uploadingAvatar}>
+                      {uploadingAvatar ? 'Đang lưu…' : 'Lưu ảnh đại diện'}
+                    </button>
+                    {avatarError && <span role="alert">{avatarError}</span>}
+                  </form>
                 </div>
               </div>
 

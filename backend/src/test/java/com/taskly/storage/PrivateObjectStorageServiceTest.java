@@ -57,4 +57,17 @@ class PrivateObjectStorageServiceTest {
                 .isInstanceOfSatisfying(DomainException.class,
                         failure -> assertThat(failure.getCode()).isEqualTo("FILE_SIZE_INVALID"));
     }
+
+    @Test
+    void partnerAvatarIsStoredAsASquareJpeg() throws Exception {
+        var output = new ByteArrayOutputStream();
+        ImageIO.write(new BufferedImage(600, 400, BufferedImage.TYPE_INT_RGB), "png", output);
+        var file = new MockMultipartFile("file", "portrait.png", "image/png", output.toByteArray());
+        String avatar = service.partnerAvatar(file);
+        assertThat(avatar).startsWith("data:image/jpeg;base64,");
+        var bytes = java.util.Base64.getDecoder().decode(avatar.substring(avatar.indexOf(',') + 1));
+        var image = ImageIO.read(new java.io.ByteArrayInputStream(bytes));
+        assertThat(image.getWidth()).isEqualTo(320);
+        assertThat(image.getHeight()).isEqualTo(320);
+    }
 }

@@ -34,13 +34,14 @@ class VerificationServiceTest {
     private final VerificationHistoryRepository history = mock(VerificationHistoryRepository.class);
     private final PrivateObjectStorageService storage = mock(PrivateObjectStorageService.class);
     private final StorageProperties storageProperties = mock(StorageProperties.class);
+    private final com.taskly.recruitment.RecruitmentService recruitment = mock(com.taskly.recruitment.RecruitmentService.class);
     private final Instant now = Instant.parse("2026-09-29T08:00:00Z");
     private VerificationService service;
 
     @BeforeEach
     void setUp() {
         service = new VerificationService(users, taskerProfiles, verifications, documents, history,
-                storage, storageProperties, Clock.fixed(now, ZoneOffset.UTC), mock(com.taskly.recruitment.RecruitmentService.class));
+                storage, storageProperties, Clock.fixed(now, ZoneOffset.UTC), recruitment);
     }
 
     @Test
@@ -139,6 +140,26 @@ class VerificationServiceTest {
         draft.submit(now);
         assertThatThrownBy(() -> service.addAdminDraftDocument(admin.getId(), draft.getId(), side, file, true))
                 .isInstanceOfSatisfying(DomainException.class, e -> assertThat(e.getCode()).isEqualTo("KYC_NOT_EDITABLE"));
+    }
+
+    @Test
+    void officeSubmissionRequiresTheCheckedInOwnersDraftAndCleanPhotos() {
+        var owner = user();
+        var admin = user();
+        var applicationId = UUID.randomUUID();
+        var draft = new IdentityVerification(owner, now);
+        draft.setDocumentNumber("001234567890");
+        draft.updateDraft("Partner Name", "NATIONAL_ID", "********7890", now);
+        var application = mock(com.taskly.recruitment.RecruitmentDtos.Application.class);
+        when(application.userId()).thenReturn(owner.getId());
+        when(recruitment.requireOfficeKyc(applicationId)).thenReturn(application);
+
+        assertThatThrownBy(() -> service.submitOfficeDraft(admin.getId(), applicationId, draft.getId(), true))
+                .isInstanceOfSatisfying(DomainException.class, e -> assertThat(e.getCode()).isEqualTo("KYC_NOT_FOUND"));
+        when(verifications.findByIdAndUserId(draft.getId(), owner.getId())).thenReturn(Optional.of(draft));
+        assertThatThrownBy(() -> service.submitOfficeDraft(admin.getId(), applicationId, draft.getId(), true))
+                .isInstanceOfSatisfying(DomainException.class, e -> assertThat(e.getCode()).isEqualTo("KYC_SCAN_REQUIRED"));
+        assertThat(draft.getSubmittedAt()).isNull();
     }
 
     @Test

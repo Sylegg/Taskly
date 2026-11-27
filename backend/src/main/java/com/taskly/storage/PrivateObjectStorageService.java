@@ -127,7 +127,16 @@ public class PrivateObjectStorageService {
         } catch (java.io.IOException e) { throw new DomainException("FILE_NOT_FOUND", "Image not found", HttpStatus.NOT_FOUND); }
     }
 
+    public String partnerAvatar(MultipartFile file) {
+        var image = validate(file, 320);
+        return "data:" + image.contentType() + ";base64," + java.util.Base64.getEncoder().encodeToString(image.bytes());
+    }
+
     private ValidatedImage validate(MultipartFile file) {
+        return validate(file, 0);
+    }
+
+    private ValidatedImage validate(MultipartFile file, int avatarSize) {
         if (file == null || file.isEmpty() || file.getSize() > properties.maxImageBytes()) {
             throw new DomainException("FILE_SIZE_INVALID", "Ảnh trống hoặc vượt giới hạn dung lượng.", HttpStatus.BAD_REQUEST);
         }
@@ -146,6 +155,20 @@ public class PrivateObjectStorageService {
                 throw new DomainException("IMAGE_INVALID", "Ảnh không đọc được hoặc kích thước không phù hợp.", HttpStatus.BAD_REQUEST);
             }
             // Re-encode decoded pixels to discard metadata and any appended payload.
+            if (avatarSize > 0) {
+                int crop = Math.min(decoded.getWidth(), decoded.getHeight());
+                int left = (decoded.getWidth() - crop) / 2;
+                int top = (decoded.getHeight() - crop) / 2;
+                var avatar = new BufferedImage(avatarSize, avatarSize, BufferedImage.TYPE_INT_RGB);
+                var graphics = avatar.createGraphics();
+                try {
+                    graphics.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+                            java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                    graphics.drawImage(decoded, 0, 0, avatarSize, avatarSize, left, top, left + crop, top + crop, null);
+                } finally { graphics.dispose(); }
+                decoded = avatar;
+                contentType = "image/jpeg";
+            }
             var sanitized = new java.io.ByteArrayOutputStream();
             if (!ImageIO.write(decoded, contentType.equals("image/png") ? "png" : "jpg", sanitized)) {
                 throw new IllegalStateException("Cannot encode image");

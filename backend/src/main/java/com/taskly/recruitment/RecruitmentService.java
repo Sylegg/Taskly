@@ -124,6 +124,15 @@ public class RecruitmentService {
  public void requireReviewReady(Application application) {
   if(!Set.of("PRELIMINARY_REVIEW","ESCALATED","DOCUMENTS_RECEIVED","FINAL_REVIEW","ACTIVE").contains(application.status())) throw invalid("Hồ sơ chưa ở bước xét duyệt.");
  }
+ @Transactional
+ public Application requireOfficeKyc(UUID applicationId) {
+  var application=find(applicationId,false);
+  if (!Boolean.TRUE.equals(db.queryForObject("""
+      SELECT EXISTS(SELECT 1 FROM partner_office_appointments
+       WHERE application_id=? AND checked_in_at IS NOT NULL AND status IN ('CHECKED_IN','COMPLETED'))
+      """,Boolean.class,applicationId))) throw invalid("Đối tác cần được check-in tại văn phòng.");
+  return application;
+ }
  public void notifyIdentityApproved(UUID user,String reason) {
   var ids=db.queryForList("SELECT id FROM partner_applications WHERE user_id=?",UUID.class,user);
   if(ids.isEmpty())return;

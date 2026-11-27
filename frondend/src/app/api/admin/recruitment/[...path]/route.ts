@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminSession, callBackend, failure, requireSameOrigin, ApiError } from '@/lib/admin-api';
+import { adminSession, authorizedPhoto, callBackend, failure, requireSameOrigin, ApiError } from '@/lib/admin-api';
 type Context = { params: Promise<{path: string[]}> };
 async function proxy(request: NextRequest, context: Context) {
  try {
@@ -9,15 +9,12 @@ async function proxy(request: NextRequest, context: Context) {
   if (request.method === 'POST' && /^kyc\/[0-9a-f-]{36}\/documents\/(FRONT|BACK|SELFIE)$/.test(route)) {
    requireSameOrigin(request);
    const session = await adminSession(true);
-   const form = await request.formData().catch(() => null);
-   const file = form?.get('file');
-   if (!(file instanceof File) || !file.size || file.size > 4 * 1024 * 1024 || form?.get('ownerAuthorized') !== 'true') {
-    throw new ApiError('Cần chọn ảnh tối đa 4 MB và xác nhận chủ hồ sơ đã đồng ý.', 400);
-   }
-   const upload = new FormData();
-   upload.set('file', file);
-   upload.set('ownerAuthorized', 'true');
-   return NextResponse.json({data:await callBackend('/admin/verifications/'+route.slice(4),'POST',upload,session.access)});
+   return NextResponse.json({data:await callBackend('/admin/verifications/'+route.slice(4),'POST',await authorizedPhoto(request),session.access)});
+  }
+  if (request.method === 'POST' && /^kyc\/office\/[0-9a-f-]{36}\/(?:draft|[0-9a-f-]{36}\/submit)$/.test(route)) {
+   requireSameOrigin(request);
+   const session=await adminSession(true);
+   return NextResponse.json({data:await callBackend('/admin/verifications/'+route.slice(4),'POST',await request.json(),session.access)});
   }
   if (/^kyc(?:\/[0-9a-f-]{36}\/(?:approve|reject|documents\/[0-9a-f-]{36}\/url))?$/.test(route)) {
    if(request.method!=='GET') requireSameOrigin(request);

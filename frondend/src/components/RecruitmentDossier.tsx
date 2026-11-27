@@ -133,14 +133,25 @@ export default function RecruitmentDossier({
   const [documentUrls, setDocumentUrls] = useState<Record<string, string>>({});
   const [approving, setApproving] = useState(false);
   const [uploadingIdentity, setUploadingIdentity] = useState(false);
+  const [savingOfficeKyc, setSavingOfficeKyc] = useState(false);
   const identity = dossier.identities[0];
   const identityDocuments = dossier.documents.filter(doc => doc.verification_id === identity?.id);
   const availableSides = ['FRONT', 'BACK', 'SELFIE'].filter(side => !identityDocuments.some(doc => doc.document_side === side));
   const canAddIdentityPhoto = canReadIdentity && identity?.status === 'DRAFT' &&
     identity.document_type === 'NATIONAL_ID' && availableSides.length > 0;
-  const canApproveIdentity = canReadIdentity && app.reviewReady && identity?.document_type === 'NATIONAL_ID' &&
-    (identity.status === 'SUBMITTED' || identity.status === 'UNDER_REVIEW') &&
-    ['FRONT', 'BACK'].every(side => identityDocuments.some(doc => doc.document_side === side && doc.scan_status === 'CLEAN'));
+  const hasCleanIdentitySides = ['FRONT', 'BACK'].every(side =>
+    identityDocuments.some(doc => doc.document_side === side && doc.scan_status === 'CLEAN'));
+  const reviewStage = ['PRELIMINARY_REVIEW', 'ESCALATED', 'DOCUMENTS_RECEIVED', 'FINAL_REVIEW', 'ACTIVE'].includes(app.status);
+  const readyIdentity = identity?.document_type === 'NATIONAL_ID' &&
+    (identity.status === 'SUBMITTED' || identity.status === 'UNDER_REVIEW') && hasCleanIdentitySides;
+  const canApproveIdentity = canReadIdentity && app.reviewReady && reviewStage && readyIdentity;
+  const officeCheckedIn = dossier.appointments.some(visit =>
+    (visit.status === 'CHECKED_IN' || visit.status === 'COMPLETED') && Boolean(visit.checked_in_at));
+  const canPrepareOfficeKyc = canReadIdentity && officeCheckedIn &&
+    (!identity || ['REJECTED', 'EXPIRED'].includes(String(identity.status)) || (identity.status === 'DRAFT' && !identity.document_type));
+  const canSubmitOfficeKyc = canReadIdentity && officeCheckedIn && identity?.status === 'DRAFT' &&
+    identity.document_type === 'NATIONAL_ID' && /^\d{12}$/.test(String(identity.document_number || '')) &&
+    hasCleanIdentitySides;
 
   useEffect(() => {
     let cancelled = false;
@@ -196,6 +207,29 @@ export default function RecruitmentDossier({
       await onIdentityApproved?.();
     } catch (e) { setError((e as Error).message); }
     finally { setUploadingIdentity(false); }
+  }
+
+  async function saveOfficeKyc(event: FormEvent<HTMLFormElement>, action: 'draft' | 'submit') {
+    event.preventDefault();
+    if (savingOfficeKyc) return;
+    const form = event.currentTarget;
+    const values = new FormData(form);
+    const body = action === 'draft'
+      ? { legalName: values.get('legalName'), documentNumber: values.get('documentNumber'), consentRecorded: values.has('consent') }
+      : { consent: values.has('consent') };
+    const endpoint = action === 'draft' ? 'draft' : `${identity.id}/submit`;
+    setSavingOfficeKyc(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/recruitment/kyc/office/${app.id}/${endpoint}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.error || 'Không thể lưu hồ sơ CCCD tại văn phòng.');
+      form.reset();
+      await onIdentityApproved?.();
+    } catch (error) { setError((error as Error).message); }
+    finally { setSavingOfficeKyc(false); }
   }
 
   useEffect(() => {
@@ -389,7 +423,9 @@ export default function RecruitmentDossier({
               </div>
 
               {dossier.identities.length === 0 ? (
-                <p className="dossier-empty">Đối tác cần tạo bản nháp CCCD trên app Partner để Admin có thể bổ sung ảnh.</p>
+                <p className="dossier-empty">{officeCheckedIn
+                  ? 'Chưa có hồ sơ CCCD.'
+                  : 'Đối tác có thể tạo hồ sơ trên app Partner hoặc check-in để được tiếp nhận tại văn phòng.'}</p>
               ) : (
                 <div className="dossier-identities-table-wrap">
                   <table className="dossier-table dossier-identity-table">
@@ -464,6 +500,18 @@ export default function RecruitmentDossier({
                 </div>
               )}
 
+              {canPrepareOfficeKyc && (
+                <form className="dossier-doc-inspection" onSubmit={event => void saveOfficeKyc(event, 'draft')}>
+                  <h5>Tiếp nhận CCCD tại văn phòng</h5>
+                  <div className="row" style={{ flexWrap: 'wrap' }}>
+                    <label className="field">Họ tên trên CCCD<input name="legalName" required minLength={2} maxLength={160} autoComplete="off" /></label>
+                    <label className="field">Số CCCD<input name="documentNumber" required pattern="[0-9]{12}" maxLength={12} inputMode="numeric" autoComplete="off" /></label>
+                    <label><input type="checkbox" name="consent" required /> Đối tác có mặt và đồng ý cho ghi nhận thông tin CCCD.</label>
+                    <button className="btn btn-outline" type="submit" disabled={savingOfficeKyc}>Tạo bản nháp CCCD</button>
+                  </div>
+                </form>
+              )}
+
               {canAddIdentityPhoto && (
                 <form onSubmit={addIdentityPhoto} className="dossier-doc-inspection">
                   <h5>Bổ sung ảnh CCCD</h5>
@@ -479,7 +527,14 @@ export default function RecruitmentDossier({
                       {uploadingIdentity ? 'Đang tải ảnh…' : 'Thêm ảnh'}
                     </button>
                   </div>
-                  <p>Đối tác gửi hồ sơ từ app Partner sau khi kiểm tra thông tin và ảnh.</p>
+                  <p>{officeCheckedIn ? 'Sau khi đủ hai mặt, nhân viên có thể gửi hồ sơ tại văn phòng.' : 'Đối tác gửi hồ sơ từ app Partner sau khi kiểm tra thông tin và ảnh.'}</p>
+                </form>
+              )}
+
+              {canSubmitOfficeKyc && (
+                <form className="dossier-doc-inspection" onSubmit={event => void saveOfficeKyc(event, 'submit')}>
+                  <label><input type="checkbox" name="consent" required /> Đã đối chiếu giấy tờ gốc và được đối tác đồng ý gửi hồ sơ.</label>
+                  <button className="btn btn-outline" type="submit" disabled={savingOfficeKyc}>Gửi xét duyệt tại văn phòng</button>
                 </form>
               )}
 
@@ -530,6 +585,8 @@ export default function RecruitmentDossier({
                   {approving ? 'Đang duyệt…' : 'Duyệt KYC'}
                 </button>
               )}
+              {canReadIdentity && officeCheckedIn && readyIdentity && !reviewStage &&
+                <p className="dossier-empty">Hoàn tất bước tiếp nhận hồ sơ tại văn phòng để duyệt KYC.</p>}
               {error && (
                 <div className="notice catalogue-notice" role="alert" style={{ marginTop: 12, background: '#fef2f2', borderColor: '#fca5a5', color: '#991b1b' }}>
                   {error}

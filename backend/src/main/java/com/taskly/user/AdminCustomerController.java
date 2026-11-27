@@ -13,10 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/admin/customers")
@@ -26,8 +28,29 @@ public class AdminCustomerController {
     private final JdbcTemplate db;
     private final RefreshTokenService refresh;
     private final Clock clock;
-    public AdminCustomerController(JdbcTemplate db, RefreshTokenService refresh, Clock clock, com.taskly.recruitment.RecruitmentDossierService dossiers) {
-        this.dossiers=dossiers; this.db = db; this.refresh = refresh; this.clock = clock;
+    private final com.taskly.storage.PrivateObjectStorageService storage;
+    public AdminCustomerController(JdbcTemplate db, RefreshTokenService refresh, Clock clock, com.taskly.recruitment.RecruitmentDossierService dossiers, com.taskly.storage.PrivateObjectStorageService storage) {
+        this.dossiers=dossiers; this.db = db; this.refresh = refresh; this.clock = clock; this.storage = storage;
+    }
+    @PostMapping(value="/{id}/partner-avatar", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
+    public ApiResponse<Map<String,String>> updatePartnerAvatar(
+            @PathVariable UUID id, @RequestPart("file") MultipartFile file,
+            @RequestParam boolean ownerAuthorized,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
+        if (!ownerAuthorized) throw badEdit();
+        if (!Boolean.TRUE.equals(db.queryForObject("""
+                SELECT EXISTS(SELECT 1 FROM users u WHERE u.id=?
+                    AND (u.used_partner OR EXISTS(SELECT 1 FROM partner_applications a WHERE a.user_id=u.id)))
+                """,Boolean.class,id))) throw new DomainException("PARTNER_NOT_FOUND","Không tìm thấy đối tác.",HttpStatus.NOT_FOUND);
+        String avatar=storage.partnerAvatar(file);
+        if(db.update("UPDATE user_profiles SET partner_avatar=?, updated_at=CURRENT_TIMESTAMP WHERE user_id=?",avatar,id)!=1)
+            throw new DomainException("PARTNER_NOT_FOUND","Không tìm thấy hồ sơ đối tác.",HttpStatus.NOT_FOUND);
+        db.update("""
+                INSERT INTO audit_logs(id,actor_id,actor_type,action,entity_type,entity_id,created_at)
+                VALUES(?,?,'ADMIN','UPDATE_PARTNER_AVATAR','Partner',?,CURRENT_TIMESTAMP)
+                """,UUID.randomUUID(),UUID.fromString(jwt.getSubject()),id);
+        return ApiResponse.success(Map.of("avatar",avatar));
     }
     public record PartnerBatch(@NotNull @Size(min=1,max=50) List<@Valid PartnerEdit> edits) {}
     @PatchMapping("/{id}/details/batch") @Transactional
@@ -88,7 +111,7 @@ public class AdminCustomerController {
     private DomainException badEdit(){return new DomainException("INVALID_PARTNER_EDIT","Thông tin chỉnh sửa không hợp lệ.",HttpStatus.BAD_REQUEST);}
     @GetMapping("/{id}/details")
     public ApiResponse<Map<String,Object>> details(@PathVariable UUID id) {
-        var users=db.queryForList("SELECT u.id,u.email,u.phone,u.status,u.created_at,p.full_name,p.language FROM users u LEFT JOIN user_profiles p ON p.user_id=u.id WHERE u.id=?",id);
+        var users=db.queryForList("SELECT u.id,u.email,u.phone,u.status,u.created_at,p.full_name,p.language,COALESCE(p.partner_avatar,(SELECT f.portrait FROM partner_final_documents f JOIN partner_applications a ON a.id=f.application_id WHERE a.user_id=u.id)) AS avatar FROM users u LEFT JOIN user_profiles p ON p.user_id=u.id WHERE u.id=?",id);
         if(users.isEmpty())throw new DomainException("USER_NOT_FOUND","Không tìm thấy tài khoản.",HttpStatus.NOT_FOUND);
         var result=new java.util.LinkedHashMap<String,Object>();
         result.put("profile",users.getFirst());
@@ -116,7 +139,7 @@ public class AdminCustomerController {
             SELECT u.id, COALESCE(NULLIF(p.full_name, ''), NULLIF(a.full_name, ''), '') AS name,
               u.email, COALESCE(u.phone, a.contact_phone, '') AS phone, u.status,
               COALESCE(p.bio='Dữ liệu thử nghiệm EXE201',false) AS demo_exe201,
-              (SELECT f.portrait FROM partner_final_documents f WHERE f.application_id=a.id) AS avatar,
+              COALESCE(p.partner_avatar,(SELECT f.portrait FROM partner_final_documents f WHERE f.application_id=a.id)) AS avatar,
               u.used_customer AS customer_app, (u.used_partner OR a.id IS NOT NULL) AS partner_app,
               u.created_at AS created,
               (SELECT COUNT(*) FROM tasks t WHERE t.customer_id=u.id AND t.status<>'DRAFT') AS bookings,

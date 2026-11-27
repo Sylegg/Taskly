@@ -46,6 +46,17 @@ export function requireSameOrigin(request: NextRequest) {
     throw new ApiError('Yêu cầu không hợp lệ.', 403);
   }
 }
+export async function authorizedPhoto(request: NextRequest) {
+  const form = await request.formData().catch(() => null);
+  const file = form?.get('file');
+  if (!(file instanceof File) || !file.size || file.size > 4 * 1024 * 1024 || form?.get('ownerAuthorized') !== 'true') {
+    throw new ApiError('Cần chọn ảnh tối đa 4 MB và xác nhận chủ hồ sơ đã đồng ý.', 400);
+  }
+  const upload = new FormData();
+  upload.set('file', file);
+  upload.set('ownerAuthorized', 'true');
+  return upload;
+}
 export async function callBackend(path: string, method = 'GET', body?: unknown, access?: string) {
   let response: Response;
   const multipart = body instanceof FormData;
